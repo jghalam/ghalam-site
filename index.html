@@ -1,126 +1,250 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CrowdNotes</title>
-
-<link rel="icon" href="/images/ghalam_icon.png">
-<link rel="apple-touch-icon" href="/images/ghalam_icon.png">
-
+<title>Ghalam.net</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
+  :root {
+    --bg:        #0d0f14;
+    --surface:   #161820;
+    --border:    #2a2d3a;
+    --text:      #e8eaf0;
+    --muted:     #8b8fa8;
+    --gold:      #c8a96e;
+    --blue:      #7eb8d4;
+    --green:     #7ec4a0;
+    --radius:    16px;
+  }
 
-body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background: #f4f6f8;
-    margin: 0;
-    padding: 0;
-    color: #333;
-}
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-.container {
-    max-width: 700px;
-    margin: 80px auto;
-    background: white;
-    padding: 40px;
-    border-radius: 10px;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-}
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
 
-.header {
+  /* ── HEADER ── */
+  header {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 18px;
-    margin-bottom: 25px;
-}
+    text-align: center;
+    padding: 4rem 2rem 3rem;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    width: 700px; height: 400px;
+    background: radial-gradient(ellipse, rgba(200,169,110,0.06) 0%, transparent 70%);
+    top: 0; left: 50%; transform: translateX(-50%);
+    pointer-events: none;
+  }
+  header img.site-logo {
+    width: 80px; height: 80px;
+    border-radius: 18px;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+    object-fit: cover;
+  }
+  header h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2rem, 5vw, 3rem);
+    font-weight: 400;
+    color: var(--text);
+    margin-bottom: 0.6rem;
+  }
+  header p.subtitle {
+    font-size: 1rem;
+    color: var(--muted);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    font-size: 0.82rem;
+  }
 
-.header2 {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-    margin-bottom: 20px;
-}
-   
-.siteicon {
-   width: 100px;
-   height: 100px;
-   border-radius: 20px;
-}
-    
-.appicon {
-    width: 50px;
-    height: 50px;
-    border-radius: 15px;
-}
+  /* ── DIVIDER ── */
+  .divider {
+    max-width: 760px;
+    margin: 0 auto;
+    border: none;
+    border-top: 1px solid var(--border);
+  }
 
-h1 {
-    margin: 0;
-    font-size: 32px;
-}
+  /* ── APPS GRID ── */
+  .apps {
+    max-width: 820px;
+    margin: 0 auto;
+    padding: 3rem 2rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 1.25rem;
+  }
 
-.tagline {
-    color: #666;
-    margin-top: 4px;
-}
-
-p {
-    line-height: 1.6;
-}
-
-a {
-    color: #1a73e8;
+  .app-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.75rem;
     text-decoration: none;
-}
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .app-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .app-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+  }
+  .app-card.gold  { --card-accent: var(--gold); }
+  .app-card.blue  { --card-accent: var(--blue); }
+  .app-card.green { --card-accent: var(--green); }
+  .app-card:hover { border-color: var(--card-accent); }
 
-a:hover {
-    text-decoration: underline;
-}
+  .app-card-top {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .app-card-top img {
+    width: 56px; height: 56px;
+    border-radius: 13px;
+    object-fit: cover;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.3);
+    flex-shrink: 0;
+  }
+  .app-card-top .app-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.25rem;
+    font-weight: 400;
+    color: var(--text);
+    line-height: 1.2;
+  }
+  .app-card-top .app-platform {
+    font-size: 0.75rem;
+    color: var(--card-accent);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-top: 0.2rem;
+  }
+  .app-card p {
+    font-size: 0.88rem;
+    color: var(--muted);
+    line-height: 1.6;
+    flex: 1;
+  }
+  .app-card .card-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    color: var(--card-accent);
+    font-weight: 500;
+    letter-spacing: 0.03em;
+  }
+  .app-card .card-footer .arrow {
+    transition: transform 0.2s;
+  }
+  .app-card:hover .arrow { transform: translateX(4px); }
 
-.footer {
-    margin-top: 35px;
-    font-size: 0.9em;
-    color: #777;
-}
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    padding: 2rem;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.82rem;
+  }
 
+  @media (max-width: 600px) {
+    header { padding: 3rem 1.25rem 2.5rem; }
+    .apps  { padding: 2rem 1.25rem; grid-template-columns: 1fr; }
+  }
 </style>
-
 </head>
-
 <body>
 
-<div class="container">
+<header>
+  <img src="images/ghalam_net.png" alt="Ghalam.net" class="site-logo">
+  <h1>Ghalam.net</h1>
+  <p class="subtitle">iOS Apps by Joe Ghalam</p>
+</header>
 
-<div class="header">
-    <img src="/images/ghalam_net.png" class="siteicon" alt="Ghalam.net">
-    <div>
-        <h1>Ghalam.net</h1>
-        <div class="tagline">- Ghalam.net Apps Pagaes -</div>
+<hr class="divider">
+
+<div class="apps">
+
+  <!-- CrowdNotes -->
+  <a href="crowdnotes/index.html" class="app-card green">
+    <div class="app-card-top">
+      <img src="crowdnotes/appicon.png" alt="CrowdNotes icon">
+      <div>
+        <div class="app-name">CrowdNotes</div>
+        <div class="app-platform">iOS · iCloud</div>
+      </div>
     </div>
-</div>
-
-<hr>
-<hr>
-
-<div class="header2">
-    <img src="/crowdnotes/appicon.png" class="appicon" alt="CrowdNotes App Icon">
-    <div>
-        <h2><a href="/crowdnotes/index.html">CrowdNotes</a></h2>
-        <div class="tagline">Collaborative event notes & attendees tool</div>
+    <p>Collaborative event notes and attendee tracking for recruiting and networking events. Real-time shared notes powered by iCloud.</p>
+    <div class="card-footer">
+      <span>View app</span>
+      <span class="arrow">→</span>
     </div>
+  </a>
+
+  <!-- GhalamPhotos -->
+  <a href="ghalamphotos/index.html" class="app-card gold">
+    <div class="app-card-top">
+      <img src="ghalamphotos/images/ghalamphotos.png" alt="GhalamPhotos icon">
+      <div>
+        <div class="app-name">GhalamPhotos</div>
+        <div class="app-platform">iOS · Apple Photos</div>
+      </div>
+    </div>
+    <p>Turn your iPhone or iPad into an elegant digital photo frame. Displays your Apple Photos albums as a beautiful, customizable slideshow.</p>
+    <div class="card-footer">
+      <span>View app</span>
+      <span class="arrow">→</span>
+    </div>
+  </a>
+
+  <!-- GhalamRadio -->
+  <a href="ghalamradio/index.html" class="app-card blue">
+    <div class="app-card-top">
+      <img src="ghalamradio/images/ghalamradio.png" alt="GhalamRadio icon">
+      <div>
+        <div class="app-name">GhalamRadio</div>
+        <div class="app-platform">iOS · Online Radio</div>
+      </div>
+    </div>
+    <p>Search, sample, and save online radio stations from around the world. Find stations by name, call letters, frequency, or proximity.</p>
+    <div class="card-footer">
+      <span>View app</span>
+      <span class="arrow">→</span>
+    </div>
+  </a>
+
 </div>
 
-<p>
-CrowdNotes is a lightweight collaboration app designed for recruiting or networking events.
-Event staff can quickly look up attendees and share notes about conversations during the event.
-</p>
-<hr>
-
-<div class="footer">
-© 2026 Ghalam.net<br>
-</div>
-
-</div>
+<footer>
+  <p>© 2026 Ghalam.net</p>
+</footer>
 
 </body>
 </html>
