@@ -1,124 +1,91 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CrowdNotes Support</title>
-
-<link rel="icon" href="/crowdnotes/appicon.png">
-<link rel="apple-touch-icon" href="/crowdnotes/appicon.png">
-
+<title>Support – CrowdNotes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
-
-body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    background: #f4f6f8;
-    margin: 0;
-    padding: 0;
-    color: #333;
-}
-
-.container {
-    max-width: 800px;
-    margin: 80px auto;
-    background: white;
-    padding: 40px;
-    border-radius: 10px;
-    box-shadow: 0 6px 20px rgba(0,0,0,0.08);
-}
-
-.header {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    margin-bottom: 25px;
-}
-
-.appicon {
-    width: 60px;
-    height: 60px;
-    border-radius: 14px;
-}
-
-h1 {
-    margin: 0;
-}
-
-h2 {
-    margin-top: 28px;
-}
-
-p {
-    line-height: 1.6;
-}
-
-a {
-    color: #1a73e8;
-    text-decoration: none;
-}
-
-a:hover {
-    text-decoration: underline;
-}
-
-.footer {
-    margin-top: 35px;
-    font-size: 0.9em;
-    color: #777;
-}
-
+  :root { --bg:#0d0f14; --surface:#161820; --border:#2a2d3a; --text:#e8eaf0; --muted:#8b8fa8; --accent:#7ec4a0; --radius:14px; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-weight: 300; line-height: 1.75; min-height: 100vh; }
+  nav { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 2rem; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: rgba(13,15,20,0.92); backdrop-filter: blur(12px); z-index: 100; }
+  nav .brand { font-family: 'DM Serif Display', serif; font-size: 1.2rem; color: var(--accent); text-decoration: none; }
+  nav .nav-links { display: flex; gap: 2rem; list-style: none; }
+  nav .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.9rem; font-weight: 400; letter-spacing: 0.04em; transition: color 0.2s; }
+  nav .nav-links a:hover { color: var(--text); }
+  nav .nav-links a.active { color: var(--accent); }
+  .page-header { max-width: 760px; margin: 0 auto; padding: 3.5rem 2rem 2rem; border-bottom: 1px solid var(--border); }
+  .page-header .label { font-size: 0.78rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.6rem; }
+  .page-header h1 { font-family: 'DM Serif Display', serif; font-size: 2.4rem; font-weight: 400; color: var(--text); line-height: 1.15; }
+  article { max-width: 760px; margin: 0 auto; padding: 2.5rem 2rem 4rem; }
+  article h2 { font-family: 'DM Serif Display', serif; font-size: 1.3rem; font-weight: 400; color: var(--text); margin: 2.5rem 0 0.75rem; padding-top: 2rem; border-top: 1px solid var(--border); }
+  article h2:first-child { border-top: none; padding-top: 0; margin-top: 0; }
+  article p { color: var(--muted); margin-bottom: 1rem; }
+  article a { color: var(--accent); text-decoration: none; }
+  article a:hover { text-decoration: underline; }
+  .contact-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 2rem; text-align: center; margin-top: 1.5rem; }
+  .contact-card p { margin-bottom: 1rem; }
+  .contact-card a.btn { display: inline-block; background: var(--accent); color: #0d0f14; font-weight: 500; font-size: 0.9rem; padding: 0.6rem 1.6rem; border-radius: 100px; text-decoration: none; letter-spacing: 0.03em; transition: opacity 0.2s; }
+  .contact-card a.btn:hover { opacity: 0.85; }
+  footer { text-align: center; padding: 2rem; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.82rem; }
+  footer a { color: var(--muted); text-decoration: none; }
+  footer a:hover { color: var(--accent); }
+  @media (max-width: 600px) { nav { padding: 1rem; } .page-header, article { padding-left: 1.25rem; padding-right: 1.25rem; } }
 </style>
-
 </head>
-
 <body>
 
-<div class="container">
+<nav>
+  <a href="index.html" class="brand">CrowdNotes</a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="privacy.html">Privacy</a></li>
+    <li><a href="support.html" class="active">Support</a></li>
+    <li><a href="https://ghalam.net/" target="_blank">Ghalam.net</a></li>
+  </ul>
+</nav>
 
-<div class="header">
-    <img src="appicon.png" class="appicon" alt="CrowdNotes App Icon">
-    <div>
-        <h1>Support</h1>
-        <div>for CrowdNotes</div>
-    </div>
+<div class="page-header">
+  <p class="label">Help</p>
+  <h1>Support</h1>
 </div>
 
-<p>
-CrowdNotes is designed to help teams collaborate during organized events or networking events
-by sharing notes about attendees using Apple iCloud backend.
-</p>
+<article>
 
-<h2>Getting Help</h2>
+  <p>CrowdNotes is designed to help teams collaborate during organized events and networking sessions using Apple iCloud as the backend. If you're running into issues or have questions, we're happy to help.</p>
 
-<p>
-If you experience issues using the CrowdNotes app, have questions about features,
-or want to report a bug, please contact the developer.
-</p>
+  <h2>Getting Help</h2>
+  <p>If you experience issues using CrowdNotes, have questions about features, or want to report a bug, please contact the developer directly. Include a brief description of the issue and your iOS version if possible.</p>
 
-<p>
-<strong>Developer:</strong> Joe Ghalam<br>
-<strong>Email:</strong> <a href="mailto:jghalam@yahoo.com">jghalam@yahoo.com</a>
-</p>
+  <div class="contact-card">
+    <p>Reach out for support, bug reports, or feature requests.</p>
+    <a href="mailto:jghalam@yahoo.com" class="btn">Email Support</a>
+  </div>
 
-<h2>Privacy</h2>
+  <h2>Common Questions</h2>
+  <p><strong style="color: var(--text);">Do I need an iCloud account?</strong><br>
+  Yes. CrowdNotes uses Apple CloudKit to store and sync data. You'll need to be signed into iCloud on your device.</p>
 
-<p>
-For information about how CrowdNotes accesses and uses data, please review our
-<a href="/crowdnotes/privacy.html">Privacy Policy</a>.
-</p>
+  <p><strong style="color: var(--text);">How do I share an event with my team?</strong><br>
+  Open the event, tap the share button, and invite collaborators using their Apple ID. They'll receive an iCloud sharing invitation.</p>
 
-<p>
-Return to the <a href="/crowdnotes/">CrowdNotes homepage</a>.
-</p>
+  <p><strong style="color: var(--text);">Is my data backed up?</strong><br>
+  All data is stored in iCloud and is subject to iCloud's backup and sync policies. Ensure iCloud is enabled on your device.</p>
 
-<div class="footer">
-© 2026 CrowdNotes<br>
-<a href="/crowdnotes/index.html">Home</a> |
-<a href="/crowdnotes/privacy.html">Privacy</a>
-</div>
+  <h2>Privacy</h2>
+  <p>For information about how CrowdNotes accesses and uses data, please review our <a href="privacy.html">Privacy Policy</a>.</p>
 
-</div>
+  <h2>Terms of Service</h2>
+  <p>For the terms governing use of CrowdNotes, see our <a href="tos.html">Terms of Service</a>.</p>
+
+</article>
+
+<footer>
+  <p>© 2026 CrowdNotes &nbsp;·&nbsp; <a href="privacy.html">Privacy</a> &nbsp;·&nbsp; <a href="tos.html">Terms</a> &nbsp;·&nbsp; <a href="https://ghalam.net/">Ghalam.net</a></p>
+</footer>
 
 </body>
 </html>
