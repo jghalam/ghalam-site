@@ -461,7 +461,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.42';
+const VERSION     = 'v1.0.43';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '334bed51ea26c4a9bade8cf8991010ae0e59ebb74dc4e7bab038c92f2fcb490b';
@@ -762,16 +762,6 @@ async function loadAttendees() {
     };
     const resp = await activeEvent.database.performQuery(query, { zoneID: zid });
     console.log('loadAttendees records:', resp.records?.length, 'errors:', JSON.stringify(resp.errors || []).slice(0,200));
-    if (resp.records && resp.records.length > 0) {
-      const r0 = resp.records[0];
-      console.log('FULL RECORD META:', JSON.stringify({
-        recordName: r0.recordName,
-        recordChangeTag: r0.recordChangeTag,
-        zoneID: r0.zoneID,
-        created: r0.created,
-        modified: r0.modified
-      }));
-    }
 
     allAttendees = (resp.records || []).map(r => {
       console.log('attendee record:', r.recordName, 'attendeeID:', r.fields.attendeeID?.value);
@@ -907,10 +897,21 @@ async function toggleCheckin() {
   const a = currentAttendee;
   a.isCheckedIn = !a.isCheckedIn;
   try {
-    const record = a._ckRecord;
-    if (!record) throw new Error('No record stored');
-    record.fields.isCheckedIn = { value: a.isCheckedIn ? 1 : 0 };
-    await activeEvent.database.saveRecords([record]);
+    const stored = a._ckRecord;
+    if (!stored) throw new Error('No record stored');
+    const zid2 = { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.ownerName };
+    const freshResp2 = await activeEvent.database.performQuery({
+      recordType: 'Attendee',
+      filterBy: [{ fieldName: 'name', comparator: 'NOT_EQUALS', fieldValue: { value: '' } }]
+    }, { zoneID: zid2 });
+    const freshRec2 = (freshResp2.records || []).find(r => r.recordName === stored.recordName);
+    if (!freshRec2) throw new Error('Could not find record for checkin');
+    freshRec2.fields.isCheckedIn = { value: a.isCheckedIn ? 1 : 0, type: 'INT64' };
+    const saveResp2 = await activeEvent.database.saveRecords([freshRec2]);
+    const saved2 = saveResp2.records || saveResp2._results || [];
+    const err2 = saved2.find(r => r.serverErrorCode || r._error);
+    if (err2) { a.isCheckedIn = !a.isCheckedIn; throw new Error(err2.reason || err2.serverErrorCode); }
+    if (saved2.length > 0) currentAttendee._ckRecord = saved2[0];
     const idx = allAttendees.findIndex(x => x.id === a.id);
     if (idx !== -1) allAttendees[idx].isCheckedIn = a.isCheckedIn;
     renderDetail();
@@ -937,21 +938,46 @@ async function saveNote() {
     const a     = currentAttendee;
     const newNotes = a.notes ? a.notes + '|' + entry : entry;
 
-    // Use the stored CKRecord directly — no need to re-fetch
-    const record = currentAttendee._ckRecord;
-    if (!record) throw new Error('No record stored for this attendee');
-    console.log('saveNote using stored record:', record.recordName);
-    record.fields.notes = { value: newNotes };
-    console.log('saveNote saving...');
-    const saveResp = await activeEvent.database.saveRecords([record]);
-    console.log('saveNote saveResp:', JSON.stringify(saveResp).slice(0,300));
+    const stored = currentAttendee._ckRecord;
+    if (!stored) throw new Error('No record stored for this attendee');
 
-    a.notes = newNotes;
+    // Re-query to get the freshest version of this record with current changeTag.
+    // performQuery is the only CloudKit JS method that reliably returns the
+    // canonical record — fetchRecords routes to a different replica.
+    const zid = { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.ownerName };
+    console.log('saveNote: re-querying for fresh record...');
+    const freshResp = await activeEvent.database.performQuery({
+      recordType: 'Attendee',
+      filterBy: [{ fieldName: 'name', comparator: 'NOT_EQUALS', fieldValue: { value: '' } }]
+    }, { zoneID: zid });
+    const freshRec = (freshResp.records || []).find(r => r.recordName === stored.recordName);
+    if (!freshRec) throw new Error('Could not find record in re-query');
+    console.log('saveNote: fresh changeTag:', freshRec.recordChangeTag, 'notes len:', (freshRec.fields.notes?.value||'').length);
+
+    // Merge new entry onto server's current notes
+    const serverNotes = freshRec.fields.notes?.value || '';
+    const mergedNotes = serverNotes ? serverNotes + '|' + entry : entry;
+    freshRec.fields.notes = { value: mergedNotes, type: 'STRING' };
+
+    console.log('saveNote: saving...');
+    const saveResp = await activeEvent.database.saveRecords([freshRec]);
+    const savedRecords = saveResp.records || saveResp._results || [];
+    const errRec = savedRecords.find(r => r.serverErrorCode || r._error);
+    if (errRec) throw new Error(errRec.reason || errRec.serverErrorCode || 'Save error');
+    if (saveResp._errors && saveResp._errors.length > 0) throw new Error(saveResp._errors[0].reason || saveResp._errors[0].serverErrorCode);
+    console.log('saveNote: saved OK, results:', savedRecords.length);
+    if (savedRecords.length > 0) {
+      currentAttendee._ckRecord = savedRecords[0];
+      const idx2 = allAttendees.findIndex(x => x.id === a.id);
+      if (idx2 !== -1) allAttendees[idx2]._ckRecord = savedRecords[0];
+    }
+
+    a.notes = mergedNotes;
     const idx = allAttendees.findIndex(x => x.id === a.id);
-    if (idx !== -1) allAttendees[idx].notes = newNotes;
+    if (idx !== -1) allAttendees[idx].notes = mergedNotes;
     input.value = '';
     renderDetail();
-    showToast('Note saved');
+    showToast('Note saved ✓');
   } catch(e) {
     showToast('Failed to save note: ' + e.message);
   } finally {
