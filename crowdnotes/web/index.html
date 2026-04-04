@@ -461,7 +461,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.43';
+const VERSION     = 'v1.0.44';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '334bed51ea26c4a9bade8cf8991010ae0e59ebb74dc4e7bab038c92f2fcb490b';
@@ -907,7 +907,9 @@ async function toggleCheckin() {
     const freshRec2 = (freshResp2.records || []).find(r => r.recordName === stored.recordName);
     if (!freshRec2) throw new Error('Could not find record for checkin');
     freshRec2.fields.isCheckedIn = { value: a.isCheckedIn ? 1 : 0, type: 'INT64' };
-    const saveResp2 = await activeEvent.database.saveRecords([freshRec2]);
+    let saveResp2;
+    try { saveResp2 = await activeEvent.database.saveRecords([freshRec2]); }
+    catch(e) { a.isCheckedIn = !a.isCheckedIn; throw new Error('saveRecords threw: ' + e.message); }
     const saved2 = saveResp2.records || saveResp2._results || [];
     const err2 = saved2.find(r => r.serverErrorCode || r._error);
     if (err2) { a.isCheckedIn = !a.isCheckedIn; throw new Error(err2.reason || err2.serverErrorCode); }
@@ -941,11 +943,8 @@ async function saveNote() {
     const stored = currentAttendee._ckRecord;
     if (!stored) throw new Error('No record stored for this attendee');
 
-    // Re-query to get the freshest version of this record with current changeTag.
-    // performQuery is the only CloudKit JS method that reliably returns the
-    // canonical record — fetchRecords routes to a different replica.
+    // Re-query to get fresh record with current changeTag
     const zid = { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.ownerName };
-    console.log('saveNote: re-querying for fresh record...');
     const freshResp = await activeEvent.database.performQuery({
       recordType: 'Attendee',
       filterBy: [{ fieldName: 'name', comparator: 'NOT_EQUALS', fieldValue: { value: '' } }]
@@ -954,13 +953,19 @@ async function saveNote() {
     if (!freshRec) throw new Error('Could not find record in re-query');
     console.log('saveNote: fresh changeTag:', freshRec.recordChangeTag, 'notes len:', (freshRec.fields.notes?.value||'').length);
 
-    // Merge new entry onto server's current notes
     const serverNotes = freshRec.fields.notes?.value || '';
     const mergedNotes = serverNotes ? serverNotes + '|' + entry : entry;
     freshRec.fields.notes = { value: mergedNotes, type: 'STRING' };
 
-    console.log('saveNote: saving...');
-    const saveResp = await activeEvent.database.saveRecords([freshRec]);
+    console.log('saveNote: saving via saveRecords...');
+    let saveResp;
+    try {
+      saveResp = await activeEvent.database.saveRecords([freshRec]);
+    } catch(e) {
+      console.log('saveNote: saveRecords threw:', e);
+      throw new Error('saveRecords threw: ' + e.message);
+    }
+    console.log('saveNote: saveResp:', JSON.stringify(saveResp).slice(0, 400));
     const savedRecords = saveResp.records || saveResp._results || [];
     const errRec = savedRecords.find(r => r.serverErrorCode || r._error);
     if (errRec) throw new Error(errRec.reason || errRec.serverErrorCode || 'Save error');
