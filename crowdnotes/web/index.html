@@ -461,6 +461,8 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
+const VERSION     = 'v1.0.12';
+console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '334bed51ea26c4a9bade8cf8991010ae0e59ebb74dc4e7bab038c92f2fcb490b';
 const ENV         = 'development'; // change to 'production' when deploying
@@ -686,20 +688,20 @@ async function fetchEventRecord(zoneID, database, isOrganizer) {
 
     // Use fetchRecordZoneChanges to get all records — avoids queryable field requirement
     let eventName = null;
-    const resp = await database.fetchRecordZoneChanges({
-      recordZoneIDs: [zid],
-      optionsByRecordZoneID: { [zid.zoneName]: { previousServerChangeToken: null } }
-    });
+    // CloudKit JS uses a different format for zone changes
+    const options = {
+      desiredKeys: ['name', 'attendeeID', 'isCheckedIn', 'notes', 'comment',
+                    'role', 'company', 'email', 'phone', 'createdAt'],
+      previousServerChangeToken: null
+    };
+    const resp = await database.fetchRecordZoneChanges(zid, options);
 
-    console.log('fetchEventRecord zoneChanges keys:', Object.keys(resp));
-    console.log('fetchEventRecord changed:', resp.records?.changed?.length, 'moreComing:', resp.moreComing);
-    if (resp.errors) console.log('fetchEventRecord errors:', JSON.stringify(resp.errors).slice(0, 300));
-    // Log first few records
-    (resp.records?.changed || []).slice(0, 3).forEach(r => console.log('record type:', r.recordType, 'fields:', Object.keys(r.fields || {})));
-
-    for (const record of (resp.records?.changed || [])) {
-      if (record.recordType === 'Event') {
-        eventName = record.fields?.name?.value || 'Untitled Event';
+    console.log('fetchEventRecord _results:', resp._results?.length, '_errors:', JSON.stringify(resp._errors || []).slice(0, 200));
+    const records = resp._results || [];
+    for (const item of records) {
+      const r = item.record || item;
+      if (r.recordType === 'Event') {
+        eventName = r.fields?.name?.value || 'Untitled Event';
         break;
       }
     }
@@ -746,12 +748,12 @@ async function loadAttendees() {
   document.getElementById('attendee-list').innerHTML = '<div class="loader"><div class="spinner"></div></div>';
   try {
     const zid = { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.ownerName };
-    const resp = await activeEvent.database.fetchRecordZoneChanges({
-      recordZoneIDs: [zid],
-      optionsByRecordZoneID: { [zid.zoneName]: { previousServerChangeToken: null } }
-    });
+    const options = { previousServerChangeToken: null };
+    const resp = await activeEvent.database.fetchRecordZoneChanges(zid, options);
+    console.log('loadAttendees results:', resp._results?.length, 'errors:', JSON.stringify(resp._errors || []).slice(0,200));
 
-    allAttendees = (resp.records?.changed || [])
+    allAttendees = (resp._results || [])
+      .map(item => item.record || item)
       .filter(r => r.recordType === 'Attendee')
       .map(r => ({
         recordName:  r.recordName,
