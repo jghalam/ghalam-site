@@ -461,7 +461,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.12';
+const VERSION     = 'v1.0.13';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '334bed51ea26c4a9bade8cf8991010ae0e59ebb74dc4e7bab038c92f2fcb490b';
@@ -686,28 +686,29 @@ async function fetchEventRecord(zoneID, database, isOrganizer) {
     const zid = { zoneName: zoneID.zoneName, ownerRecordName: ownerRN };
     console.log('fetchEventRecord zone:', zid.zoneName, 'owner:', ownerRN, 'db:', isOrganizer ? 'private' : 'shared');
 
-    // Use fetchRecordZoneChanges to get all records — avoids queryable field requirement
-    let eventName = null;
-    // CloudKit JS uses a different format for zone changes
-    const options = {
-      desiredKeys: ['name', 'attendeeID', 'isCheckedIn', 'notes', 'comment',
-                    'role', 'company', 'email', 'phone', 'createdAt'],
-      previousServerChangeToken: null
+    // Query using createdAt which is a system field and always queryable
+    const query = {
+      recordType: 'Event',
+      filterBy: [{
+        comparator: 'GREATER_THAN',
+        fieldName:  '___createTime',
+        fieldValue: { value: 0, type: 'TIMESTAMP' }
+      }],
+      sortBy: [{ fieldName: '___createTime', ascending: false }]
     };
-    const resp = await database.fetchRecordZoneChanges(zid, options);
+    const resp = await database.performQuery(query, { zoneID: zid });
+    console.log('fetchEventRecord records:', resp.records?.length, 'errors:', JSON.stringify(resp.errors || []).slice(0, 200));
 
-    console.log('fetchEventRecord _results:', resp._results?.length, '_errors:', JSON.stringify(resp._errors || []).slice(0, 200));
-    const records = resp._results || [];
-    for (const item of records) {
-      const r = item.record || item;
-      if (r.recordType === 'Event') {
-        eventName = r.fields?.name?.value || 'Untitled Event';
-        break;
-      }
-    }
-
-    if (eventName) {
-      return { zoneName: zid.zoneName, ownerName: ownerRN, name: eventName, isOrganizer, database };
+    if (resp.records && resp.records.length > 0) {
+      const r = resp.records[0];
+      return {
+        zoneName:   zid.zoneName,
+        ownerName:  ownerRN,
+        name:       r.fields.name?.value || 'Untitled Event',
+        recordName: r.recordName,
+        isOrganizer,
+        database
+      };
     }
   } catch(e) {
     console.log('fetchEventRecord error:', zoneID.zoneName, e.message);
@@ -748,25 +749,30 @@ async function loadAttendees() {
   document.getElementById('attendee-list').innerHTML = '<div class="loader"><div class="spinner"></div></div>';
   try {
     const zid = { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.ownerName };
-    const options = { previousServerChangeToken: null };
-    const resp = await activeEvent.database.fetchRecordZoneChanges(zid, options);
-    console.log('loadAttendees results:', resp._results?.length, 'errors:', JSON.stringify(resp._errors || []).slice(0,200));
+    const query = {
+      recordType: 'Attendee',
+      filterBy: [{
+        comparator: 'GREATER_THAN',
+        fieldName:  '___createTime',
+        fieldValue: { value: 0, type: 'TIMESTAMP' }
+      }],
+      sortBy: [{ fieldName: '___createTime', ascending: true }]
+    };
+    const resp = await activeEvent.database.performQuery(query, { zoneID: zid });
+    console.log('loadAttendees records:', resp.records?.length, 'errors:', JSON.stringify(resp.errors || []).slice(0,200));
 
-    allAttendees = (resp._results || [])
-      .map(item => item.record || item)
-      .filter(r => r.recordType === 'Attendee')
-      .map(r => ({
-        recordName:  r.recordName,
-        id:          r.fields.attendeeID?.value || r.recordName,
-        name:        r.fields.name?.value || '',
-        role:        r.fields.role?.value || '',
-        company:     r.fields.company?.value || '',
-        email:       r.fields.email?.value || '',
-        phone:       r.fields.phone?.value || '',
-        comment:     r.fields.comment?.value || '',
-        notes:       r.fields.notes?.value || '',
-        isCheckedIn: (r.fields.isCheckedIn?.value || 0) === 1,
-      })).sort((a,b) => a.name.localeCompare(b.name));
+    allAttendees = (resp.records || []).map(r => ({
+      recordName:  r.recordName,
+      id:          r.fields.attendeeID?.value || r.recordName,
+      name:        r.fields.name?.value || '',
+      role:        r.fields.role?.value || '',
+      company:     r.fields.company?.value || '',
+      email:       r.fields.email?.value || '',
+      phone:       r.fields.phone?.value || '',
+      comment:     r.fields.comment?.value || '',
+      notes:       r.fields.notes?.value || '',
+      isCheckedIn: (r.fields.isCheckedIn?.value || 0) === 1,
+    })).sort((a,b) => a.name.localeCompare(b.name));
     renderAttendees(allAttendees);
   } catch(e) {
     document.getElementById('attendee-list').innerHTML = `<div class="error-msg">Failed to load attendees: ${e.message}</div>`;
