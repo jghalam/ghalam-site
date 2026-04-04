@@ -421,7 +421,7 @@
   <div class="topbar">
     <button class="topbar-back" onclick="showScreen('events')">‹ Events</button>
     <div class="topbar-title" id="attendees-title">Attendees</div>
-    <div style="width:60px"></div>
+    <button class="topbar-action" onclick="loadAttendees()" title="Refresh">↺</button>
   </div>
   <div class="search-bar">
     <input class="search-input" id="search-input" placeholder="Search attendees…" oninput="filterAttendees(this.value)">
@@ -436,7 +436,7 @@
   <div class="topbar">
     <button class="topbar-back" onclick="showScreen('attendees')">‹ Attendees</button>
     <div class="topbar-title">Profile</div>
-    <div style="width:60px"></div>
+    <button class="topbar-action" onclick="refreshDetail()" title="Refresh">↺</button>
   </div>
   <div id="detail-content" style="overflow-y:auto; flex:1; padding-bottom:30px;">
     <div class="loader"><div class="spinner"></div></div>
@@ -461,7 +461,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.17';
+const VERSION     = 'v1.0.19';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '334bed51ea26c4a9bade8cf8991010ae0e59ebb74dc4e7bab038c92f2fcb490b';
@@ -819,6 +819,30 @@ function selectAttendee(id) {
   renderDetail();
 }
 
+async function refreshDetail() {
+  if (!currentAttendee || !activeEvent) return;
+  try {
+    const zid = { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.ownerName };
+    const fetchResp = await activeEvent.database.fetchRecords([{
+      recordName: currentAttendee.recordName,
+      zoneID: zid
+    }]);
+    const r = (fetchResp.records || [])[0];
+    if (!r) return;
+    // Update currentAttendee with fresh data
+    currentAttendee.notes       = r.fields.notes?.value || '';
+    currentAttendee.isCheckedIn = (r.fields.isCheckedIn?.value || 0) === 1;
+    currentAttendee.comment     = r.fields.comment?.value || '';
+    // Sync back to list
+    const idx = allAttendees.findIndex(x => x.id === currentAttendee.id);
+    if (idx !== -1) allAttendees[idx] = { ...allAttendees[idx], ...currentAttendee };
+    renderDetail();
+    showToast('Refreshed');
+  } catch(e) {
+    showToast('Refresh failed: ' + e.message);
+  }
+}
+
 function renderDetail() {
   const a = currentAttendee;
   const noteList = a.notes ? a.notes.split('|').filter(Boolean) : [];
@@ -880,20 +904,22 @@ async function toggleCheckin() {
   const a = currentAttendee;
   a.isCheckedIn = !a.isCheckedIn;
   try {
-    const zoneID = { zoneName: activeEvent.zoneName, ownerName: activeEvent.ownerName };
-    const resp   = await activeEvent.database.fetchRecords({ recordName: a.recordName, zoneID });
-    const record = resp.records?.[0];
+    const zid = { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.ownerName };
+    const fetchResp = await activeEvent.database.fetchRecords([{
+      recordName: a.recordName,
+      zoneID: zid
+    }]);
+    const record = (fetchResp.records || [])[0];
     if (!record) throw new Error('Record not found');
     record.fields.isCheckedIn = { value: a.isCheckedIn ? 1 : 0 };
-    await activeEvent.database.saveRecords({ records: [record] });
-    // Update in list
+    await activeEvent.database.saveRecords([record]);
     const idx = allAttendees.findIndex(x => x.id === a.id);
     if (idx !== -1) allAttendees[idx].isCheckedIn = a.isCheckedIn;
     renderDetail();
     showToast(a.isCheckedIn ? '✓ Checked in' : 'Check-in removed');
   } catch(e) {
-    a.isCheckedIn = !a.isCheckedIn; // revert
-    showToast('Failed to update check-in');
+    a.isCheckedIn = !a.isCheckedIn;
+    showToast('Failed to update check-in: ' + e.message);
   }
 }
 
@@ -913,12 +939,15 @@ async function saveNote() {
     const a     = currentAttendee;
     const newNotes = a.notes ? a.notes + '|' + entry : entry;
 
-    const zoneID = { zoneName: activeEvent.zoneName, ownerName: activeEvent.ownerName };
-    const resp   = await activeEvent.database.fetchRecords({ recordName: a.recordName, zoneID });
-    const record = resp.records?.[0];
+    const zid = { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.ownerName };
+    const fetchResp = await activeEvent.database.fetchRecords([{
+      recordName: a.recordName,
+      zoneID: zid
+    }]);
+    const record = (fetchResp.records || [])[0];
     if (!record) throw new Error('Record not found');
     record.fields.notes = { value: newNotes };
-    await activeEvent.database.saveRecords({ records: [record] });
+    await activeEvent.database.saveRecords([record]);
 
     a.notes = newNotes;
     const idx = allAttendees.findIndex(x => x.id === a.id);
