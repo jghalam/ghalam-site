@@ -391,6 +391,15 @@
     <h1>My Events</h1>
     <p id="events-subtitle">Loading your events…</p>
   </div>
+  <div style="padding: 0 16px 8px;">
+    <div style="background:var(--bg2); border:1px solid var(--cyan-border); border-radius:var(--radius); padding:14px; display:flex; flex-direction:column; gap:10px;">
+      <div style="font-size:13px; color:var(--text2);">Have a share link? Paste it below to join an event.</div>
+      <input id="share-link-input" placeholder="https://www.icloud.com/share/..." 
+        style="background:var(--bg3); border:1px solid rgba(255,255,255,0.08); border-radius:var(--radius-sm); padding:10px 12px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:14px; outline:none; width:100%;">
+      <button onclick="joinWithLink()" style="background:var(--cyan); color:#000; border:none; border-radius:var(--radius-sm); padding:11px; font-family:'DM Sans',sans-serif; font-size:14px; font-weight:600; cursor:pointer;">Join Event</button>
+      <div id="join-error" style="color:var(--red); font-size:13px; display:none;"></div>
+    </div>
+  </div>
   <div id="event-list" class="event-list">
     <div class="loader"><div class="spinner"></div></div>
   </div>
@@ -516,10 +525,62 @@ function showScreen(name) {
   }
 }
 
+// ── Join with Share Link ──────────────────────────────────
+async function joinWithLink() {
+  const input = document.getElementById('share-link-input').value.trim();
+  const errEl = document.getElementById('join-error');
+  errEl.style.display = 'none';
+
+  if (!input.includes('icloud.com/share/')) {
+    errEl.textContent = 'Please paste a valid CrowdNotes share link.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  // Extract share token from URL — format: https://www.icloud.com/share/TOKEN#EventName
+  const shareToken = input.split('/share/')[1]?.split('#')[0]?.split('?')[0];
+  if (!shareToken) {
+    errEl.textContent = 'Could not parse share link. Please check and try again.';
+    errEl.style.display = 'block';
+    return;
+  }
+
+  // Store the share token and attempt to fetch the share metadata
+  // CloudKit JS can fetch share metadata without formal acceptance
+  try {
+    showToast('Connecting to event…');
+    const resp = await container.fetchShareMetadata({ shareURL: input });
+    if (resp.errors && resp.errors.length > 0) throw new Error(resp.errors[0].reason);
+
+    const meta = resp.metadata;
+    if (!meta) throw new Error('Could not read share metadata.');
+
+    const zoneName  = meta.hierarchicalRootRecordID?.zoneID?.zoneName || meta.rootRecordID?.zoneID?.zoneName;
+    const ownerName = meta.hierarchicalRootRecordID?.zoneID?.ownerName || meta.rootRecordID?.zoneID?.ownerName;
+
+    if (!zoneName) throw new Error('Could not determine event zone from share link.');
+
+    // Save to localStorage so it persists across sessions
+    const savedShares = JSON.parse(localStorage.getItem('sharedZones') || '[]');
+    if (!savedShares.find(z => z.zoneName === zoneName)) {
+      savedShares.push({ zoneName, ownerName, shareURL: input });
+      localStorage.setItem('sharedZones', JSON.stringify(savedShares));
+    }
+
+    document.getElementById('share-link-input').value = '';
+    showToast('Event joined! Loading…');
+    await loadEvents();
+  } catch(e) {
+    errEl.textContent = 'Could not join: ' + (e.message || 'Unknown error');
+    errEl.style.display = 'block';
+  }
+}
+
 // ── Events ────────────────────────────────────────────────
 async function loadEvents() {
   try {
     const leftZones = JSON.parse(localStorage.getItem('leftZoneNames') || '[]');
+    const savedShares = JSON.parse(localStorage.getItem('sharedZones') || '[]');
     let events = [];
 
     // Private zones (organizer)
@@ -530,12 +591,22 @@ async function loadEvents() {
       if (event && !leftZones.includes(zone.zoneID.zoneName)) events.push(event);
     }
 
-    // Shared zones (member)
+    // Shared zones from CloudKit (member - zones already accepted on iOS)
     const sharedZones = await sharedDB.fetchAllRecordZones();
     for (const zone of (sharedZones.zones || [])) {
       if (zone.zoneID.zoneName === '_defaultZone') continue;
       const event = await fetchEventRecord(zone.zoneID, sharedDB, false);
       if (event && !leftZones.includes(zone.zoneID.zoneName)) events.push(event);
+    }
+
+    // Zones joined via share link on web
+    for (const saved of savedShares) {
+      if (leftZones.includes(saved.zoneName)) continue;
+      if (events.find(e => e.zoneName === saved.zoneName)) continue; // already loaded
+      const zoneID = { zoneName: saved.zoneName, ownerName: saved.ownerName };
+      // Try sharedDB first, then use the zone owner's database
+      const event = await fetchEventRecord(zoneID, sharedDB, false);
+      if (event) events.push(event);
     }
 
     allEvents = events;
