@@ -461,7 +461,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.46';
+const VERSION     = 'v1.0.47';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '334bed51ea26c4a9bade8cf8991010ae0e59ebb74dc4e7bab038c92f2fcb490b';
@@ -478,7 +478,6 @@ let scanStream    = null;
 let scanInterval  = null;
 let ckWebAuthToken = '';
 
-// Capture ckWebAuthToken from CloudKit JS XHR requests
 const _origXHROpen = XMLHttpRequest.prototype.open;
 XMLHttpRequest.prototype.open = function(method, url, ...rest) {
   if (typeof url === 'string' && url.includes('api.apple-cloudkit.com')) {
@@ -697,8 +696,7 @@ async function fetchEventRecord(zoneID, database, isOrganizer) {
   try {
     const ownerRN = zoneID.ownerRecordName || zoneID.ownerName || '__defaultOwner__';
     const zid = { zoneName: zoneID.zoneName, ownerRecordName: ownerRN };
-    const dbName = isOrganizer ? 'private' : 'shared';
-    console.log('fetchEventRecord zone:', zid.zoneName, 'owner:', ownerRN, 'db:', dbName);
+    console.log('fetchEventRecord zone:', zid.zoneName, 'owner:', ownerRN, 'db:', isOrganizer ? 'private' : 'shared');
 
     // Use organizerID STRING field — Queryable per schema
     // CloudKit JS filterBy format: fieldValue is a CKRecordFieldValue
@@ -719,10 +717,11 @@ async function fetchEventRecord(zoneID, database, isOrganizer) {
     if (resp.records && resp.records.length > 0) {
       const r = resp.records[0];
       return {
-        zoneName:   zid.zoneName,
-        ownerName:  ownerRN,
-        name:       r.fields.name?.value || 'Untitled Event',
-        recordName: r.recordName,
+        zoneName:    zid.zoneName,
+        ownerName:   ownerRN,
+        name:        r.fields.name?.value || 'Untitled Event',
+        recordName:  r.recordName,
+        organizerID: r.fields.organizerID?.value || ownerRN,
         isOrganizer,
         database,
         dbName: isOrganizer ? 'private' : 'shared'
@@ -922,10 +921,11 @@ async function toggleCheckin() {
     const fRec2 = (fResp2.records || []).find(r => r.recordName === stored.recordName);
     if (!fRec2) throw new Error('Record not found for checkin');
     const dbName2 = activeEvent.dbName || (activeEvent.isOrganizer ? 'private' : 'shared');
+    const zOwner2 = activeEvent.isOrganizer ? activeEvent.ownerName : (activeEvent.organizerID || activeEvent.ownerName);
     const ckP2 = new URLSearchParams({ ckjsBuildVersion:'2420ProjectDev22', ckjsVersion:'2.6.4', ckAPIToken:API_TOKEN, ckWebAuthToken }).toString();
     const mo2 = await fetch(`https://api.apple-cloudkit.com/database/1/${CONTAINER}/${ENV}/${dbName2}/records/modify?${ckP2}`, {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ operations:[{ operationType:'update', record:{ recordName:fRec2.recordName, recordType:'Attendee', recordChangeTag:fRec2.recordChangeTag, zoneID:fRec2.zoneID, fields:{ isCheckedIn:{ value: a.isCheckedIn ? 1 : 0 } } } }] })
+      body: JSON.stringify({ operations:[{ operationType:'update', record:{ recordName:fRec2.recordName, recordType:'Attendee', recordChangeTag:fRec2.recordChangeTag, zoneID:{ zoneName:activeEvent.zoneName, ownerRecordName:zOwner2 }, fields:{ isCheckedIn:{ value: a.isCheckedIn ? 1 : 0 } } } }] })
     });
     const md2 = await mo2.json();
     const mr2 = (md2.records||[])[0];
@@ -972,29 +972,33 @@ async function saveNote() {
     const serverNotes = freshRec.fields.notes?.value || '';
     const mergedNotes = serverNotes ? serverNotes + '|' + entry : entry;
 
-    // Use correct database (private vs shared) based on event type
     const dbName = activeEvent.dbName || (activeEvent.isOrganizer ? 'private' : 'shared');
-    console.log('saveNote: changeTag:', freshRec.recordChangeTag, 'db:', dbName, 'notes len:', mergedNotes.length);
+    // For shared DB zones, owner is the organizer's record name
+    const zoneOwner = activeEvent.isOrganizer ? activeEvent.ownerName : (activeEvent.organizerID || activeEvent.ownerName);
+    const restZoneID = { zoneName: activeEvent.zoneName, ownerRecordName: zoneOwner };
+    console.log('saveNote: changeTag:', freshRec.recordChangeTag, 'db:', dbName, 'zoneOwner:', zoneOwner);
 
     const ckParams = new URLSearchParams({
       ckjsBuildVersion: '2420ProjectDev22', ckjsVersion: '2.6.4',
       ckAPIToken: API_TOKEN, ckWebAuthToken
     }).toString();
     const modifyURL = `https://api.apple-cloudkit.com/database/1/${CONTAINER}/${ENV}/${dbName}/records/modify?${ckParams}`;
+    const reqBody = { operations: [{ operationType: 'update', record: {
+      recordName: freshRec.recordName,
+      recordType: 'Attendee',
+      recordChangeTag: freshRec.recordChangeTag,
+      zoneID: restZoneID,
+      fields: { notes: { value: mergedNotes } }
+    }}]};
+    console.log('saveNote REST body:', JSON.stringify(reqBody));
     const moResp = await fetch(modifyURL, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ operations: [{ operationType: 'update', record: {
-        recordName: freshRec.recordName,
-        recordType: 'Attendee',
-        recordChangeTag: freshRec.recordChangeTag,
-        zoneID: freshRec.zoneID,
-        fields: { notes: { value: mergedNotes } }
-      }}]})
+      body: JSON.stringify(reqBody)
     });
     const moData = await moResp.json();
-    console.log('REST modify:', moResp.status, 'errors:', JSON.stringify((moData.records||[]).filter(r=>r.serverErrorCode)));
+    console.log('REST modify:', moResp.status, 'full:', JSON.stringify(moData).slice(0, 500));
     const savedRec = (moData.records || [])[0];
-    if (!savedRec || savedRec.serverErrorCode) throw new Error(savedRec?.reason || savedRec?.serverErrorCode || 'Modify failed');
+    if (!savedRec || savedRec.serverErrorCode) throw new Error(savedRec?.reason || savedRec?.serverErrorCode || JSON.stringify(moData).slice(0,200));
     console.log('saveNote OK, new changeTag:', savedRec.recordChangeTag);
 
     a.notes = mergedNotes;
