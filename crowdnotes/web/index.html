@@ -461,7 +461,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.45';
+const VERSION     = 'v1.0.46';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '334bed51ea26c4a9bade8cf8991010ae0e59ebb74dc4e7bab038c92f2fcb490b';
@@ -697,7 +697,8 @@ async function fetchEventRecord(zoneID, database, isOrganizer) {
   try {
     const ownerRN = zoneID.ownerRecordName || zoneID.ownerName || '__defaultOwner__';
     const zid = { zoneName: zoneID.zoneName, ownerRecordName: ownerRN };
-    console.log('fetchEventRecord zone:', zid.zoneName, 'owner:', ownerRN, 'db:', isOrganizer ? 'private' : 'shared');
+    const dbName = isOrganizer ? 'private' : 'shared';
+    console.log('fetchEventRecord zone:', zid.zoneName, 'owner:', ownerRN, 'db:', dbName);
 
     // Use organizerID STRING field — Queryable per schema
     // CloudKit JS filterBy format: fieldValue is a CKRecordFieldValue
@@ -723,7 +724,8 @@ async function fetchEventRecord(zoneID, database, isOrganizer) {
         name:       r.fields.name?.value || 'Untitled Event',
         recordName: r.recordName,
         isOrganizer,
-        database
+        database,
+        dbName: isOrganizer ? 'private' : 'shared'
       };
     }
   } catch(e) {
@@ -919,8 +921,9 @@ async function toggleCheckin() {
     }, { zoneID: zid2 });
     const fRec2 = (fResp2.records || []).find(r => r.recordName === stored.recordName);
     if (!fRec2) throw new Error('Record not found for checkin');
+    const dbName2 = activeEvent.dbName || (activeEvent.isOrganizer ? 'private' : 'shared');
     const ckP2 = new URLSearchParams({ ckjsBuildVersion:'2420ProjectDev22', ckjsVersion:'2.6.4', ckAPIToken:API_TOKEN, ckWebAuthToken }).toString();
-    const mo2 = await fetch(`https://api.apple-cloudkit.com/database/1/${CONTAINER}/${ENV}/private/records/modify?${ckP2}`, {
+    const mo2 = await fetch(`https://api.apple-cloudkit.com/database/1/${CONTAINER}/${ENV}/${dbName2}/records/modify?${ckP2}`, {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ operations:[{ operationType:'update', record:{ recordName:fRec2.recordName, recordType:'Attendee', recordChangeTag:fRec2.recordChangeTag, zoneID:fRec2.zoneID, fields:{ isCheckedIn:{ value: a.isCheckedIn ? 1 : 0 } } } }] })
     });
@@ -957,8 +960,7 @@ async function saveNote() {
     if (!stored) throw new Error('No record stored for this attendee');
     if (!ckWebAuthToken) throw new Error('No auth token — please reload');
 
-    // Re-query to get the fresh record with current changeTag and correct zoneID.
-    // performQuery is the only CloudKit JS call that routes to the canonical replica.
+    // Re-query to get fresh record with current changeTag
     const zid = { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.ownerName };
     const freshResp = await activeEvent.database.performQuery({
       recordType: 'Attendee',
@@ -966,18 +968,19 @@ async function saveNote() {
     }, { zoneID: zid });
     const freshRec = (freshResp.records || []).find(r => r.recordName === stored.recordName);
     if (!freshRec) throw new Error('Could not find record in re-query');
-    console.log('saveNote: changeTag:', freshRec.recordChangeTag, 'zoneID:', JSON.stringify(freshRec.zoneID));
 
     const serverNotes = freshRec.fields.notes?.value || '';
     const mergedNotes = serverNotes ? serverNotes + '|' + entry : entry;
 
-    // Use REST API for the write — saveRecords routes to a different replica than performQuery.
-    // Use the zoneID from the queried record (includes zoneType, ownerRecordName as returned by CK).
+    // Use correct database (private vs shared) based on event type
+    const dbName = activeEvent.dbName || (activeEvent.isOrganizer ? 'private' : 'shared');
+    console.log('saveNote: changeTag:', freshRec.recordChangeTag, 'db:', dbName, 'notes len:', mergedNotes.length);
+
     const ckParams = new URLSearchParams({
       ckjsBuildVersion: '2420ProjectDev22', ckjsVersion: '2.6.4',
       ckAPIToken: API_TOKEN, ckWebAuthToken
     }).toString();
-    const modifyURL = `https://api.apple-cloudkit.com/database/1/${CONTAINER}/${ENV}/private/records/modify?${ckParams}`;
+    const modifyURL = `https://api.apple-cloudkit.com/database/1/${CONTAINER}/${ENV}/${dbName}/records/modify?${ckParams}`;
     const moResp = await fetch(modifyURL, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ operations: [{ operationType: 'update', record: {
