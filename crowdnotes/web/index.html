@@ -461,7 +461,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.16';
+const VERSION     = 'v1.0.17';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '334bed51ea26c4a9bade8cf8991010ae0e59ebb74dc4e7bab038c92f2fcb490b';
@@ -686,15 +686,15 @@ async function fetchEventRecord(zoneID, database, isOrganizer) {
     const zid = { zoneName: zoneID.zoneName, ownerRecordName: ownerRN };
     console.log('fetchEventRecord zone:', zid.zoneName, 'owner:', ownerRN, 'db:', isOrganizer ? 'private' : 'shared');
 
-    // createdAt is DATE/TIME and Queryable per CloudKit Console
+    // Use organizerID STRING field — Queryable per schema
+    // CloudKit JS filterBy format: fieldValue is a CKRecordFieldValue
     const query = {
       recordType: 'Event',
       filterBy: [{
-        comparator: 'GREATER_THAN',
-        fieldName:  'createdAt',
-        fieldValue: { value: 0, type: 'DATE_TIME' }
-      }],
-      sortBy: [{ fieldName: 'createdAt', ascending: false }]
+        fieldName:  'organizerID',
+        comparator: 'NOT_EQUALS',
+        fieldValue: { value: '' }
+      }]
     };
     const queryOptions = { zoneID: zid };
     console.log('fetchEventRecord query:', JSON.stringify(query));
@@ -755,11 +755,10 @@ async function loadAttendees() {
     const query = {
       recordType: 'Attendee',
       filterBy: [{
-        comparator: 'NOT_EQUALS',
         fieldName:  'name',
-        fieldValue: { value: '', type: 'STRING' }
-      }],
-      sortBy: []
+        comparator: 'NOT_EQUALS',
+        fieldValue: { value: '' }
+      }]
     };
     const resp = await activeEvent.database.performQuery(query, { zoneID: zid });
     console.log('loadAttendees records:', resp.records?.length, 'errors:', JSON.stringify(resp.errors || []).slice(0,200));
