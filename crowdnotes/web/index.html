@@ -1,0 +1,851 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0a0a0f">
+<title>CrowdNotes</title>
+<script src="https://cdn.apple-cloudkit.com/ck/2/cloudkit.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+
+  :root {
+    --cyan: #00d4e8;
+    --cyan-dim: rgba(0,212,232,0.15);
+    --cyan-border: rgba(0,212,232,0.3);
+    --bg: #0a0a0f;
+    --bg2: #12121a;
+    --bg3: #1a1a26;
+    --text: #f0f0f8;
+    --text2: #8888aa;
+    --green: #22c55e;
+    --red: #ef4444;
+    --orange: #f97316;
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* ── Screens ── */
+  .screen { display: none; min-height: 100vh; flex-direction: column; }
+  .screen.active { display: flex; }
+
+  /* ── Sign-in ── */
+  #screen-signin {
+    align-items: center;
+    justify-content: center;
+    padding: 40px 24px;
+    background: radial-gradient(ellipse at 50% 0%, rgba(0,212,232,0.08) 0%, transparent 70%);
+  }
+
+  .signin-logo {
+    width: 80px; height: 80px;
+    background: var(--cyan-dim);
+    border: 1px solid var(--cyan-border);
+    border-radius: 22px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 28px;
+    font-size: 36px;
+  }
+
+  .signin-title { font-size: 28px; font-weight: 600; margin-bottom: 8px; }
+  .signin-sub { color: var(--text2); font-size: 15px; text-align: center; margin-bottom: 48px; line-height: 1.5; }
+
+  .btn-signin {
+    background: var(--cyan);
+    color: #000;
+    border: none;
+    border-radius: var(--radius);
+    padding: 16px 32px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    max-width: 320px;
+    transition: opacity 0.2s;
+  }
+  .btn-signin:active { opacity: 0.8; }
+
+  /* ── Top bar ── */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    background: var(--bg2);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    position: sticky; top: 0; z-index: 100;
+  }
+
+  .topbar-title { font-size: 18px; font-weight: 600; }
+  .topbar-back {
+    background: none; border: none; color: var(--cyan);
+    font-family: 'DM Sans', sans-serif; font-size: 16px;
+    cursor: pointer; padding: 4px 0; display: flex; align-items: center; gap: 4px;
+  }
+  .topbar-action {
+    background: none; border: none; color: var(--cyan);
+    font-size: 22px; cursor: pointer; padding: 4px;
+  }
+
+  /* ── Events list ── */
+  #screen-events { background: var(--bg); }
+
+  .events-header {
+    padding: 24px 20px 16px;
+    background: radial-gradient(ellipse at 50% -20%, rgba(0,212,232,0.06) 0%, transparent 60%);
+  }
+  .events-header h1 { font-size: 26px; font-weight: 600; }
+  .events-header p { color: var(--text2); font-size: 14px; margin-top: 4px; }
+
+  .event-list { padding: 8px 16px 24px; display: flex; flex-direction: column; gap: 10px; }
+
+  .event-card {
+    background: var(--bg2);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: var(--radius);
+    padding: 16px;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .event-card:active { background: var(--bg3); border-color: var(--cyan-border); }
+
+  .event-icon {
+    width: 44px; height: 44px; border-radius: 12px;
+    background: var(--cyan-dim); border: 1px solid var(--cyan-border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 20px; flex-shrink: 0;
+  }
+
+  .event-info { flex: 1; min-width: 0; }
+  .event-name { font-size: 16px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .event-meta { font-size: 13px; color: var(--text2); margin-top: 3px; }
+
+  .badge {
+    font-size: 10px; font-weight: 600; padding: 3px 7px;
+    border-radius: 20px; letter-spacing: 0.5px;
+  }
+  .badge-active { background: rgba(0,212,232,0.2); color: var(--cyan); }
+  .badge-shared { background: rgba(34,197,94,0.2); color: var(--green); }
+
+  /* ── Attendees ── */
+  #screen-attendees { background: var(--bg); }
+
+  .search-bar {
+    padding: 12px 16px;
+    background: var(--bg2);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .search-input {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px 10px 36px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    outline: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%238888aa' viewBox='0 0 16 16'%3E%3Cpath d='M11.742 10.344a6.5 6.5 0 1 0-1.397 1.398h-.001c.03.04.062.078.098.115l3.85 3.85a1 1 0 0 0 1.415-1.414l-3.85-3.85a1.007 1.007 0 0 0-.115-.099zm-5.242 1.656a5.5 5.5 0 1 1 0-11 5.5 5.5 0 0 1 0 11z'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: 12px center;
+  }
+  .search-input::placeholder { color: var(--text2); }
+  .search-input:focus { border-color: var(--cyan-border); }
+
+  .attendee-list { padding: 8px 16px 100px; display: flex; flex-direction: column; gap: 8px; }
+
+  .attendee-card {
+    background: var(--bg2);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: var(--radius);
+    padding: 14px;
+    cursor: pointer;
+    transition: border-color 0.2s;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .attendee-card:active { border-color: var(--cyan-border); }
+
+  .attendee-avatar {
+    width: 44px; height: 44px; border-radius: 50%;
+    background: var(--bg3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; font-weight: 600; color: var(--cyan);
+    flex-shrink: 0; overflow: hidden;
+    border: 2px solid transparent;
+  }
+  .attendee-avatar.checked-in { border-color: var(--green); }
+  .attendee-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+  .attendee-info { flex: 1; min-width: 0; }
+  .attendee-name { font-size: 15px; font-weight: 500; }
+  .attendee-meta { font-size: 13px; color: var(--text2); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .checkin-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--green); flex-shrink: 0;
+  }
+
+  /* ── Attendee detail ── */
+  #screen-detail { background: var(--bg); }
+
+  .detail-header {
+    padding: 24px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: var(--bg2);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .detail-avatar {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: var(--bg3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 22px; font-weight: 600; color: var(--cyan);
+    flex-shrink: 0; overflow: hidden;
+    border: 2px solid var(--cyan-border);
+  }
+  .detail-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+  .detail-name { font-size: 20px; font-weight: 600; }
+  .detail-meta { font-size: 14px; color: var(--text2); margin-top: 4px; }
+
+  .detail-body { padding: 20px 16px; display: flex; flex-direction: column; gap: 12px; }
+
+  .info-row {
+    background: var(--bg2);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .info-label { font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: 0.8px; font-family: 'DM Mono', monospace; }
+  .info-value { font-size: 15px; }
+  .info-link { color: var(--cyan); text-decoration: none; }
+  .info-link:hover { text-decoration: underline; }
+
+  .checkin-btn {
+    border: none; border-radius: var(--radius);
+    padding: 15px; font-family: 'DM Sans', sans-serif;
+    font-size: 16px; font-weight: 600; cursor: pointer;
+    transition: opacity 0.2s; width: 100%;
+  }
+  .checkin-btn.in { background: rgba(34,197,94,0.15); color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
+  .checkin-btn.out { background: var(--cyan); color: #000; }
+  .checkin-btn:active { opacity: 0.8; }
+
+  /* Notes */
+  .notes-section { display: flex; flex-direction: column; gap: 10px; }
+  .notes-title { font-size: 14px; font-weight: 600; color: var(--text2); padding: 0 4px; }
+
+  .note-bubble {
+    display: flex; flex-direction: column; align-items: flex-start; gap: 3px;
+  }
+  .note-meta { font-size: 12px; color: var(--text2); padding-left: 14px; }
+  .note-meta span { color: var(--cyan); font-weight: 500; }
+  .note-text {
+    background: #1a56e8;
+    color: #fff;
+    padding: 10px 14px;
+    border-radius: 4px 18px 18px 18px;
+    font-size: 14px; line-height: 1.5;
+    max-width: 85%;
+  }
+
+  .note-input-area {
+    background: var(--bg2);
+    border: 1px solid rgba(255,255,255,0.07);
+    border-radius: var(--radius);
+    padding: 12px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .note-textarea {
+    background: var(--bg3);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    resize: none; min-height: 80px;
+    outline: none; width: 100%;
+  }
+  .note-textarea:focus { border-color: var(--cyan-border); }
+  .note-textarea::placeholder { color: var(--text2); }
+
+  .btn-save-note {
+    background: var(--cyan); color: #000;
+    border: none; border-radius: var(--radius-sm);
+    padding: 11px; font-family: 'DM Sans', sans-serif;
+    font-size: 14px; font-weight: 600; cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .btn-save-note:active { opacity: 0.8; }
+  .btn-save-note:disabled { background: var(--bg3); color: var(--text2); cursor: default; }
+
+  /* QR Scanner */
+  #screen-scan { background: var(--bg); }
+  .scan-body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; gap: 20px; }
+  #qr-video { width: 100%; max-width: 360px; border-radius: var(--radius); border: 2px solid var(--cyan-border); }
+  .scan-hint { color: var(--text2); font-size: 14px; text-align: center; }
+  .btn-scan {
+    background: var(--cyan); color: #000;
+    border: none; border-radius: var(--radius);
+    padding: 15px 32px; font-family: 'DM Sans', sans-serif;
+    font-size: 16px; font-weight: 600; cursor: pointer;
+    transition: opacity 0.2s;
+  }
+  .btn-scan:active { opacity: 0.8; }
+
+  /* Bottom nav */
+  .bottom-nav {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: var(--bg2);
+    border-top: 1px solid rgba(255,255,255,0.08);
+    display: flex;
+    padding-bottom: env(safe-area-inset-bottom);
+    z-index: 200;
+  }
+  .nav-item {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 10px 0; gap: 4px;
+    background: none; border: none; cursor: pointer;
+    color: var(--text2); font-family: 'DM Sans', sans-serif;
+    font-size: 11px; transition: color 0.2s;
+  }
+  .nav-item.active { color: var(--cyan); }
+  .nav-icon { font-size: 22px; }
+
+  /* Loader */
+  .loader {
+    display: flex; align-items: center; justify-content: center;
+    padding: 60px; color: var(--text2); flex-direction: column; gap: 12px;
+  }
+  .spinner {
+    width: 32px; height: 32px;
+    border: 3px solid var(--bg3);
+    border-top-color: var(--cyan);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .empty { text-align: center; padding: 60px 24px; color: var(--text2); }
+  .empty-icon { font-size: 48px; margin-bottom: 12px; }
+
+  .toast {
+    position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+    background: var(--bg3); border: 1px solid var(--cyan-border);
+    color: var(--cyan); padding: 10px 20px; border-radius: 20px;
+    font-size: 14px; z-index: 999; white-space: nowrap;
+    animation: fadeInOut 2.5s ease forwards;
+  }
+  @keyframes fadeInOut {
+    0% { opacity: 0; transform: translateX(-50%) translateY(10px); }
+    15% { opacity: 1; transform: translateX(-50%) translateY(0); }
+    80% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+
+  .error-msg {
+    background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3);
+    color: var(--red); border-radius: var(--radius-sm);
+    padding: 12px 16px; font-size: 14px; margin: 0 16px;
+  }
+</style>
+</head>
+<body>
+
+<!-- Sign In -->
+<div id="screen-signin" class="screen active">
+  <div class="signin-logo">📋</div>
+  <div class="signin-title">CrowdNotes</div>
+  <div class="signin-sub">Sign in with your Apple ID to access<br>your recruiting events.</div>
+  <button class="btn-signin" onclick="signIn()">Sign in with Apple</button>
+  <div id="signin-error" style="margin-top:16px; color:var(--red); font-size:14px; text-align:center;"></div>
+</div>
+
+<!-- Events -->
+<div id="screen-events" class="screen">
+  <div class="events-header">
+    <h1>My Events</h1>
+    <p id="events-subtitle">Loading your events…</p>
+  </div>
+  <div id="event-list" class="event-list">
+    <div class="loader"><div class="spinner"></div></div>
+  </div>
+  <div class="bottom-nav">
+    <button class="nav-item active" onclick="showScreen('events')">
+      <span class="nav-icon">📅</span>Events
+    </button>
+    <button class="nav-item" onclick="showScreen('scan')">
+      <span class="nav-icon">📷</span>Scan QR
+    </button>
+    <button class="nav-item" onclick="signOut()">
+      <span class="nav-icon">🚪</span>Sign Out
+    </button>
+  </div>
+</div>
+
+<!-- Attendees -->
+<div id="screen-attendees" class="screen">
+  <div class="topbar">
+    <button class="topbar-back" onclick="showScreen('events')">‹ Events</button>
+    <div class="topbar-title" id="attendees-title">Attendees</div>
+    <div style="width:60px"></div>
+  </div>
+  <div class="search-bar">
+    <input class="search-input" id="search-input" placeholder="Search attendees…" oninput="filterAttendees(this.value)">
+  </div>
+  <div id="attendee-list" class="attendee-list">
+    <div class="loader"><div class="spinner"></div></div>
+  </div>
+</div>
+
+<!-- Attendee Detail -->
+<div id="screen-detail" class="screen">
+  <div class="topbar">
+    <button class="topbar-back" onclick="showScreen('attendees')">‹ Attendees</button>
+    <div class="topbar-title">Profile</div>
+    <div style="width:60px"></div>
+  </div>
+  <div id="detail-content" style="overflow-y:auto; flex:1; padding-bottom:30px;">
+    <div class="loader"><div class="spinner"></div></div>
+  </div>
+</div>
+
+<!-- QR Scan -->
+<div id="screen-scan" class="screen">
+  <div class="topbar">
+    <button class="topbar-back" onclick="stopScan(); showScreen('events')">‹ Back</button>
+    <div class="topbar-title">Scan QR</div>
+    <div style="width:60px"></div>
+  </div>
+  <div class="scan-body">
+    <video id="qr-video" playsinline autoplay muted style="display:none"></video>
+    <canvas id="qr-canvas" style="display:none"></canvas>
+    <div class="scan-hint" id="scan-hint">Point the camera at a CrowdNotes attendee QR code.</div>
+    <button class="btn-scan" id="btn-start-scan" onclick="startScan()">📷 Start Camera</button>
+    <div id="scan-result" style="color:var(--cyan); font-size:14px; text-align:center;"></div>
+  </div>
+</div>
+
+<script>
+// ── Config ──────────────────────────────────────────────
+const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
+const API_TOKEN   = '334bed51ea26c4a9bade8cf8991010ae0e59ebb74dc4e7bab038c92f2fcb490b';
+const ENV         = 'development'; // change to 'production' when deploying
+
+// ── State ────────────────────────────────────────────────
+let ck, db, sharedDB;
+let allEvents     = [];
+let activeEvent   = null;
+let allAttendees  = [];
+let currentAttendee = null;
+let recruiterName = localStorage.getItem('recruiterName') || '';
+let scanStream    = null;
+let scanInterval  = null;
+
+// ── CloudKit Init ─────────────────────────────────────────
+CloudKit.configure({
+  containers: [{
+    containerIdentifier: CONTAINER,
+    apiTokenAuth: { apiToken: API_TOKEN, persist: true, signInButton: { id: 'ck-signin' }, signOutButton: { id: 'ck-signout' } },
+    environment: ENV
+  }]
+});
+
+const container = CloudKit.getDefaultContainer();
+
+container.setUpAuth().then(userInfo => {
+  if (userInfo) onSignedIn(userInfo);
+  else showScreen('signin');
+}).catch(err => {
+  console.error('Auth setup error:', err);
+  showScreen('signin');
+});
+
+// ── Auth ──────────────────────────────────────────────────
+function signIn() {
+  container.whenUserSignsIn().then(onSignedIn).catch(err => {
+    document.getElementById('signin-error').textContent = 'Sign in failed. Please try again.';
+  });
+  container.authenticateWithApple({ signInButtonMode: 'default' });
+}
+
+function signOut() {
+  container.whenUserSignsOut().then(() => {
+    allEvents = []; allAttendees = []; activeEvent = null;
+    showScreen('signin');
+  });
+  container.authenticateWithApple({ signInButtonMode: 'signOut' });
+}
+
+function onSignedIn(userInfo) {
+  db       = container.privateCloudDatabase;
+  sharedDB = container.sharedCloudDatabase;
+  if (!recruiterName) {
+    recruiterName = prompt('What is your name? (used for notes)') || 'Member';
+    localStorage.setItem('recruiterName', recruiterName);
+  }
+  showScreen('events');
+  loadEvents();
+}
+
+// ── Screen Navigation ─────────────────────────────────────
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const navMap = { events: 0, scan: 1 };
+  if (navMap[name] !== undefined) {
+    document.querySelectorAll('.nav-item')[navMap[name]]?.classList.add('active');
+  }
+}
+
+// ── Events ────────────────────────────────────────────────
+async function loadEvents() {
+  try {
+    const leftZones = JSON.parse(localStorage.getItem('leftZoneNames') || '[]');
+    let events = [];
+
+    // Private zones (organizer)
+    const privateZones = await db.fetchAllRecordZones();
+    for (const zone of (privateZones.zones || [])) {
+      if (zone.zoneID.zoneName === '_defaultZone') continue;
+      const event = await fetchEventRecord(zone.zoneID, db, true);
+      if (event && !leftZones.includes(zone.zoneID.zoneName)) events.push(event);
+    }
+
+    // Shared zones (member)
+    const sharedZones = await sharedDB.fetchAllRecordZones();
+    for (const zone of (sharedZones.zones || [])) {
+      if (zone.zoneID.zoneName === '_defaultZone') continue;
+      const event = await fetchEventRecord(zone.zoneID, sharedDB, false);
+      if (event && !leftZones.includes(zone.zoneID.zoneName)) events.push(event);
+    }
+
+    allEvents = events;
+    renderEvents();
+  } catch(e) {
+    console.error('loadEvents error:', e);
+    document.getElementById('event-list').innerHTML = `<div class="error-msg">Failed to load events: ${e.message}</div>`;
+  }
+}
+
+async function fetchEventRecord(zoneID, database, isOrganizer) {
+  try {
+    const query = { recordType: 'Event', filterBy: [], sortBy: [] };
+    const options = { zoneID };
+    const resp = await database.performQuery(query, options);
+    if (resp.records && resp.records.length > 0) {
+      const r = resp.records[0];
+      return {
+        recordName: r.recordName,
+        zoneName:   zoneID.zoneName,
+        ownerName:  zoneID.ownerName || '__defaultOwner__',
+        name:       r.fields.name?.value || 'Untitled Event',
+        isOrganizer,
+        database
+      };
+    }
+  } catch(e) { /* zone may not have event record */ }
+  return null;
+}
+
+function renderEvents() {
+  const list = document.getElementById('event-list');
+  const sub  = document.getElementById('events-subtitle');
+  if (allEvents.length === 0) {
+    sub.textContent = 'No events found.';
+    list.innerHTML = `<div class="empty"><div class="empty-icon">📅</div>No events yet.<br>Create one in the iOS app or accept a share link.</div>`;
+    return;
+  }
+  sub.textContent = `${allEvents.length} event${allEvents.length !== 1 ? 's' : ''}`;
+  list.innerHTML = allEvents.map((e, i) => `
+    <div class="event-card" onclick="selectEvent(${i})">
+      <div class="event-icon">📋</div>
+      <div class="event-info">
+        <div class="event-name">${escHtml(e.name)}</div>
+        <div class="event-meta">${e.isOrganizer ? '👑 Organizer' : '👤 Member'}</div>
+      </div>
+      <span class="badge ${e.isOrganizer ? 'badge-active' : 'badge-shared'}">${e.isOrganizer ? 'ORGANIZER' : 'MEMBER'}</span>
+    </div>
+  `).join('');
+}
+
+async function selectEvent(idx) {
+  activeEvent = allEvents[idx];
+  document.getElementById('attendees-title').textContent = activeEvent.name;
+  showScreen('attendees');
+  loadAttendees();
+}
+
+// ── Attendees ─────────────────────────────────────────────
+async function loadAttendees() {
+  document.getElementById('attendee-list').innerHTML = '<div class="loader"><div class="spinner"></div></div>';
+  try {
+    const zoneID  = { zoneName: activeEvent.zoneName, ownerName: activeEvent.ownerName };
+    const query   = { recordType: 'Attendee', filterBy: [{ comparator: 'NOT_EQUALS', fieldName: 'attendeeID', fieldValue: { value: '', type: 'STRING' } }] };
+    const resp    = await activeEvent.database.performQuery(query, { zoneID });
+    allAttendees  = (resp.records || []).map(r => ({
+      recordName:  r.recordName,
+      id:          r.fields.attendeeID?.value || r.recordName,
+      name:        r.fields.name?.value || '',
+      role:        r.fields.role?.value || '',
+      company:     r.fields.company?.value || '',
+      email:       r.fields.email?.value || '',
+      phone:       r.fields.phone?.value || '',
+      comment:     r.fields.comment?.value || '',
+      notes:       r.fields.notes?.value || '',
+      isCheckedIn: (r.fields.isCheckedIn?.value || 0) === 1,
+      _record:     r
+    })).sort((a,b) => a.name.localeCompare(b.name));
+    renderAttendees(allAttendees);
+  } catch(e) {
+    document.getElementById('attendee-list').innerHTML = `<div class="error-msg">Failed to load attendees: ${e.message}</div>`;
+  }
+}
+
+function filterAttendees(q) {
+  const filtered = q.trim() === '' ? allAttendees
+    : allAttendees.filter(a =>
+        a.name.toLowerCase().includes(q.toLowerCase()) ||
+        a.company.toLowerCase().includes(q.toLowerCase()) ||
+        a.role.toLowerCase().includes(q.toLowerCase())
+      );
+  renderAttendees(filtered);
+}
+
+function renderAttendees(list) {
+  const el = document.getElementById('attendee-list');
+  if (list.length === 0) {
+    el.innerHTML = '<div class="empty"><div class="empty-icon">👤</div>No attendees found.</div>';
+    return;
+  }
+  el.innerHTML = list.map((a, i) => `
+    <div class="attendee-card" onclick="selectAttendee('${escHtml(a.id)}')">
+      <div class="attendee-avatar ${a.isCheckedIn ? 'checked-in' : ''}">
+        ${initials(a.name)}
+      </div>
+      <div class="attendee-info">
+        <div class="attendee-name">${escHtml(a.name)}</div>
+        <div class="attendee-meta">${escHtml([a.role, a.company].filter(Boolean).join(' · '))}</div>
+      </div>
+      ${a.isCheckedIn ? '<div class="checkin-dot"></div>' : ''}
+    </div>
+  `).join('');
+}
+
+// ── Attendee Detail ───────────────────────────────────────
+function selectAttendee(id) {
+  currentAttendee = allAttendees.find(a => a.id === id);
+  if (!currentAttendee) return;
+  showScreen('detail');
+  renderDetail();
+}
+
+function renderDetail() {
+  const a = currentAttendee;
+  const noteList = a.notes ? a.notes.split('|').filter(Boolean) : [];
+  const isURL = s => s && (s.startsWith('http') || s.includes('.com') || s.includes('.org'));
+
+  const commentHTML = a.comment
+    ? isURL(a.comment)
+      ? `<a href="${escHtml(a.comment)}" target="_blank" class="info-link">🔗 ${escHtml(a.comment)}</a>`
+      : escHtml(a.comment)
+    : '<span style="color:var(--text2)">—</span>';
+
+  const notesHTML = noteList.length === 0
+    ? '<div style="color:var(--text2);font-size:14px;padding:4px">No notes yet.</div>'
+    : noteList.reverse().map(note => {
+        const m = note.match(/^\[([^\]]+)\]\s*(.*)/s);
+        if (!m) return `<div class="note-bubble"><div class="note-text">${escHtml(note)}</div></div>`;
+        const meta  = m[1];
+        const body  = m[2];
+        const sep   = meta.includes(' - ') ? ' - ' : ' · ';
+        const parts = meta.split(sep);
+        const ts    = parts[0]?.trim() || '';
+        const auth  = parts.slice(1).join(sep).trim();
+        return `
+          <div class="note-bubble">
+            <div class="note-meta"><span>${escHtml(auth)}</span> – ${escHtml(ts)}</div>
+            <div class="note-text">${escHtml(body)}</div>
+          </div>`;
+      }).join('');
+
+  document.getElementById('detail-content').innerHTML = `
+    <div class="detail-header">
+      <div class="detail-avatar">${initials(a.name)}</div>
+      <div>
+        <div class="detail-name">${escHtml(a.name)}</div>
+        <div class="detail-meta">${escHtml([a.role, a.company].filter(Boolean).join(' · '))}</div>
+      </div>
+    </div>
+    <div class="detail-body">
+      <button class="checkin-btn ${a.isCheckedIn ? 'in' : 'out'}" onclick="toggleCheckin()">
+        ${a.isCheckedIn ? '✓ Checked In — Tap to Undo' : 'Check In'}
+      </button>
+      ${a.email ? `<div class="info-row"><div class="info-label">Email</div><a href="mailto:${escHtml(a.email)}" class="info-value info-link">${escHtml(a.email)}</a></div>` : ''}
+      ${a.phone ? `<div class="info-row"><div class="info-label">Phone</div><a href="tel:${escHtml(a.phone)}" class="info-value info-link">${escHtml(a.phone)}</a></div>` : ''}
+      ${a.comment ? `<div class="info-row"><div class="info-label">Comment</div><div class="info-value">${commentHTML}</div></div>` : ''}
+      <div class="notes-section">
+        <div class="notes-title">Notes (${noteList.length})</div>
+        ${notesHTML}
+        <div class="note-input-area">
+          <div style="font-size:12px;color:var(--text2)">Posting as ${escHtml(recruiterName)}</div>
+          <textarea class="note-textarea" id="note-input" placeholder="Add a note…"></textarea>
+          <button class="btn-save-note" onclick="saveNote()">Save Note</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+async function toggleCheckin() {
+  const a = currentAttendee;
+  a.isCheckedIn = !a.isCheckedIn;
+  try {
+    const zoneID = { zoneName: activeEvent.zoneName, ownerName: activeEvent.ownerName };
+    const resp   = await activeEvent.database.fetchRecords({ recordName: a.recordName, zoneID });
+    const record = resp.records?.[0];
+    if (!record) throw new Error('Record not found');
+    record.fields.isCheckedIn = { value: a.isCheckedIn ? 1 : 0 };
+    await activeEvent.database.saveRecords({ records: [record] });
+    // Update in list
+    const idx = allAttendees.findIndex(x => x.id === a.id);
+    if (idx !== -1) allAttendees[idx].isCheckedIn = a.isCheckedIn;
+    renderDetail();
+    showToast(a.isCheckedIn ? '✓ Checked in' : 'Check-in removed');
+  } catch(e) {
+    a.isCheckedIn = !a.isCheckedIn; // revert
+    showToast('Failed to update check-in');
+  }
+}
+
+async function saveNote() {
+  const input = document.getElementById('note-input');
+  const text  = input.value.trim();
+  if (!text) return;
+
+  const btn = document.querySelector('.btn-save-note');
+  btn.disabled = true; btn.textContent = 'Saving…';
+
+  try {
+    const now  = new Date();
+    const ts   = now.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit' })
+               + ', ' + now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    const entry = `[${ts} - ${recruiterName}] ${text}`;
+    const a     = currentAttendee;
+    const newNotes = a.notes ? a.notes + '|' + entry : entry;
+
+    const zoneID = { zoneName: activeEvent.zoneName, ownerName: activeEvent.ownerName };
+    const resp   = await activeEvent.database.fetchRecords({ recordName: a.recordName, zoneID });
+    const record = resp.records?.[0];
+    if (!record) throw new Error('Record not found');
+    record.fields.notes = { value: newNotes };
+    await activeEvent.database.saveRecords({ records: [record] });
+
+    a.notes = newNotes;
+    const idx = allAttendees.findIndex(x => x.id === a.id);
+    if (idx !== -1) allAttendees[idx].notes = newNotes;
+    input.value = '';
+    renderDetail();
+    showToast('Note saved');
+  } catch(e) {
+    showToast('Failed to save note: ' + e.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Save Note';
+  }
+}
+
+// ── QR Scanner ────────────────────────────────────────────
+async function startScan() {
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    scanStream = stream;
+    const video = document.getElementById('qr-video');
+    video.srcObject = stream;
+    video.style.display = 'block';
+    document.getElementById('btn-start-scan').style.display = 'none';
+    document.getElementById('scan-hint').textContent = 'Scanning…';
+
+    // Use BarcodeDetector if available (Chrome Android)
+    if ('BarcodeDetector' in window) {
+      const detector = new BarcodeDetector({ formats: ['qr_code'] });
+      scanInterval = setInterval(async () => {
+        try {
+          const codes = await detector.detect(video);
+          if (codes.length > 0) {
+            handleQRCode(codes[0].rawValue);
+          }
+        } catch(e) {}
+      }, 500);
+    } else {
+      document.getElementById('scan-hint').textContent = 'QR scanning not supported in this browser. Try Chrome.';
+    }
+  } catch(e) {
+    document.getElementById('scan-hint').textContent = 'Camera access denied. Please allow camera access.';
+  }
+}
+
+function stopScan() {
+  if (scanStream) { scanStream.getTracks().forEach(t => t.stop()); scanStream = null; }
+  if (scanInterval) { clearInterval(scanInterval); scanInterval = null; }
+  const video = document.getElementById('qr-video');
+  video.style.display = 'none';
+  document.getElementById('btn-start-scan').style.display = 'block';
+  document.getElementById('scan-hint').textContent = 'Point the camera at a CrowdNotes attendee QR code.';
+}
+
+function handleQRCode(code) {
+  stopScan();
+  if (!activeEvent) {
+    document.getElementById('scan-result').textContent = 'Please select an event first.';
+    return;
+  }
+  const found = allAttendees.find(a => a.id === code);
+  if (found) {
+    currentAttendee = found;
+    showScreen('detail');
+    renderDetail();
+    showToast('Found: ' + found.name);
+  } else {
+    document.getElementById('scan-result').textContent = 'No attendee found for this QR code.';
+    document.getElementById('btn-start-scan').style.display = 'block';
+  }
+}
+
+// ── Helpers ───────────────────────────────────────────────
+function initials(name) {
+  return (name || '?').split(' ').map(w => w[0]).join('').toUpperCase().slice(0,2);
+}
+
+function escHtml(str) {
+  return String(str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.className = 'toast'; t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2600);
+}
+</script>
+</body>
+</html>
