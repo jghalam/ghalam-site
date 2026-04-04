@@ -461,7 +461,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.29';
+const VERSION     = 'v1.0.30';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '334bed51ea26c4a9bade8cf8991010ae0e59ebb74dc4e7bab038c92f2fcb490b';
@@ -761,29 +761,12 @@ async function loadAttendees() {
       }]
     };
     const resp = await activeEvent.database.performQuery(query, { zoneID: zid });
-    console.log('loadAttendees query records:', resp.records?.length, 'errors:', JSON.stringify(resp.errors || []).slice(0,200));
+    console.log('loadAttendees records:', resp.records?.length, 'errors:', JSON.stringify(resp.errors || []).slice(0,200));
 
-    // performQuery can return stale cached data. Re-fetch each record by name
-    // to guarantee fresh field values (especially notes) from the server.
-    const recordRefs = (resp.records || []).map(r => ({ recordName: r.recordName, zoneID: zid }));
-    let freshRecords = resp.records || [];
-    if (recordRefs.length > 0) {
-      try {
-        const fetchResp = await activeEvent.database.fetchRecords(recordRefs);
-        const fetched = (fetchResp.records || []).filter(r => !r.serverErrorCode);
-        if (fetched.length > 0) {
-          freshRecords = fetched;
-          console.log('loadAttendees fetchRecords: got', fetched.length, 'fresh records');
-        }
-      } catch(e) {
-        console.log('loadAttendees fetchRecords failed, using query results:', e.message);
-      }
-    }
-
-    allAttendees = freshRecords.map(r => {
-      console.log('attendee record:', r.recordName, 'notes len:', (r.fields.notes?.value||'').length);
+    allAttendees = (resp.records || []).map(r => {
+      console.log('attendee recordName:', r.recordName, 'attendeeID field:', r.fields.attendeeID?.value);
       return {
-        recordName:  r.recordName,
+        recordName:  r.recordName,            // actual CK record name — used for fetchRecords
         _ckRecord:   r,
         id:          r.fields.attendeeID?.value || r.recordName,
         name:        r.fields.name?.value || '',
@@ -916,10 +899,11 @@ async function toggleCheckin() {
   try {
     const stored = a._ckRecord;
     if (!stored) throw new Error('No record stored');
+    const ckRecordName2 = stored.recordName;
     const zoneID = { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.ownerName };
-    const fetchResp2 = await activeEvent.database.fetchRecords([{ recordName: stored.recordName, zoneID }]);
-    const freshRecord2 = (fetchResp2.records || [])[0];
-    if (!freshRecord2 || freshRecord2.serverErrorCode) throw new Error(freshRecord2?.reason || 'Failed to fetch record');
+    const fetchResp2 = await activeEvent.database.fetchRecords([{ recordName: ckRecordName2, zoneID }]);
+    const freshRecord2 = (fetchResp2.records || []).find(r => !r.serverErrorCode);
+    if (!freshRecord2) throw new Error('Record not found for checkin: ' + JSON.stringify(fetchResp2._errors||[]));
     freshRecord2.fields.isCheckedIn = { value: a.isCheckedIn ? 1 : 0, type: 'INT64' };
     const saveResp2 = await activeEvent.database.saveRecords([freshRecord2]);
     const saved2 = saveResp2.records || saveResp2._results || [];
@@ -955,24 +939,25 @@ async function saveNote() {
 
     const stored = currentAttendee._ckRecord;
     if (!stored) throw new Error('No record stored for this attendee');
+    // Use the actual CK recordName from the stored record (NOT the attendeeID field value)
+    const ckRecordName = stored.recordName;
     const zoneID = { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.ownerName };
-    console.log('saveNote: record:', stored.recordName, 'zone:', zoneID.zoneName, 'owner:', zoneID.ownerRecordName);
+    console.log('saveNote: ckRecordName:', ckRecordName, 'attendeeID:', currentAttendee.id, 'zone:', zoneID.zoneName);
 
-    // Fetch fresh record to get current changeTag (avoids oplock CONFLICT errors)
+    // Fetch fresh record to get current changeTag
     let fetchResp;
     try {
-      fetchResp = await activeEvent.database.fetchRecords([{ recordName: stored.recordName, zoneID }]);
+      fetchResp = await activeEvent.database.fetchRecords([{ recordName: ckRecordName, zoneID }]);
     } catch(fetchErr) {
       console.log('saveNote fetchRecords threw:', fetchErr);
-      throw new Error('Fetch before save failed: ' + fetchErr.message);
+      throw new Error('Fetch failed: ' + fetchErr.message);
     }
     console.log('saveNote fetchResp records:', fetchResp.records?.length, 'errors:', JSON.stringify(fetchResp._errors||[]));
-    const freshRecord = (fetchResp.records || [])[0];
-    if (!freshRecord) throw new Error('Record not found during pre-save fetch');
-    if (freshRecord.serverErrorCode) throw new Error(freshRecord.reason || freshRecord.serverErrorCode);
+    const freshRecord = (fetchResp.records || []).find(r => !r.serverErrorCode);
+    if (!freshRecord) throw new Error('Record not found: ' + JSON.stringify(fetchResp._errors||[]));
     console.log('saveNote fresh changeTag:', freshRecord.recordChangeTag);
 
-    // Merge new note onto server's current notes (avoids overwriting concurrent edits)
+    // Merge new note onto server's current notes
     const serverNotes = freshRecord.fields.notes?.value || '';
     const mergedNotes = serverNotes ? serverNotes + '|' + entry : entry;
     freshRecord.fields.notes = { value: mergedNotes, type: 'STRING' };
@@ -982,7 +967,7 @@ async function saveNote() {
       saveResp = await activeEvent.database.saveRecords([freshRecord]);
     } catch(saveErr) {
       console.log('saveNote saveRecords threw:', saveErr);
-      throw new Error('Save failed: ' + saveErr.message);
+      throw new Error('Save threw: ' + saveErr.message);
     }
     console.log('saveNote saveResp errors:', JSON.stringify(saveResp._errors||[]), 'results:', saveResp._results?.length);
     const savedRecords = saveResp.records || saveResp._results || [];
