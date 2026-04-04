@@ -64,21 +64,20 @@
   .signin-title { font-size: 28px; font-weight: 600; margin-bottom: 8px; }
   .signin-sub { color: var(--text2); font-size: 15px; text-align: center; margin-bottom: 48px; line-height: 1.5; }
 
-  .btn-signin {
-    background: var(--cyan);
-    color: #000;
-    border: none;
-    border-radius: var(--radius);
-    padding: 16px 32px;
-    font-family: 'DM Sans', sans-serif;
-    font-size: 16px;
-    font-weight: 600;
-    cursor: pointer;
-    width: 100%;
-    max-width: 320px;
-    transition: opacity 0.2s;
+  /* Style the CloudKit JS sign-in button */
+  #ck-signin button {
+    background: var(--cyan) !important;
+    color: #000 !important;
+    border: none !important;
+    border-radius: var(--radius) !important;
+    padding: 16px 32px !important;
+    font-family: 'DM Sans', sans-serif !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    width: 320px !important;
+    min-width: 320px !important;
   }
-  .btn-signin:active { opacity: 0.8; }
 
   /* ── Top bar ── */
   .topbar {
@@ -379,9 +378,7 @@
   <img src="https://ghalam.net/crowdnotes/appicon.png" style="width:80px;height:80px;border-radius:22px;margin-bottom:28px;" alt="CrowdNotes">
   <div class="signin-title">CrowdNotes</div>
   <div class="signin-sub">Sign in with your Apple ID to access<br>your recruiting events.</div>
-  <!-- CloudKit JS renders the sign-in button here -->
   <div id="ck-signin" style="margin-top:8px;"></div>
-  <button class="btn-signin" onclick="signIn()" style="margin-top:12px;">Sign in with Apple</button>
   <div id="signin-error" style="margin-top:16px; color:var(--red); font-size:14px; text-align:center;"></div>
 </div>
 
@@ -489,13 +486,6 @@ container.setUpAuth().then(userInfo => {
 });
 
 // ── Auth ──────────────────────────────────────────────────
-function signIn() {
-  container.whenUserSignsIn().then(onSignedIn).catch(err => {
-    document.getElementById('signin-error').textContent = 'Sign in failed. Please try again.';
-  });
-  container.authenticateWithApple({ signInButtonMode: 'default' });
-}
-
 function signOut() {
   container.whenUserSignsOut().then(() => {
     allEvents = []; allAttendees = []; activeEvent = null;
