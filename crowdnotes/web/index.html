@@ -461,7 +461,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.21';
+const VERSION     = 'v1.0.22';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '334bed51ea26c4a9bade8cf8991010ae0e59ebb74dc4e7bab038c92f2fcb490b';
@@ -828,7 +828,7 @@ async function refreshDetail() {
     const zid = { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.ownerName };
     const fetchResp = await activeEvent.database.fetchRecords([{
       recordName: currentAttendee.recordName,
-      zoneID: zid
+      zoneID: { zoneName: activeEvent.zoneName }
     }]);
     const r = (fetchResp.records || [])[0];
     if (!r) return;
@@ -907,10 +907,9 @@ async function toggleCheckin() {
   const a = currentAttendee;
   a.isCheckedIn = !a.isCheckedIn;
   try {
-    const zid = { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.ownerName };
     const fetchResp = await activeEvent.database.fetchRecords([{
       recordName: a.recordName,
-      zoneID: zid
+      zoneID: { zoneName: activeEvent.zoneName }
     }]);
     const record = (fetchResp.records || [])[0];
     if (!record) throw new Error('Record not found');
@@ -944,10 +943,10 @@ async function saveNote() {
 
     const zid = { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.ownerName };
     console.log('saveNote fetching record:', a.recordName, 'zone:', JSON.stringify(zid));
-    const fetchResp = await activeEvent.database.fetchRecords([{
-      recordName: a.recordName,
-      zoneID: zid
-    }]);
+    // CloudKit JS fetchRecords takes array of record identifiers
+    const fetchResp = await activeEvent.database.fetchRecords([
+      { recordName: a.recordName, zoneID: { zoneName: activeEvent.zoneName } }
+    ]);
     console.log('saveNote fetchResp records:', fetchResp.records?.length, 'errors:', JSON.stringify(fetchResp.errors || []).slice(0,200));
     const record = (fetchResp.records || [])[0];
     if (!record) throw new Error('Record not found');
