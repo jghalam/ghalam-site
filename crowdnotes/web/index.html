@@ -539,53 +539,80 @@ async function joinWithLink() {
 
   showToast('Connecting to event…');
 
-  try {
-    // CloudKit JS fetchShareMetadata is on CloudKit object, not container
-    let zoneName = null, ownerName = null, eventName = null;
+  // Extract event name from URL fragment
+  const fragment  = input.split('#')[1] || '';
+  const eventName = decodeURIComponent(fragment.replace(/-/g, ' ')) || 'Shared Event';
 
-    // Try CloudKit.fetchShareMetadata
+  // Try CloudKit JS share metadata APIs in order
+  let zoneName = null, ownerName = null;
+
+  // Attempt 1: CloudKit.fetchShareMetadata (global)
+  if (typeof CloudKit.fetchShareMetadata === 'function') {
     try {
       const resp = await CloudKit.fetchShareMetadata({ shareURL: input });
-      const meta = resp.metadata || resp;
-      zoneName  = meta.hierarchicalRootRecordID?.zoneID?.zoneName
-               || meta.rootRecordID?.zoneID?.zoneName;
-      ownerName = meta.hierarchicalRootRecordID?.zoneID?.ownerName
-               || meta.rootRecordID?.zoneID?.ownerName;
-      eventName = meta.title || null;
-    } catch(e) {
-      console.log('fetchShareMetadata failed:', e.message);
-    }
+      const meta = (resp.results || [resp])[0] || resp;
+      zoneName  = meta?.rootRecord?.recordID?.zoneID?.zoneName
+               || meta?.zoneID?.zoneName;
+      ownerName = meta?.rootRecord?.recordID?.zoneID?.ownerName
+               || meta?.ownerIdentity?.userRecordName
+               || meta?.zoneID?.ownerName;
+      console.log('fetchShareMetadata result:', JSON.stringify(meta).slice(0, 300));
+    } catch(e) { console.log('CloudKit.fetchShareMetadata failed:', e.message); }
+  }
 
-    // Fallback: extract event name from URL fragment (#EventName)
-    // and store link for manual zone discovery on next load
-    if (!zoneName) {
-      const fragment = input.split('#')[1] || '';
-      eventName = decodeURIComponent(fragment.replace(/-/g, ' ')) || 'Shared Event';
+  // Attempt 2: container.acceptShares (some CloudKit JS versions)
+  if (!zoneName && typeof container.acceptShares === 'function') {
+    try {
+      const resp = await container.acceptShares([{ shareURL: input }]);
+      const meta = (resp.shares || [])[0];
+      zoneName  = meta?.rootRecord?.recordID?.zoneID?.zoneName;
+      ownerName = meta?.rootRecord?.recordID?.zoneID?.ownerName;
+      console.log('acceptShares result:', JSON.stringify(meta || {}).slice(0, 300));
+    } catch(e) { console.log('acceptShares failed:', e.message); }
+  }
 
-      // Store the raw share URL — we'll try to find the zone by scanning sharedDB
-      const savedShares = JSON.parse(localStorage.getItem('sharedZones') || '[]');
-      if (!savedShares.find(z => z.shareURL === input)) {
-        savedShares.push({ zoneName: null, ownerName: null, shareURL: input, eventName });
-        localStorage.setItem('sharedZones', JSON.stringify(savedShares));
+  // Attempt 3: Use share token to query sharedDB for all zones
+  // Since publicPermission=readWrite, any signed-in user can query using zone token
+  if (!zoneName) {
+    try {
+      const shareToken = input.split('/share/')[1]?.split('#')[0];
+      // Query sharedDB for zones matching the share token via lookup
+      const resp = await sharedDB.performQuery({
+        recordType: 'cloudkit.share',
+        filterBy: [],
+        sortBy: []
+      });
+      if (resp.records && resp.records.length > 0) {
+        const shareRecord = resp.records[0];
+        zoneName  = shareRecord.recordID?.zoneID?.zoneName;
+        ownerName = shareRecord.recordID?.zoneID?.ownerName;
+        console.log('sharedDB query result:', zoneName, ownerName);
       }
-      document.getElementById('share-link-input').value = '';
-      showToast('Link saved. Loading events…');
-      await loadEvents();
-      return;
-    }
+    } catch(e) { console.log('sharedDB query failed:', e.message); }
+  }
 
-    // Save zone info
+  if (zoneName) {
+    // Save zone info to localStorage
     const savedShares = JSON.parse(localStorage.getItem('sharedZones') || '[]');
     if (!savedShares.find(z => z.zoneName === zoneName)) {
       savedShares.push({ zoneName, ownerName, shareURL: input, eventName });
       localStorage.setItem('sharedZones', JSON.stringify(savedShares));
     }
-
     document.getElementById('share-link-input').value = '';
-    showToast('Event joined! Loading…');
+    showToast('Event joined!');
     await loadEvents();
-  } catch(e) {
-    errEl.textContent = 'Could not join: ' + (e.message || 'Unknown error');
+  } else {
+    // Last resort: save URL and event name, show instructions
+    const savedShares = JSON.parse(localStorage.getItem('sharedZones') || '[]');
+    if (!savedShares.find(z => z.shareURL === input)) {
+      savedShares.push({ zoneName: null, ownerName: null, shareURL: input, eventName });
+      localStorage.setItem('sharedZones', JSON.stringify(savedShares));
+    }
+    document.getElementById('share-link-input').value = '';
+    errEl.innerHTML = `⚠️ Link saved but could not auto-join.<br>
+      <strong>Open this link on an iPhone first</strong> to accept the share, 
+      then return here — the event will appear automatically.
+      <br><a href="${input}" target="_blank" style="color:var(--cyan)">Open share link ↗</a>`;
     errEl.style.display = 'block';
   }
 }
