@@ -461,7 +461,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.30';
+const VERSION     = 'v1.0.31';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '334bed51ea26c4a9bade8cf8991010ae0e59ebb74dc4e7bab038c92f2fcb490b';
@@ -764,10 +764,10 @@ async function loadAttendees() {
     console.log('loadAttendees records:', resp.records?.length, 'errors:', JSON.stringify(resp.errors || []).slice(0,200));
 
     allAttendees = (resp.records || []).map(r => {
-      console.log('attendee recordName:', r.recordName, 'attendeeID field:', r.fields.attendeeID?.value);
+      console.log('attendee recordName:', r.recordName, 'zoneID:', JSON.stringify(r.zoneID), 'attendeeID:', r.fields.attendeeID?.value);
       return {
-        recordName:  r.recordName,            // actual CK record name — used for fetchRecords
-        _ckRecord:   r,
+        recordName:  r.recordName,
+        _ckRecord:   r,          // keep full record for saves
         id:          r.fields.attendeeID?.value || r.recordName,
         name:        r.fields.name?.value || '',
         role:        r.fields.role?.value || '',
@@ -899,13 +899,13 @@ async function toggleCheckin() {
   try {
     const stored = a._ckRecord;
     if (!stored) throw new Error('No record stored');
-    const ckRecordName2 = stored.recordName;
-    const zoneID = { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.ownerName };
-    const fetchResp2 = await activeEvent.database.fetchRecords([{ recordName: ckRecordName2, zoneID }]);
-    const freshRecord2 = (fetchResp2.records || []).find(r => !r.serverErrorCode);
-    if (!freshRecord2) throw new Error('Record not found for checkin: ' + JSON.stringify(fetchResp2._errors||[]));
-    freshRecord2.fields.isCheckedIn = { value: a.isCheckedIn ? 1 : 0, type: 'INT64' };
-    const saveResp2 = await activeEvent.database.saveRecords([freshRecord2]);
+    const saveRecord2 = {
+      recordName: stored.recordName,
+      recordType: stored.recordType,
+      zoneID:     stored.zoneID,
+      fields:     Object.assign({}, stored.fields, { isCheckedIn: { value: a.isCheckedIn ? 1 : 0, type: 'INT64' } })
+    };
+    const saveResp2 = await activeEvent.database.saveRecords([saveRecord2]);
     const saved2 = saveResp2.records || saveResp2._results || [];
     const err2 = saved2.find(r => r.serverErrorCode || r._error);
     if (err2) throw new Error(err2.reason || err2.serverErrorCode || 'Save error');
@@ -939,50 +939,42 @@ async function saveNote() {
 
     const stored = currentAttendee._ckRecord;
     if (!stored) throw new Error('No record stored for this attendee');
-    // Use the actual CK recordName from the stored record (NOT the attendeeID field value)
-    const ckRecordName = stored.recordName;
-    const zoneID = { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.ownerName };
-    console.log('saveNote: ckRecordName:', ckRecordName, 'attendeeID:', currentAttendee.id, 'zone:', zoneID.zoneName);
+    console.log('saveNote: recordName:', stored.recordName, 'zone:', activeEvent.zoneName);
 
-    // Fetch fresh record to get current changeTag
-    let fetchResp;
-    try {
-      fetchResp = await activeEvent.database.fetchRecords([{ recordName: ckRecordName, zoneID }]);
-    } catch(fetchErr) {
-      console.log('saveNote fetchRecords threw:', fetchErr);
-      throw new Error('Fetch failed: ' + fetchErr.message);
-    }
-    console.log('saveNote fetchResp records:', fetchResp.records?.length, 'errors:', JSON.stringify(fetchResp._errors||[]));
-    const freshRecord = (fetchResp.records || []).find(r => !r.serverErrorCode);
-    if (!freshRecord) throw new Error('Record not found: ' + JSON.stringify(fetchResp._errors||[]));
-    console.log('saveNote fresh changeTag:', freshRecord.recordChangeTag);
-
-    // Merge new note onto server's current notes
-    const serverNotes = freshRecord.fields.notes?.value || '';
-    const mergedNotes = serverNotes ? serverNotes + '|' + entry : entry;
-    freshRecord.fields.notes = { value: mergedNotes, type: 'STRING' };
+    // Build a save record from stored fields. We delete recordChangeTag so CloudKit JS
+    // sends operationType=forceReplace, bypassing the oplock check entirely.
+    // We cannot use fetchRecords() for private-DB zones — it returns NOT_FOUND
+    // even when performQuery finds the record (CloudKit JS limitation).
+    const saveRecord = {
+      recordName: stored.recordName,
+      recordType: stored.recordType,
+      zoneID:     stored.zoneID,
+      fields:     Object.assign({}, stored.fields, { notes: { value: newNotes, type: 'STRING' } })
+      // Note: no recordChangeTag — forces forceReplace
+    };
 
     let saveResp;
     try {
-      saveResp = await activeEvent.database.saveRecords([freshRecord]);
+      saveResp = await activeEvent.database.saveRecords([saveRecord]);
     } catch(saveErr) {
-      console.log('saveNote saveRecords threw:', saveErr);
+      console.log('saveNote threw:', saveErr);
       throw new Error('Save threw: ' + saveErr.message);
     }
-    console.log('saveNote saveResp errors:', JSON.stringify(saveResp._errors||[]), 'results:', saveResp._results?.length);
+    console.log('saveNote resp errors:', JSON.stringify(saveResp._errors||[]), 'results:', saveResp._results?.length);
     const savedRecords = saveResp.records || saveResp._results || [];
     const errRec = savedRecords.find(r => r.serverErrorCode || r._error);
     if (errRec) throw new Error(errRec.reason || errRec.serverErrorCode || 'Save error');
     if (saveResp._errors && saveResp._errors.length > 0) throw new Error(saveResp._errors[0].reason || saveResp._errors[0].serverErrorCode);
+    // Store updated record with new changeTag for next save
     if (savedRecords.length > 0) {
       currentAttendee._ckRecord = savedRecords[0];
       const idx2 = allAttendees.findIndex(x => x.id === a.id);
       if (idx2 !== -1) allAttendees[idx2]._ckRecord = savedRecords[0];
     }
 
-    a.notes = mergedNotes;
+    a.notes = newNotes;
     const idx = allAttendees.findIndex(x => x.id === a.id);
-    if (idx !== -1) allAttendees[idx].notes = mergedNotes;
+    if (idx !== -1) allAttendees[idx].notes = newNotes;
     input.value = '';
     renderDetail();
     showToast('Note saved ✓');
