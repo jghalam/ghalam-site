@@ -461,7 +461,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.20';
+const VERSION     = 'v1.0.21';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '334bed51ea26c4a9bade8cf8991010ae0e59ebb74dc4e7bab038c92f2fcb490b';
@@ -763,18 +763,21 @@ async function loadAttendees() {
     const resp = await activeEvent.database.performQuery(query, { zoneID: zid });
     console.log('loadAttendees records:', resp.records?.length, 'errors:', JSON.stringify(resp.errors || []).slice(0,200));
 
-    allAttendees = (resp.records || []).map(r => ({
-      recordName:  r.recordName,
-      id:          r.fields.attendeeID?.value || r.recordName,
-      name:        r.fields.name?.value || '',
-      role:        r.fields.role?.value || '',
-      company:     r.fields.company?.value || '',
-      email:       r.fields.email?.value || '',
-      phone:       r.fields.phone?.value || '',
-      comment:     r.fields.comment?.value || '',
-      notes:       r.fields.notes?.value || '',
-      isCheckedIn: (r.fields.isCheckedIn?.value || 0) === 1,
-    })).sort((a,b) => a.name.localeCompare(b.name));
+    allAttendees = (resp.records || []).map(r => {
+      console.log('attendee record:', r.recordName, 'attendeeID:', r.fields.attendeeID?.value);
+      return {
+        recordName:  r.recordName,
+        id:          r.fields.attendeeID?.value || r.recordName,
+        name:        r.fields.name?.value || '',
+        role:        r.fields.role?.value || '',
+        company:     r.fields.company?.value || '',
+        email:       r.fields.email?.value || '',
+        phone:       r.fields.phone?.value || '',
+        comment:     r.fields.comment?.value || '',
+        notes:       r.fields.notes?.value || '',
+        isCheckedIn: (r.fields.isCheckedIn?.value || 0) === 1,
+      };
+    }).sort((a,b) => a.name.localeCompare(b.name));
     renderAttendees(allAttendees);
   } catch(e) {
     document.getElementById('attendee-list').innerHTML = `<div class="error-msg">Failed to load attendees: ${e.message}</div>`;
