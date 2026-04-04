@@ -461,7 +461,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.47';
+const VERSION     = 'v1.0.48';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '334bed51ea26c4a9bade8cf8991010ae0e59ebb74dc4e7bab038c92f2fcb490b';
@@ -921,11 +921,10 @@ async function toggleCheckin() {
     const fRec2 = (fResp2.records || []).find(r => r.recordName === stored.recordName);
     if (!fRec2) throw new Error('Record not found for checkin');
     const dbName2 = activeEvent.dbName || (activeEvent.isOrganizer ? 'private' : 'shared');
-    const zOwner2 = activeEvent.isOrganizer ? activeEvent.ownerName : (activeEvent.organizerID || activeEvent.ownerName);
     const ckP2 = new URLSearchParams({ ckjsBuildVersion:'2420ProjectDev22', ckjsVersion:'2.6.4', ckAPIToken:API_TOKEN, ckWebAuthToken }).toString();
     const mo2 = await fetch(`https://api.apple-cloudkit.com/database/1/${CONTAINER}/${ENV}/${dbName2}/records/modify?${ckP2}`, {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ operations:[{ operationType:'update', record:{ recordName:fRec2.recordName, recordType:'Attendee', recordChangeTag:fRec2.recordChangeTag, zoneID:{ zoneName:activeEvent.zoneName, ownerRecordName:zOwner2 }, fields:{ isCheckedIn:{ value: a.isCheckedIn ? 1 : 0 } } } }] })
+      body: JSON.stringify({ operations:[{ operationType:'update', record:{ recordName:fRec2.recordName, recordType:'Attendee', recordChangeTag:fRec2.recordChangeTag, zoneID:{ zoneName:activeEvent.zoneName, ownerRecordName:activeEvent.ownerName }, fields:{ isCheckedIn:{ value: a.isCheckedIn ? 1 : 0 } } } }] })
     });
     const md2 = await mo2.json();
     const mr2 = (md2.records||[])[0];
@@ -960,7 +959,7 @@ async function saveNote() {
     if (!stored) throw new Error('No record stored for this attendee');
     if (!ckWebAuthToken) throw new Error('No auth token — please reload');
 
-    // Re-query to get fresh record with current changeTag
+    // Re-query for fresh record with current changeTag
     const zid = { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.ownerName };
     const freshResp = await activeEvent.database.performQuery({
       recordType: 'Attendee',
@@ -973,33 +972,59 @@ async function saveNote() {
     const mergedNotes = serverNotes ? serverNotes + '|' + entry : entry;
 
     const dbName = activeEvent.dbName || (activeEvent.isOrganizer ? 'private' : 'shared');
-    // For shared DB zones, owner is the organizer's record name
-    const zoneOwner = activeEvent.isOrganizer ? activeEvent.ownerName : (activeEvent.organizerID || activeEvent.ownerName);
-    const restZoneID = { zoneName: activeEvent.zoneName, ownerRecordName: zoneOwner };
-    console.log('saveNote: changeTag:', freshRec.recordChangeTag, 'db:', dbName, 'zoneOwner:', zoneOwner);
-
     const ckParams = new URLSearchParams({
       ckjsBuildVersion: '2420ProjectDev22', ckjsVersion: '2.6.4',
       ckAPIToken: API_TOKEN, ckWebAuthToken
     }).toString();
     const modifyURL = `https://api.apple-cloudkit.com/database/1/${CONTAINER}/${ENV}/${dbName}/records/modify?${ckParams}`;
+
+    // For shared DB: try with just zoneName (no ownerRecordName) first,
+    // then fall back to ownerRecordName if needed
+    const zoneForREST = dbName === 'shared'
+      ? { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.ownerName }
+      : { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.ownerName };
+
     const reqBody = { operations: [{ operationType: 'update', record: {
       recordName: freshRec.recordName,
       recordType: 'Attendee',
       recordChangeTag: freshRec.recordChangeTag,
-      zoneID: restZoneID,
+      zoneID: zoneForREST,
       fields: { notes: { value: mergedNotes } }
     }}]};
-    console.log('saveNote REST body:', JSON.stringify(reqBody));
+    console.log('saveNote: changeTag:', freshRec.recordChangeTag, 'db:', dbName, 'zoneID:', JSON.stringify(zoneForREST));
+
     const moResp = await fetch(modifyURL, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(reqBody)
     });
-    const moData = await moResp.json();
-    console.log('REST modify:', moResp.status, 'full:', JSON.stringify(moData).slice(0, 500));
-    const savedRec = (moData.records || [])[0];
-    if (!savedRec || savedRec.serverErrorCode) throw new Error(savedRec?.reason || savedRec?.serverErrorCode || JSON.stringify(moData).slice(0,200));
-    console.log('saveNote OK, new changeTag:', savedRec.recordChangeTag);
+    const moText = await moResp.text();
+    console.log('REST modify:', moResp.status, 'body:', moText.slice(0, 400));
+    const moData = JSON.parse(moText);
+
+    // If shared DB rejects ownerRecordName, retry without it
+    if (moResp.status === 400 && moData.reason && moData.reason.includes('ownerRecordName')) {
+      console.log('saveNote: retrying shared DB without ownerRecordName...');
+      const reqBody2 = { operations: [{ operationType: 'update', record: {
+        recordName: freshRec.recordName,
+        recordType: 'Attendee',
+        recordChangeTag: freshRec.recordChangeTag,
+        zoneID: { zoneName: activeEvent.zoneName },
+        fields: { notes: { value: mergedNotes } }
+      }}]};
+      const moResp2 = await fetch(modifyURL, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(reqBody2)
+      });
+      const moData2 = await moResp2.json();
+      console.log('REST modify retry:', moResp2.status, 'body:', JSON.stringify(moData2).slice(0, 300));
+      const savedRec2 = (moData2.records || [])[0];
+      if (!savedRec2 || savedRec2.serverErrorCode) throw new Error(savedRec2?.reason || moData2.reason || 'Modify failed on retry');
+      console.log('saveNote OK on retry, new changeTag:', savedRec2.recordChangeTag);
+    } else {
+      const savedRec = (moData.records || [])[0];
+      if (!savedRec || savedRec.serverErrorCode) throw new Error(savedRec?.reason || moData.reason || 'Modify failed');
+      console.log('saveNote OK, new changeTag:', savedRec.recordChangeTag);
+    }
 
     a.notes = mergedNotes;
     const idx = allAttendees.findIndex(x => x.id === a.id);
