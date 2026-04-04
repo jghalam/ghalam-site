@@ -461,7 +461,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.28';
+const VERSION     = 'v1.0.29';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '334bed51ea26c4a9bade8cf8991010ae0e59ebb74dc4e7bab038c92f2fcb490b';
@@ -763,15 +763,20 @@ async function loadAttendees() {
     const resp = await activeEvent.database.performQuery(query, { zoneID: zid });
     console.log('loadAttendees query records:', resp.records?.length, 'errors:', JSON.stringify(resp.errors || []).slice(0,200));
 
-    // performQuery can return cached/stale data. Re-fetch each record by name
-    // to guarantee we get the latest field values from the server.
-    const recordNames = (resp.records || []).map(r => ({ recordName: r.recordName, zoneID: zid }));
+    // performQuery can return stale cached data. Re-fetch each record by name
+    // to guarantee fresh field values (especially notes) from the server.
+    const recordRefs = (resp.records || []).map(r => ({ recordName: r.recordName, zoneID: zid }));
     let freshRecords = resp.records || [];
-    if (recordNames.length > 0) {
-      const fetchResp = await activeEvent.database.fetchRecords(recordNames);
-      if (fetchResp.records && fetchResp.records.length > 0) {
-        freshRecords = fetchResp.records.filter(r => !r.serverErrorCode);
-        console.log('loadAttendees fetchRecords:', freshRecords.length, 'fresh records');
+    if (recordRefs.length > 0) {
+      try {
+        const fetchResp = await activeEvent.database.fetchRecords(recordRefs);
+        const fetched = (fetchResp.records || []).filter(r => !r.serverErrorCode);
+        if (fetched.length > 0) {
+          freshRecords = fetched;
+          console.log('loadAttendees fetchRecords: got', fetched.length, 'fresh records');
+        }
+      } catch(e) {
+        console.log('loadAttendees fetchRecords failed, using query results:', e.message);
       }
     }
 
@@ -951,19 +956,35 @@ async function saveNote() {
     const stored = currentAttendee._ckRecord;
     if (!stored) throw new Error('No record stored for this attendee');
     const zoneID = { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.ownerName };
+    console.log('saveNote: record:', stored.recordName, 'zone:', zoneID.zoneName, 'owner:', zoneID.ownerRecordName);
 
-    // Fetch fresh record to get current changeTag and latest notes (avoids oplock conflict)
-    const fetchResp = await activeEvent.database.fetchRecords([{ recordName: stored.recordName, zoneID }]);
+    // Fetch fresh record to get current changeTag (avoids oplock CONFLICT errors)
+    let fetchResp;
+    try {
+      fetchResp = await activeEvent.database.fetchRecords([{ recordName: stored.recordName, zoneID }]);
+    } catch(fetchErr) {
+      console.log('saveNote fetchRecords threw:', fetchErr);
+      throw new Error('Fetch before save failed: ' + fetchErr.message);
+    }
+    console.log('saveNote fetchResp records:', fetchResp.records?.length, 'errors:', JSON.stringify(fetchResp._errors||[]));
     const freshRecord = (fetchResp.records || [])[0];
-    if (!freshRecord || freshRecord.serverErrorCode) throw new Error(freshRecord?.reason || 'Failed to fetch record');
+    if (!freshRecord) throw new Error('Record not found during pre-save fetch');
+    if (freshRecord.serverErrorCode) throw new Error(freshRecord.reason || freshRecord.serverErrorCode);
     console.log('saveNote fresh changeTag:', freshRecord.recordChangeTag);
 
-    // Append to server's current notes to avoid overwriting concurrent edits
+    // Merge new note onto server's current notes (avoids overwriting concurrent edits)
     const serverNotes = freshRecord.fields.notes?.value || '';
     const mergedNotes = serverNotes ? serverNotes + '|' + entry : entry;
     freshRecord.fields.notes = { value: mergedNotes, type: 'STRING' };
 
-    const saveResp = await activeEvent.database.saveRecords([freshRecord]);
+    let saveResp;
+    try {
+      saveResp = await activeEvent.database.saveRecords([freshRecord]);
+    } catch(saveErr) {
+      console.log('saveNote saveRecords threw:', saveErr);
+      throw new Error('Save failed: ' + saveErr.message);
+    }
+    console.log('saveNote saveResp errors:', JSON.stringify(saveResp._errors||[]), 'results:', saveResp._results?.length);
     const savedRecords = saveResp.records || saveResp._results || [];
     const errRec = savedRecords.find(r => r.serverErrorCode || r._error);
     if (errRec) throw new Error(errRec.reason || errRec.serverErrorCode || 'Save error');
