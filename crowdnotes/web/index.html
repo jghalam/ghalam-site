@@ -461,7 +461,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.41';
+const VERSION     = 'v1.0.42';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '334bed51ea26c4a9bade8cf8991010ae0e59ebb74dc4e7bab038c92f2fcb490b';
@@ -476,34 +476,6 @@ let currentAttendee = null;
 let recruiterName = localStorage.getItem('recruiterName') || '';
 let scanStream    = null;
 let scanInterval  = null;
-let ckWebAuthToken = '';
-
-// Intercept XHR to capture ckWebAuthToken (CloudKit JS uses XHR)
-const _origXHROpen = XMLHttpRequest.prototype.open;
-XMLHttpRequest.prototype.open = function(method, url, ...rest) {
-  if (typeof url === 'string' && url.includes('api.apple-cloudkit.com')) {
-    try {
-      const tok = new URL(url).searchParams.get('ckWebAuthToken');
-      if (tok) ckWebAuthToken = tok;
-    } catch(e) {}
-  }
-  return _origXHROpen.apply(this, [method, url, ...rest]);
-};
-const _origFetch = window.fetch;
-window.fetch = function(url, opts) {
-  if (typeof url === 'string' && url.includes('api.apple-cloudkit.com')) {
-    try {
-      const tok = new URL(url).searchParams.get('ckWebAuthToken');
-      if (tok) ckWebAuthToken = tok;
-    } catch(e) {}
-  }
-  return _origFetch.apply(this, arguments);
-};
-
-// Build REST zoneID — private DB zones use _defaultOwner_ not the explicit user ID
-function restZoneID() {
-  return { zoneName: activeEvent.zoneName, ownerRecordName: '_defaultOwner_' };
-}
 
 // ── CloudKit Init ─────────────────────────────────────────
 CloudKit.configure({
@@ -789,47 +761,32 @@ async function loadAttendees() {
       }]
     };
     const resp = await activeEvent.database.performQuery(query, { zoneID: zid });
-    console.log('loadAttendees query records:', resp.records?.length);
-
-    // Use REST lookup with _defaultOwner_ to get fresh data from the authoritative record
-    let freshFields = {};
-    if (resp.records && resp.records.length > 0 && ckWebAuthToken) {
-      try {
-        const ckParams = new URLSearchParams({
-          ckjsBuildVersion: '2420ProjectDev22', ckjsVersion: '2.6.4',
-          ckAPIToken: API_TOKEN, ckWebAuthToken
-        }).toString();
-        const lu = await fetch(
-          `https://api.apple-cloudkit.com/database/1/${CONTAINER}/${ENV}/private/records/lookup?${ckParams}`,
-          { method: 'POST', headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ records: resp.records.map(r => ({ recordName: r.recordName, zoneID: restZoneID() })) })
-          }
-        );
-        const ld = await lu.json();
-        console.log('loadAttendees REST lookup:', lu.status, 'records:', ld.records?.length, 'errors:', JSON.stringify((ld.records||[]).filter(r=>r.serverErrorCode)));
-        for (const r of (ld.records || [])) {
-          if (!r.serverErrorCode) freshFields[r.recordName] = r.fields;
-        }
-      } catch(e) {
-        console.log('loadAttendees REST lookup failed:', e.message);
-      }
+    console.log('loadAttendees records:', resp.records?.length, 'errors:', JSON.stringify(resp.errors || []).slice(0,200));
+    if (resp.records && resp.records.length > 0) {
+      const r0 = resp.records[0];
+      console.log('FULL RECORD META:', JSON.stringify({
+        recordName: r0.recordName,
+        recordChangeTag: r0.recordChangeTag,
+        zoneID: r0.zoneID,
+        created: r0.created,
+        modified: r0.modified
+      }));
     }
 
     allAttendees = (resp.records || []).map(r => {
-      const fields = freshFields[r.recordName] || r.fields;
-      console.log('attendee:', r.recordName, 'notes len:', (fields.notes?.value||'').length);
+      console.log('attendee record:', r.recordName, 'attendeeID:', r.fields.attendeeID?.value);
       return {
         recordName:  r.recordName,
-        _ckRecord:   r,
-        id:          fields.attendeeID?.value || r.recordName,
-        name:        fields.name?.value || '',
-        role:        fields.role?.value || '',
-        company:     fields.company?.value || '',
-        email:       fields.email?.value || '',
-        phone:       fields.phone?.value || '',
-        comment:     fields.comment?.value || '',
-        notes:       fields.notes?.value || '',
-        isCheckedIn: (fields.isCheckedIn?.value || 0) === 1,
+        _ckRecord:   r,          // keep full record for saves
+        id:          r.fields.attendeeID?.value || r.recordName,
+        name:        r.fields.name?.value || '',
+        role:        r.fields.role?.value || '',
+        company:     r.fields.company?.value || '',
+        email:       r.fields.email?.value || '',
+        phone:       r.fields.phone?.value || '',
+        comment:     r.fields.comment?.value || '',
+        notes:       r.fields.notes?.value || '',
+        isCheckedIn: (r.fields.isCheckedIn?.value || 0) === 1,
       };
     }).sort((a,b) => a.name.localeCompare(b.name));
     renderAttendees(allAttendees);
@@ -950,19 +907,10 @@ async function toggleCheckin() {
   const a = currentAttendee;
   a.isCheckedIn = !a.isCheckedIn;
   try {
-    const stored = a._ckRecord;
-    if (!stored) throw new Error('No record stored');
-    const ckP = new URLSearchParams({ ckjsBuildVersion:'2420ProjectDev22', ckjsVersion:'2.6.4', ckAPIToken:API_TOKEN, ckWebAuthToken }).toString();
-    const bURL = `https://api.apple-cloudkit.com/database/1/${CONTAINER}/${ENV}/private/records`;
-    const zID  = restZoneID();
-    const lu = await fetch(`${bURL}/lookup?${ckP}`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ records:[{ recordName:stored.recordName, zoneID:zID }] }) });
-    const ld = await lu.json();
-    const lr = (ld.records||[])[0];
-    if (!lr || lr.serverErrorCode) throw new Error(lr?.reason || 'Lookup failed');
-    const mo = await fetch(`${bURL}/modify?${ckP}`, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ operations:[{ operationType:'update', record:{ recordName:stored.recordName, recordType:'Attendee', recordChangeTag:lr.recordChangeTag, zoneID:zID, fields:{ isCheckedIn:{ value: a.isCheckedIn ? 1 : 0 } } } }] }) });
-    const md = await mo.json();
-    const mr = (md.records||[])[0];
-    if (!mr || mr.serverErrorCode) { a.isCheckedIn = !a.isCheckedIn; throw new Error(mr?.reason || 'Checkin save failed'); }
+    const record = a._ckRecord;
+    if (!record) throw new Error('No record stored');
+    record.fields.isCheckedIn = { value: a.isCheckedIn ? 1 : 0 };
+    await activeEvent.database.saveRecords([record]);
     const idx = allAttendees.findIndex(x => x.id === a.id);
     if (idx !== -1) allAttendees[idx].isCheckedIn = a.isCheckedIn;
     renderDetail();
@@ -989,52 +937,21 @@ async function saveNote() {
     const a     = currentAttendee;
     const newNotes = a.notes ? a.notes + '|' + entry : entry;
 
-    const stored = currentAttendee._ckRecord;
-    if (!stored) throw new Error('No record stored for this attendee');
-    if (!ckWebAuthToken) throw new Error('No auth token — please reload the page');
+    // Use the stored CKRecord directly — no need to re-fetch
+    const record = currentAttendee._ckRecord;
+    if (!record) throw new Error('No record stored for this attendee');
+    console.log('saveNote using stored record:', record.recordName);
+    record.fields.notes = { value: newNotes };
+    console.log('saveNote saving...');
+    const saveResp = await activeEvent.database.saveRecords([record]);
+    console.log('saveNote saveResp:', JSON.stringify(saveResp).slice(0,300));
 
-    const ckParams = new URLSearchParams({
-      ckjsBuildVersion: '2420ProjectDev22', ckjsVersion: '2.6.4',
-      ckAPIToken: API_TOKEN, ckWebAuthToken
-    }).toString();
-    const baseURL = `https://api.apple-cloudkit.com/database/1/${CONTAINER}/${ENV}/private/records`;
-    const zoneID  = restZoneID();
-
-    // Lookup live record for current changeTag
-    const luResp = await fetch(`${baseURL}/lookup?${ckParams}`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ records: [{ recordName: stored.recordName, zoneID }] })
-    });
-    const luData = await luResp.json();
-    console.log('REST lookup:', luResp.status, 'records:', luData.records?.length, 'errors:', JSON.stringify((luData.records||[]).filter(r=>r.serverErrorCode)));
-    const liveRec = (luData.records || [])[0];
-    if (!liveRec || liveRec.serverErrorCode) throw new Error(liveRec?.reason || liveRec?.serverErrorCode || 'Lookup failed');
-    console.log('saveNote changeTag:', liveRec.recordChangeTag, 'server notes len:', (liveRec.fields?.notes?.value||'').length);
-
-    const serverNotes = liveRec.fields?.notes?.value || '';
-    const mergedNotes = serverNotes ? serverNotes + '|' + entry : entry;
-
-    // Save with correct changeTag
-    const moResp = await fetch(`${baseURL}/modify?${ckParams}`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ operations: [{ operationType: 'update', record: {
-        recordName: stored.recordName, recordType: 'Attendee',
-        recordChangeTag: liveRec.recordChangeTag, zoneID,
-        fields: { notes: { value: mergedNotes } }
-      }}]})
-    });
-    const moData = await moResp.json();
-    console.log('REST modify:', moResp.status, 'errors:', JSON.stringify((moData.records||[]).filter(r=>r.serverErrorCode)));
-    const savedRec = (moData.records || [])[0];
-    if (!savedRec || savedRec.serverErrorCode) throw new Error(savedRec?.reason || savedRec?.serverErrorCode || 'Modify failed');
-    console.log('saveNote OK, new changeTag:', savedRec.recordChangeTag);
-
-    a.notes = mergedNotes;
+    a.notes = newNotes;
     const idx = allAttendees.findIndex(x => x.id === a.id);
-    if (idx !== -1) allAttendees[idx].notes = mergedNotes;
+    if (idx !== -1) allAttendees[idx].notes = newNotes;
     input.value = '';
     renderDetail();
-    showToast('Note saved ✓');
+    showToast('Note saved');
   } catch(e) {
     showToast('Failed to save note: ' + e.message);
   } finally {
