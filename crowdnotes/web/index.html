@@ -904,16 +904,14 @@ async function toggleCheckin() {
       recordName: stored.recordName,
       recordType: 'Attendee',
       zoneID,
-      fields: Object.assign({}, stored.fields, { isCheckedIn: { value: a.isCheckedIn ? 1 : 0 } })
+      fields: { isCheckedIn: { value: a.isCheckedIn ? 1 : 0, type: 'INT64' } }
     };
-    const saveResp = await activeEvent.database.saveRecords([record]);
-    const savedRecords = saveResp.records || saveResp._results || [];
-    const errRec = savedRecords.find(r => r.serverErrorCode || r._error);
-    if (errRec) throw new Error(errRec.reason || errRec.serverErrorCode || 'Save error');
-    if (saveResp._errors && saveResp._errors.length > 0) throw new Error(saveResp._errors[0].reason || saveResp._errors[0].serverErrorCode);
-    if (savedRecords.length > 0) {
-      currentAttendee._ckRecord = savedRecords[0];
-    }
+    const saveResp2 = await activeEvent.database.saveRecords([record]);
+    const saved2 = saveResp2.records || saveResp2._results || [];
+    const err2 = saved2.find(r => r.serverErrorCode || r._error);
+    if (err2) throw new Error(err2.reason || err2.serverErrorCode || 'Save error');
+    if (saveResp2._errors && saveResp2._errors.length > 0) throw new Error(saveResp2._errors[0].reason);
+    if (saved2.length > 0) currentAttendee._ckRecord = saved2[0];
     const idx = allAttendees.findIndex(x => x.id === a.id);
     if (idx !== -1) allAttendees[idx].isCheckedIn = a.isCheckedIn;
     renderDetail();
@@ -940,24 +938,26 @@ async function saveNote() {
     const a     = currentAttendee;
     const newNotes = a.notes ? a.notes + '|' + entry : entry;
 
-    // Build a minimal record without recordChangeTag — this forces CloudKit JS
-    // to use forceReplace instead of update, avoiding the stale-tag NOT_FOUND error.
     const stored = currentAttendee._ckRecord;
     if (!stored) throw new Error('No record stored for this attendee');
+
+    // Build minimal record without recordChangeTag (forces forceReplace not update).
+    // Send only the notes field with explicit STRING type — avoids overwriting other fields
+    // and avoids CloudKit silently dropping untyped fields.
     const zoneID = { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.ownerName };
     const record = {
       recordName: stored.recordName,
       recordType: 'Attendee',
       zoneID,
-      fields: Object.assign({}, stored.fields, { notes: { value: newNotes } })
+      fields: { notes: { value: newNotes, type: 'STRING' } }
     };
-    console.log('saveNote record:', record.recordName, 'zone:', zoneID.zoneName);
+    console.log('saveNote record:', record.recordName, 'zone:', zoneID.zoneName, 'notes len:', newNotes.length);
     const saveResp = await activeEvent.database.saveRecords([record]);
+    try { console.log('saveNote resp:', JSON.stringify(saveResp)); } catch(e) {}
     const savedRecords = saveResp.records || saveResp._results || [];
     const errRec = savedRecords.find(r => r.serverErrorCode || r._error);
     if (errRec) throw new Error(errRec.reason || errRec.serverErrorCode || 'Save error');
     if (saveResp._errors && saveResp._errors.length > 0) throw new Error(saveResp._errors[0].reason || saveResp._errors[0].serverErrorCode);
-    // Update stored record for next save
     if (savedRecords.length > 0) {
       currentAttendee._ckRecord = savedRecords[0];
       const idx2 = allAttendees.findIndex(x => x.id === a.id);
