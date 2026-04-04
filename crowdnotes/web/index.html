@@ -461,7 +461,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.19';
+const VERSION     = 'v1.0.20';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '334bed51ea26c4a9bade8cf8991010ae0e59ebb74dc4e7bab038c92f2fcb490b';
@@ -940,14 +940,19 @@ async function saveNote() {
     const newNotes = a.notes ? a.notes + '|' + entry : entry;
 
     const zid = { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.ownerName };
+    console.log('saveNote fetching record:', a.recordName, 'zone:', JSON.stringify(zid));
     const fetchResp = await activeEvent.database.fetchRecords([{
       recordName: a.recordName,
       zoneID: zid
     }]);
+    console.log('saveNote fetchResp records:', fetchResp.records?.length, 'errors:', JSON.stringify(fetchResp.errors || []).slice(0,200));
     const record = (fetchResp.records || [])[0];
     if (!record) throw new Error('Record not found');
+    console.log('saveNote record fields:', Object.keys(record.fields || {}));
     record.fields.notes = { value: newNotes };
-    await activeEvent.database.saveRecords([record]);
+    console.log('saveNote saving record...');
+    const saveResp = await activeEvent.database.saveRecords([record]);
+    console.log('saveNote saveResp:', JSON.stringify(saveResp).slice(0,300));
 
     a.notes = newNotes;
     const idx = allAttendees.findIndex(x => x.id === a.id);
