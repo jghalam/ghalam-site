@@ -566,18 +566,21 @@ async function joinWithLink() {
       const shareToken = input.split('/share/')[1]?.split('#')[0]?.split('?')[0];
       console.log('trying acceptShares with token:', shareToken);
       const resp = await container.acceptShares([{ value: shareToken }]);
-      console.log('acceptShares raw result:', JSON.stringify(resp).slice(0, 800));
-      const shares = resp.shares || resp.results || (Array.isArray(resp) ? resp : [resp]);
-      const share  = shares[0];
-      console.log('first share:', JSON.stringify(share || {}).slice(0, 500));
-      zoneName  = share?.rootRecordID?.zoneID?.zoneName
-               || share?.rootRecord?.recordID?.zoneID?.zoneName
-               || share?.zoneID?.zoneName
-               || share?.share?.recordID?.zoneID?.zoneName;
-      ownerName = share?.rootRecordID?.zoneID?.ownerName
-               || share?.rootRecord?.recordID?.zoneID?.ownerName
-               || share?.zoneID?.ownerName
-               || share?.ownerIdentity?.userRecordName;
+      console.log('acceptShares raw result:', JSON.stringify(resp).slice(0, 500));
+      const result = (resp.results || [])[0];
+      zoneName  = result?.zoneID?.zoneName;
+      ownerName = result?.zoneID?.ownerRecordName || result?.ownerIdentity?.userRecordName;
+      // databaseScope tells us which DB to use (PRIVATE or SHARED)
+      const dbScope = result?.databaseScope || 'SHARED';
+      console.log('zone:', zoneName, 'owner:', ownerName, 'dbScope:', dbScope);
+      // Store db scope for later querying
+      if (zoneName) {
+        const savedShares = JSON.parse(localStorage.getItem('sharedZones') || '[]');
+        const existing = savedShares.find(z => z.zoneName === zoneName);
+        if (existing) existing.dbScope = dbScope;
+        else savedShares.push({ zoneName, ownerName, shareURL: input, eventName, dbScope });
+        localStorage.setItem('sharedZones', JSON.stringify(savedShares));
+      }
     } catch(e) { console.log('acceptShares failed:', e.message, e); }
   }
 
@@ -652,11 +655,14 @@ async function loadEvents() {
 
     // Zones joined via share link on web
     for (const saved of savedShares) {
+      if (!saved.zoneName) continue;
       if (leftZones.includes(saved.zoneName)) continue;
       if (events.find(e => e.zoneName === saved.zoneName)) continue;
-      if (!saved.zoneName) continue; // will be found via sharedDB scan above
       const zoneID = { zoneName: saved.zoneName, ownerName: saved.ownerName };
-      const event = await fetchEventRecord(zoneID, sharedDB, false);
+      // Use privateDB for organizer's PRIVATE scope, sharedDB for members
+      const targetDB = (saved.dbScope === 'PRIVATE') ? db : sharedDB;
+      const isOrg    = (saved.dbScope === 'PRIVATE');
+      const event = await fetchEventRecord(zoneID, targetDB, isOrg);
       if (event) events.push(event);
     }
 
@@ -670,21 +676,22 @@ async function loadEvents() {
 
 async function fetchEventRecord(zoneID, database, isOrganizer) {
   try {
-    const query = { recordType: 'Event', filterBy: [], sortBy: [] };
-    const options = { zoneID };
-    const resp = await database.performQuery(query, options);
+    const query   = { recordType: 'Event', filterBy: [], sortBy: [] };
+    const ownerRN = zoneID.ownerRecordName || zoneID.ownerName || '__defaultOwner__';
+    const options = { zoneID: { zoneName: zoneID.zoneName, ownerRecordName: ownerRN } };
+    const resp    = await database.performQuery(query, options);
     if (resp.records && resp.records.length > 0) {
       const r = resp.records[0];
       return {
         recordName: r.recordName,
         zoneName:   zoneID.zoneName,
-        ownerName:  zoneID.ownerName || '__defaultOwner__',
+        ownerName:  ownerRN,
         name:       r.fields.name?.value || 'Untitled Event',
         isOrganizer,
         database
       };
     }
-  } catch(e) { /* zone may not have event record */ }
+  } catch(e) { console.log('fetchEventRecord error for zone', zoneID.zoneName, ':', e.message); }
   return null;
 }
 
