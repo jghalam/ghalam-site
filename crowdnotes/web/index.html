@@ -461,7 +461,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.26';
+const VERSION     = 'v1.0.27';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '334bed51ea26c4a9bade8cf8991010ae0e59ebb74dc4e7bab038c92f2fcb490b';
@@ -779,6 +779,7 @@ async function loadAttendees() {
         isCheckedIn: (r.fields.isCheckedIn?.value || 0) === 1,
       };
     }).sort((a,b) => a.name.localeCompare(b.name));
+    allAttendees.forEach(x => console.log('loaded attendee notes:', x.recordName, (x.notes||'').slice(0,80)));
     renderAttendees(allAttendees);
   } catch(e) {
     document.getElementById('attendee-list').innerHTML = `<div class="error-msg">Failed to load attendees: ${e.message}</div>`;
@@ -939,40 +940,35 @@ async function saveNote() {
     const stored = currentAttendee._ckRecord;
     if (!stored) throw new Error('No record stored for this attendee');
 
-    // Always fetch the record fresh so we have the current recordChangeTag.
-    // Stale tags cause CONFLICT (oplock) errors on save.
+    // Fetch fresh record to get current recordChangeTag before saving
     const zoneID = { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.ownerName };
-    console.log('saveNote fetching fresh record:', stored.recordName);
-    const fetchResp = await activeEvent.database.fetchRecords([{
-      recordName: stored.recordName,
-      zoneID
-    }]);
+    const fetchResp = await activeEvent.database.fetchRecords([{ recordName: stored.recordName, zoneID }]);
     const freshRecord = (fetchResp.records || [])[0];
-    if (!freshRecord || freshRecord.serverErrorCode) {
-      throw new Error(freshRecord?.reason || freshRecord?.serverErrorCode || 'Failed to fetch record before save');
-    }
-    console.log('saveNote fresh changeTag:', freshRecord.recordChangeTag);
-    freshRecord.fields.notes = { value: newNotes, type: 'STRING' };
+    if (!freshRecord || freshRecord.serverErrorCode) throw new Error(freshRecord?.reason || 'Failed to fetch record');
+    console.log('saveNote fresh changeTag:', freshRecord.recordChangeTag, 'server notes:', (freshRecord.fields.notes?.value||'').slice(0,60));
+
+    // Build newNotes from server's current notes to avoid overwriting concurrent changes
+    const serverNotes = freshRecord.fields.notes?.value || '';
+    const mergedNotes = serverNotes ? serverNotes + '|' + entry : entry;
+    freshRecord.fields.notes = { value: mergedNotes, type: 'STRING' };
 
     const saveResp = await activeEvent.database.saveRecords([freshRecord]);
-    try { console.log('saveNote resp:', JSON.stringify(saveResp)); } catch(e) {}
     const savedRecords = saveResp.records || saveResp._results || [];
     const errRec = savedRecords.find(r => r.serverErrorCode || r._error);
     if (errRec) throw new Error(errRec.reason || errRec.serverErrorCode || 'Save error');
     if (saveResp._errors && saveResp._errors.length > 0) throw new Error(saveResp._errors[0].reason || saveResp._errors[0].serverErrorCode);
-    // Store updated record with fresh changeTag for subsequent saves
     if (savedRecords.length > 0) {
       currentAttendee._ckRecord = savedRecords[0];
       const idx2 = allAttendees.findIndex(x => x.id === a.id);
       if (idx2 !== -1) allAttendees[idx2]._ckRecord = savedRecords[0];
     }
-
-    a.notes = newNotes;
+    // Update in-memory notes from merged value so UI is correct
+    a.notes = mergedNotes;
     const idx = allAttendees.findIndex(x => x.id === a.id);
-    if (idx !== -1) allAttendees[idx].notes = newNotes;
+    if (idx !== -1) allAttendees[idx].notes = mergedNotes;
     input.value = '';
     renderDetail();
-    showToast('Note saved');
+    showToast('Note saved ✓');
   } catch(e) {
     showToast('Failed to save note: ' + e.message);
   } finally {
