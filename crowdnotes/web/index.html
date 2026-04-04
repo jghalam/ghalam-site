@@ -560,19 +560,25 @@ async function joinWithLink() {
     } catch(e) { console.log('CloudKit.fetchShareMetadata failed:', e.message); }
   }
 
-  // Attempt 2: container.acceptShares (some CloudKit JS versions)
+  // Attempt 2: container.acceptShares — needs just the share token, not full URL
   if (!zoneName && typeof container.acceptShares === 'function') {
     try {
-      // CloudKit JS acceptShares expects array of share URLs as strings
-      const resp = await container.acceptShares([input]);
-      console.log('acceptShares raw result:', JSON.stringify(resp).slice(0, 500));
-      const share = (resp.shares || resp.results || [])[0] || resp;
-      zoneName  = share?.rootRecord?.recordID?.zoneID?.zoneName
-               || share?.zoneID?.zoneName;
-      ownerName = share?.rootRecord?.recordID?.zoneID?.ownerName
-               || share?.ownerIdentity?.userRecordName
-               || share?.zoneID?.ownerName;
-    } catch(e) { console.log('acceptShares failed:', e.message); }
+      const shareToken = input.split('/share/')[1]?.split('#')[0]?.split('?')[0];
+      console.log('trying acceptShares with token:', shareToken);
+      const resp = await container.acceptShares([{ value: shareToken }]);
+      console.log('acceptShares raw result:', JSON.stringify(resp).slice(0, 800));
+      const shares = resp.shares || resp.results || (Array.isArray(resp) ? resp : [resp]);
+      const share  = shares[0];
+      console.log('first share:', JSON.stringify(share || {}).slice(0, 500));
+      zoneName  = share?.rootRecordID?.zoneID?.zoneName
+               || share?.rootRecord?.recordID?.zoneID?.zoneName
+               || share?.zoneID?.zoneName
+               || share?.share?.recordID?.zoneID?.zoneName;
+      ownerName = share?.rootRecordID?.zoneID?.ownerName
+               || share?.rootRecord?.recordID?.zoneID?.ownerName
+               || share?.zoneID?.ownerName
+               || share?.ownerIdentity?.userRecordName;
+    } catch(e) { console.log('acceptShares failed:', e.message, e); }
   }
 
   // Attempt 3: Use share token to query sharedDB for all zones
