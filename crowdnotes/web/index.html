@@ -537,33 +537,47 @@ async function joinWithLink() {
     return;
   }
 
-  // Extract share token from URL — format: https://www.icloud.com/share/TOKEN#EventName
-  const shareToken = input.split('/share/')[1]?.split('#')[0]?.split('?')[0];
-  if (!shareToken) {
-    errEl.textContent = 'Could not parse share link. Please check and try again.';
-    errEl.style.display = 'block';
-    return;
-  }
+  showToast('Connecting to event…');
 
-  // Store the share token and attempt to fetch the share metadata
-  // CloudKit JS can fetch share metadata without formal acceptance
   try {
-    showToast('Connecting to event…');
-    const resp = await container.fetchShareMetadata({ shareURL: input });
-    if (resp.errors && resp.errors.length > 0) throw new Error(resp.errors[0].reason);
+    // CloudKit JS fetchShareMetadata is on CloudKit object, not container
+    let zoneName = null, ownerName = null, eventName = null;
 
-    const meta = resp.metadata;
-    if (!meta) throw new Error('Could not read share metadata.');
+    // Try CloudKit.fetchShareMetadata
+    try {
+      const resp = await CloudKit.fetchShareMetadata({ shareURL: input });
+      const meta = resp.metadata || resp;
+      zoneName  = meta.hierarchicalRootRecordID?.zoneID?.zoneName
+               || meta.rootRecordID?.zoneID?.zoneName;
+      ownerName = meta.hierarchicalRootRecordID?.zoneID?.ownerName
+               || meta.rootRecordID?.zoneID?.ownerName;
+      eventName = meta.title || null;
+    } catch(e) {
+      console.log('fetchShareMetadata failed:', e.message);
+    }
 
-    const zoneName  = meta.hierarchicalRootRecordID?.zoneID?.zoneName || meta.rootRecordID?.zoneID?.zoneName;
-    const ownerName = meta.hierarchicalRootRecordID?.zoneID?.ownerName || meta.rootRecordID?.zoneID?.ownerName;
+    // Fallback: extract event name from URL fragment (#EventName)
+    // and store link for manual zone discovery on next load
+    if (!zoneName) {
+      const fragment = input.split('#')[1] || '';
+      eventName = decodeURIComponent(fragment.replace(/-/g, ' ')) || 'Shared Event';
 
-    if (!zoneName) throw new Error('Could not determine event zone from share link.');
+      // Store the raw share URL — we'll try to find the zone by scanning sharedDB
+      const savedShares = JSON.parse(localStorage.getItem('sharedZones') || '[]');
+      if (!savedShares.find(z => z.shareURL === input)) {
+        savedShares.push({ zoneName: null, ownerName: null, shareURL: input, eventName });
+        localStorage.setItem('sharedZones', JSON.stringify(savedShares));
+      }
+      document.getElementById('share-link-input').value = '';
+      showToast('Link saved. Loading events…');
+      await loadEvents();
+      return;
+    }
 
-    // Save to localStorage so it persists across sessions
+    // Save zone info
     const savedShares = JSON.parse(localStorage.getItem('sharedZones') || '[]');
     if (!savedShares.find(z => z.zoneName === zoneName)) {
-      savedShares.push({ zoneName, ownerName, shareURL: input });
+      savedShares.push({ zoneName, ownerName, shareURL: input, eventName });
       localStorage.setItem('sharedZones', JSON.stringify(savedShares));
     }
 
@@ -602,9 +616,9 @@ async function loadEvents() {
     // Zones joined via share link on web
     for (const saved of savedShares) {
       if (leftZones.includes(saved.zoneName)) continue;
-      if (events.find(e => e.zoneName === saved.zoneName)) continue; // already loaded
+      if (events.find(e => e.zoneName === saved.zoneName)) continue;
+      if (!saved.zoneName) continue; // will be found via sharedDB scan above
       const zoneID = { zoneName: saved.zoneName, ownerName: saved.ownerName };
-      // Try sharedDB first, then use the zone owner's database
       const event = await fetchEventRecord(zoneID, sharedDB, false);
       if (event) events.push(event);
     }
