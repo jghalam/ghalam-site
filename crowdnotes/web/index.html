@@ -510,6 +510,10 @@ function onSignedIn(userInfo) {
     recruiterName = prompt('What is your name? (used for notes)') || 'Member';
     localStorage.setItem('recruiterName', recruiterName);
   }
+  // Clear any malformed saved zones from previous attempts
+  const saved = JSON.parse(localStorage.getItem('sharedZones') || '[]');
+  const valid = saved.filter(z => z.zoneName && z.ownerName);
+  if (valid.length !== saved.length) localStorage.setItem('sharedZones', JSON.stringify(valid));
   showScreen('events');
   loadEvents();
 }
@@ -658,7 +662,7 @@ async function loadEvents() {
       if (!saved.zoneName) continue;
       if (leftZones.includes(saved.zoneName)) continue;
       if (events.find(e => e.zoneName === saved.zoneName)) continue;
-      const zoneID = { zoneName: saved.zoneName, ownerName: saved.ownerName };
+      const zoneID = { zoneName: saved.zoneName, ownerRecordName: saved.ownerName || saved.ownerRecordName };
       // Use privateDB for organizer's PRIVATE scope, sharedDB for members
       const targetDB = (saved.dbScope === 'PRIVATE') ? db : sharedDB;
       const isOrg    = (saved.dbScope === 'PRIVATE');
@@ -678,8 +682,11 @@ async function fetchEventRecord(zoneID, database, isOrganizer) {
   try {
     const query   = { recordType: 'Event', filterBy: [], sortBy: [] };
     const ownerRN = zoneID.ownerRecordName || zoneID.ownerName || '__defaultOwner__';
+    // CloudKit JS performQuery zoneID needs this exact structure
     const options = { zoneID: { zoneName: zoneID.zoneName, ownerRecordName: ownerRN } };
+    console.log('fetchEventRecord querying zone:', zoneID.zoneName, 'owner:', ownerRN, 'db:', isOrganizer ? 'private' : 'shared');
     const resp    = await database.performQuery(query, options);
+    console.log('fetchEventRecord resp:', resp.records?.length, 'records, errors:', resp.errors?.length);
     if (resp.records && resp.records.length > 0) {
       const r = resp.records[0];
       return {
@@ -691,7 +698,7 @@ async function fetchEventRecord(zoneID, database, isOrganizer) {
         database
       };
     }
-  } catch(e) { console.log('fetchEventRecord error for zone', zoneID.zoneName, ':', e.message); }
+  } catch(e) { console.log('fetchEventRecord error for zone', zoneID.zoneName, ':', e.message, e); }
   return null;
 }
 
