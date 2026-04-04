@@ -461,7 +461,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.37';
+const VERSION     = 'v1.0.38';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '334bed51ea26c4a9bade8cf8991010ae0e59ebb74dc4e7bab038c92f2fcb490b';
@@ -476,6 +476,20 @@ let currentAttendee = null;
 let recruiterName = localStorage.getItem('recruiterName') || '';
 let scanStream    = null;
 let scanInterval  = null;
+let ckWebAuthToken = ''; // captured from CloudKit JS requests
+
+// Intercept fetch to capture ckWebAuthToken from CloudKit JS requests
+const _origFetch = window.fetch;
+window.fetch = function(url, opts) {
+  if (typeof url === 'string' && url.includes('api.apple-cloudkit.com')) {
+    try {
+      const u = new URL(url);
+      const tok = u.searchParams.get('ckWebAuthToken');
+      if (tok) ckWebAuthToken = tok;
+    } catch(e) {}
+  }
+  return _origFetch.apply(this, arguments);
+};
 
 // ── CloudKit Init ─────────────────────────────────────────
 CloudKit.configure({
@@ -897,10 +911,19 @@ async function toggleCheckin() {
   const a = currentAttendee;
   a.isCheckedIn = !a.isCheckedIn;
   try {
-    const record = a._ckRecord;
-    if (!record) throw new Error('No record stored');
-    record.fields.isCheckedIn = { value: a.isCheckedIn ? 1 : 0 };
-    await activeEvent.database.saveRecords([record]);
+    const stored = a._ckRecord;
+    if (!stored) throw new Error('No record stored');
+    const ckParams2 = new URLSearchParams({ ckjsBuildVersion: '2420ProjectDev22', ckjsVersion: '2.6.4', ckAPIToken: API_TOKEN, ckWebAuthToken }).toString();
+    const baseURL2 = `https://api.apple-cloudkit.com/database/1/${CONTAINER}/${ENV}/private/records`;
+    const zoneID2  = { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.ownerName };
+    const lu2 = await fetch(`${baseURL2}/lookup?${ckParams2}`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ records:[{ recordName: stored.recordName, zoneID: zoneID2 }] }) });
+    const ld2 = await lu2.json();
+    const lr2 = (ld2.records||[])[0];
+    if (!lr2 || lr2.serverErrorCode) throw new Error(lr2?.reason || 'Lookup failed for checkin');
+    const mo2 = await fetch(`${baseURL2}/modify?${ckParams2}`, { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ operations:[{ operationType:'update', record:{ recordName: stored.recordName, recordType:'Attendee', recordChangeTag: lr2.recordChangeTag, zoneID: zoneID2, fields:{ isCheckedIn:{ value: a.isCheckedIn ? 1 : 0 } } } }] }) });
+    const md2 = await mo2.json();
+    const mr2 = (md2.records||[])[0];
+    if (!mr2 || mr2.serverErrorCode) { a.isCheckedIn = !a.isCheckedIn; throw new Error(mr2?.reason || 'Checkin save failed'); }
     const idx = allAttendees.findIndex(x => x.id === a.id);
     if (idx !== -1) allAttendees[idx].isCheckedIn = a.isCheckedIn;
     renderDetail();
@@ -929,75 +952,62 @@ async function saveNote() {
 
     const stored = currentAttendee._ckRecord;
     if (!stored) throw new Error('No record stored for this attendee');
+    if (!ckWebAuthToken) throw new Error('Not authenticated — no web auth token');
 
-    // Fetch the current record directly via CloudKit REST API to get
-    // the true server-side recordChangeTag (bypasses CloudKit JS query cache).
-    async function fetchCurrentRecord(recordName) {
-      const container = CloudKit.getDefaultContainer();
-      const auth = container._auth;
-      const webToken = auth?._webAuthToken || auth?.webAuthToken;
-      const params = new URLSearchParams({
-        ckjsBuildVersion: '2420ProjectDev22',
-        ckjsVersion: '2.6.4',
-        ckAPIToken: '334bed51ea26c4a9bade8cf8991010ae0e59ebb74dc4e7bab038c92f2fcb490b'
-      });
-      if (webToken) params.set('ckWebAuthToken', webToken);
-      const url = `https://api.apple-cloudkit.com/database/1/${CONTAINER}/${ENV}/private/records/lookup?${params}`;
-      const body = {
-        records: [{ recordName, zoneID: { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.ownerName } }]
-      };
-      const resp = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
-      const data = await resp.json();
-      console.log('REST lookup status:', resp.status, 'records:', data.records?.length);
-      return (data.records || [])[0] || null;
-    }
+    // Use CloudKit REST API directly to bypass CloudKit JS query cache.
+    // The JS library caches query results and returns stale recordChangeTags,
+    // causing every save to CONFLICT. The REST API gives us the live server state.
+    const ckParams = new URLSearchParams({
+      ckjsBuildVersion: '2420ProjectDev22',
+      ckjsVersion: '2.6.4',
+      ckAPIToken: API_TOKEN,
+      ckWebAuthToken
+    }).toString();
+    const baseURL = `https://api.apple-cloudkit.com/database/1/${CONTAINER}/${ENV}/private/records`;
+    const zoneID  = { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.ownerName };
 
-    // Save via REST API using the fresh record with correct changeTag
-    async function saveViaREST(recordName, changeTag, notesValue, allFields) {
-      const container = CloudKit.getDefaultContainer();
-      const auth = container._auth;
-      const webToken = auth?._webAuthToken || auth?.webAuthToken;
-      const params = new URLSearchParams({
-        ckjsBuildVersion: '2420ProjectDev22',
-        ckjsVersion: '2.6.4',
-        ckAPIToken: '334bed51ea26c4a9bade8cf8991010ae0e59ebb74dc4e7bab038c92f2fcb490b'
-      });
-      if (webToken) params.set('ckWebAuthToken', webToken);
-      const url = `https://api.apple-cloudkit.com/database/1/${CONTAINER}/${ENV}/private/records/modify?${params}`;
-      const fields = Object.assign({}, allFields, { notes: { value: notesValue } });
-      const record = { recordName, recordType: 'Attendee', recordChangeTag: changeTag, fields,
-        zoneID: { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.ownerName } };
-      const body = { operations: [{ operationType: 'update', record }] };
-      const resp = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
-      const data = await resp.json();
-      console.log('REST modify status:', resp.status, 'records:', data.records?.length, 'errors:', JSON.stringify(data.records?.filter(r=>r.serverErrorCode)||[]));
-      return data;
-    }
-
-    const liveRec = await fetchCurrentRecord(stored.recordName);
-    if (!liveRec || liveRec.serverErrorCode) throw new Error(liveRec?.reason || 'Failed to fetch live record');
+    // 1. Lookup: get live record with current changeTag
+    const lookupResp = await fetch(`${baseURL}/lookup?${ckParams}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ records: [{ recordName: stored.recordName, zoneID }] })
+    });
+    const lookupData = await lookupResp.json();
+    console.log('REST lookup status:', lookupResp.status, 'records:', lookupData.records?.length);
+    const liveRec = (lookupData.records || [])[0];
+    if (!liveRec || liveRec.serverErrorCode) throw new Error(liveRec?.reason || liveRec?.serverErrorCode || 'Lookup failed');
     console.log('saveNote live changeTag:', liveRec.recordChangeTag, 'notes:', (liveRec.fields?.notes?.value||'').slice(0,60));
 
+    // Merge new entry onto server's current notes
     const serverNotes = liveRec.fields?.notes?.value || '';
     const mergedNotes = serverNotes ? serverNotes + '|' + entry : entry;
 
-    const saveData = await saveViaREST(stored.recordName, liveRec.recordChangeTag, mergedNotes, liveRec.fields || {});
-    const savedRec = (saveData.records || [])[0];
-    if (!savedRec || savedRec.serverErrorCode) throw new Error(savedRec?.reason || savedRec?.serverErrorCode || 'Save failed');
+    // 2. Modify: save with correct changeTag
+    const modifyResp = await fetch(`${baseURL}/modify?${ckParams}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        operations: [{
+          operationType: 'update',
+          record: {
+            recordName: stored.recordName,
+            recordType: 'Attendee',
+            recordChangeTag: liveRec.recordChangeTag,
+            zoneID,
+            fields: { notes: { value: mergedNotes } }
+          }
+        }]
+      })
+    });
+    const modifyData = await modifyResp.json();
+    console.log('REST modify status:', modifyResp.status, 'errors:', JSON.stringify((modifyData.records||[]).filter(r=>r.serverErrorCode)));
+    const savedRec = (modifyData.records || [])[0];
+    if (!savedRec || savedRec.serverErrorCode) throw new Error(savedRec?.reason || savedRec?.serverErrorCode || 'Modify failed');
+    console.log('saveNote: saved OK, new changeTag:', savedRec.recordChangeTag);
 
     a.notes = mergedNotes;
     const idx = allAttendees.findIndex(x => x.id === a.id);
     if (idx !== -1) allAttendees[idx].notes = mergedNotes;
-    // Update stored record changeTag for next save
-    if (stored.fields) stored.fields.notes = { value: mergedNotes };
     input.value = '';
     renderDetail();
     showToast('Note saved ✓');
