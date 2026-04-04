@@ -4,7 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="CrowdNotes">
 <meta name="theme-color" content="#0a0a0f">
+<link rel="icon" href="https://ghalam.net/crowdnotes/appicon.png">
+<link rel="apple-touch-icon" href="https://ghalam.net/crowdnotes/appicon.png">
 <title>CrowdNotes</title>
 <script src="https://cdn.apple-cloudkit.com/ck/2/cloudkit.js"></script>
 <style>
@@ -373,12 +376,17 @@
 
 <!-- Sign In -->
 <div id="screen-signin" class="screen active">
-  <div class="signin-logo">📋</div>
+  <img src="https://ghalam.net/crowdnotes/appicon.png" style="width:80px;height:80px;border-radius:22px;margin-bottom:28px;" alt="CrowdNotes">
   <div class="signin-title">CrowdNotes</div>
   <div class="signin-sub">Sign in with your Apple ID to access<br>your recruiting events.</div>
-  <button class="btn-signin" onclick="signIn()">Sign in with Apple</button>
+  <!-- CloudKit JS renders the sign-in button here -->
+  <div id="ck-signin" style="margin-top:8px;"></div>
+  <button class="btn-signin" onclick="signIn()" style="margin-top:12px;">Sign in with Apple</button>
   <div id="signin-error" style="margin-top:16px; color:var(--red); font-size:14px; text-align:center;"></div>
 </div>
+
+<!-- Sign Out (hidden, used by CloudKit JS) -->
+<div id="ck-signout" style="display:none;"></div>
 
 <!-- Events -->
 <div id="screen-events" class="screen">
