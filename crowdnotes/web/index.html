@@ -461,7 +461,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.27';
+const VERSION     = 'v1.0.28';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '334bed51ea26c4a9bade8cf8991010ae0e59ebb74dc4e7bab038c92f2fcb490b';
@@ -761,13 +761,25 @@ async function loadAttendees() {
       }]
     };
     const resp = await activeEvent.database.performQuery(query, { zoneID: zid });
-    console.log('loadAttendees records:', resp.records?.length, 'errors:', JSON.stringify(resp.errors || []).slice(0,200));
+    console.log('loadAttendees query records:', resp.records?.length, 'errors:', JSON.stringify(resp.errors || []).slice(0,200));
 
-    allAttendees = (resp.records || []).map(r => {
-      console.log('attendee record:', r.recordName, 'attendeeID:', r.fields.attendeeID?.value);
+    // performQuery can return cached/stale data. Re-fetch each record by name
+    // to guarantee we get the latest field values from the server.
+    const recordNames = (resp.records || []).map(r => ({ recordName: r.recordName, zoneID: zid }));
+    let freshRecords = resp.records || [];
+    if (recordNames.length > 0) {
+      const fetchResp = await activeEvent.database.fetchRecords(recordNames);
+      if (fetchResp.records && fetchResp.records.length > 0) {
+        freshRecords = fetchResp.records.filter(r => !r.serverErrorCode);
+        console.log('loadAttendees fetchRecords:', freshRecords.length, 'fresh records');
+      }
+    }
+
+    allAttendees = freshRecords.map(r => {
+      console.log('attendee record:', r.recordName, 'notes len:', (r.fields.notes?.value||'').length);
       return {
         recordName:  r.recordName,
-        _ckRecord:   r,          // keep full record for saves
+        _ckRecord:   r,
         id:          r.fields.attendeeID?.value || r.recordName,
         name:        r.fields.name?.value || '',
         role:        r.fields.role?.value || '',
@@ -779,7 +791,6 @@ async function loadAttendees() {
         isCheckedIn: (r.fields.isCheckedIn?.value || 0) === 1,
       };
     }).sort((a,b) => a.name.localeCompare(b.name));
-    allAttendees.forEach(x => console.log('loaded attendee notes:', x.recordName, (x.notes||'').slice(0,80)));
     renderAttendees(allAttendees);
   } catch(e) {
     document.getElementById('attendee-list').innerHTML = `<div class="error-msg">Failed to load attendees: ${e.message}</div>`;
@@ -939,15 +950,15 @@ async function saveNote() {
 
     const stored = currentAttendee._ckRecord;
     if (!stored) throw new Error('No record stored for this attendee');
-
-    // Fetch fresh record to get current recordChangeTag before saving
     const zoneID = { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.ownerName };
+
+    // Fetch fresh record to get current changeTag and latest notes (avoids oplock conflict)
     const fetchResp = await activeEvent.database.fetchRecords([{ recordName: stored.recordName, zoneID }]);
     const freshRecord = (fetchResp.records || [])[0];
     if (!freshRecord || freshRecord.serverErrorCode) throw new Error(freshRecord?.reason || 'Failed to fetch record');
-    console.log('saveNote fresh changeTag:', freshRecord.recordChangeTag, 'server notes:', (freshRecord.fields.notes?.value||'').slice(0,60));
+    console.log('saveNote fresh changeTag:', freshRecord.recordChangeTag);
 
-    // Build newNotes from server's current notes to avoid overwriting concurrent changes
+    // Append to server's current notes to avoid overwriting concurrent edits
     const serverNotes = freshRecord.fields.notes?.value || '';
     const mergedNotes = serverNotes ? serverNotes + '|' + entry : entry;
     freshRecord.fields.notes = { value: mergedNotes, type: 'STRING' };
@@ -962,7 +973,7 @@ async function saveNote() {
       const idx2 = allAttendees.findIndex(x => x.id === a.id);
       if (idx2 !== -1) allAttendees[idx2]._ckRecord = savedRecords[0];
     }
-    // Update in-memory notes from merged value so UI is correct
+
     a.notes = mergedNotes;
     const idx = allAttendees.findIndex(x => x.id === a.id);
     if (idx !== -1) allAttendees[idx].notes = mergedNotes;
