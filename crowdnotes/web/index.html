@@ -461,7 +461,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.24';
+const VERSION     = 'v1.0.25';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '334bed51ea26c4a9bade8cf8991010ae0e59ebb74dc4e7bab038c92f2fcb490b';
@@ -899,14 +899,15 @@ async function toggleCheckin() {
   try {
     const stored = a._ckRecord;
     if (!stored) throw new Error('No record stored');
-    const zoneID = { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.ownerName };
-    const record = {
-      recordName: stored.recordName,
-      recordType: 'Attendee',
-      zoneID,
-      fields: { isCheckedIn: { value: a.isCheckedIn ? 1 : 0, type: 'INT64' } }
-    };
-    const saveResp2 = await activeEvent.database.saveRecords([record]);
+    stored.fields.isCheckedIn = { value: a.isCheckedIn ? 1 : 0, type: 'INT64' };
+    let saveResp2;
+    try {
+      saveResp2 = await activeEvent.database.saveRecords([stored]);
+    } catch(ckErr) {
+      console.log('toggleCheckin threw:', ckErr);
+      throw ckErr;
+    }
+    try { console.log('toggleCheckin resp:', JSON.stringify(saveResp2)); } catch(e) {}
     const saved2 = saveResp2.records || saveResp2._results || [];
     const err2 = saved2.find(r => r.serverErrorCode || r._error);
     if (err2) throw new Error(err2.reason || err2.serverErrorCode || 'Save error');
@@ -941,23 +942,24 @@ async function saveNote() {
     const stored = currentAttendee._ckRecord;
     if (!stored) throw new Error('No record stored for this attendee');
 
-    // Build minimal record without recordChangeTag (forces forceReplace not update).
-    // Send only the notes field with explicit STRING type — avoids overwriting other fields
-    // and avoids CloudKit silently dropping untyped fields.
-    const zoneID = { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.ownerName };
-    const record = {
-      recordName: stored.recordName,
-      recordType: 'Attendee',
-      zoneID,
-      fields: { notes: { value: newNotes, type: 'STRING' } }
-    };
-    console.log('saveNote record:', record.recordName, 'zone:', zoneID.zoneName, 'notes len:', newNotes.length);
-    const saveResp = await activeEvent.database.saveRecords([record]);
+    // Mutate the stored record's notes field in place and save it directly.
+    // recordChangeTag stays intact — CloudKit uses 'update' which requires it,
+    // but we refresh the stored record from the response so it stays current.
+    stored.fields.notes = { value: newNotes, type: 'STRING' };
+    console.log('saveNote record:', stored.recordName, 'changeTag:', stored.recordChangeTag, 'notes len:', newNotes.length);
+    let saveResp;
+    try {
+      saveResp = await activeEvent.database.saveRecords([stored]);
+    } catch(ckErr) {
+      console.log('saveNote threw:', ckErr);
+      throw ckErr;
+    }
     try { console.log('saveNote resp:', JSON.stringify(saveResp)); } catch(e) {}
     const savedRecords = saveResp.records || saveResp._results || [];
     const errRec = savedRecords.find(r => r.serverErrorCode || r._error);
     if (errRec) throw new Error(errRec.reason || errRec.serverErrorCode || 'Save error');
     if (saveResp._errors && saveResp._errors.length > 0) throw new Error(saveResp._errors[0].reason || saveResp._errors[0].serverErrorCode);
+    // Update stored record with fresh changeTag from server
     if (savedRecords.length > 0) {
       currentAttendee._ckRecord = savedRecords[0];
       const idx2 = allAttendees.findIndex(x => x.id === a.id);
