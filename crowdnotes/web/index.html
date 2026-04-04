@@ -461,7 +461,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.39';
+const VERSION     = 'v1.0.40';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '334bed51ea26c4a9bade8cf8991010ae0e59ebb74dc4e7bab038c92f2fcb490b';
@@ -476,28 +476,25 @@ let currentAttendee = null;
 let recruiterName = localStorage.getItem('recruiterName') || '';
 let scanStream    = null;
 let scanInterval  = null;
-let ckWebAuthToken = ''; // captured from CloudKit JS requests
+let ckWebAuthToken = '';
 
-// Intercept XHR (CloudKit JS uses XHR, not fetch)
+// Intercept XHR to capture ckWebAuthToken (CloudKit JS uses XHR)
 const _origXHROpen = XMLHttpRequest.prototype.open;
-const _origXHRSend = XMLHttpRequest.prototype.send;
 XMLHttpRequest.prototype.open = function(method, url, ...rest) {
   if (typeof url === 'string' && url.includes('api.apple-cloudkit.com')) {
     try {
       const tok = new URL(url).searchParams.get('ckWebAuthToken');
-      if (tok) { ckWebAuthToken = tok; }
+      if (tok) ckWebAuthToken = tok;
     } catch(e) {}
   }
   return _origXHROpen.apply(this, [method, url, ...rest]);
 };
-
-// Also intercept fetch as fallback
 const _origFetch = window.fetch;
 window.fetch = function(url, opts) {
   if (typeof url === 'string' && url.includes('api.apple-cloudkit.com')) {
     try {
       const tok = new URL(url).searchParams.get('ckWebAuthToken');
-      if (tok) { ckWebAuthToken = tok; }
+      if (tok) ckWebAuthToken = tok;
     } catch(e) {}
   }
   return _origFetch.apply(this, arguments);
@@ -787,22 +784,51 @@ async function loadAttendees() {
       }]
     };
     const resp = await activeEvent.database.performQuery(query, { zoneID: zid });
-    console.log('loadAttendees records:', resp.records?.length, 'errors:', JSON.stringify(resp.errors || []).slice(0,200));
+    console.log('loadAttendees query records:', resp.records?.length);
+
+    // performQuery returns stale cached data. Use REST API lookup to get fresh records.
+    let freshFields = {}; // recordName -> fresh fields from REST
+    if (resp.records && resp.records.length > 0 && ckWebAuthToken) {
+      try {
+        const ckParams = new URLSearchParams({
+          ckjsBuildVersion: '2420ProjectDev22', ckjsVersion: '2.6.4',
+          ckAPIToken: API_TOKEN, ckWebAuthToken
+        }).toString();
+        const lookupBody = {
+          records: resp.records.map(r => ({
+            recordName: r.recordName,
+            zoneID: { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.ownerName }
+          }))
+        };
+        const lu = await fetch(
+          `https://api.apple-cloudkit.com/database/1/${CONTAINER}/${ENV}/private/records/lookup?${ckParams}`,
+          { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(lookupBody) }
+        );
+        const ld = await lu.json();
+        console.log('loadAttendees REST lookup:', lu.status, 'records:', ld.records?.length);
+        for (const r of (ld.records || [])) {
+          if (!r.serverErrorCode) freshFields[r.recordName] = r.fields;
+        }
+      } catch(e) {
+        console.log('loadAttendees REST lookup failed:', e.message, '— using cached data');
+      }
+    }
 
     allAttendees = (resp.records || []).map(r => {
-      console.log('attendee record:', r.recordName, 'attendeeID:', r.fields.attendeeID?.value);
+      const fields = freshFields[r.recordName] || r.fields;
+      console.log('attendee:', r.recordName, 'notes len:', (fields.notes?.value||'').length);
       return {
         recordName:  r.recordName,
-        _ckRecord:   r,          // keep full record for saves
-        id:          r.fields.attendeeID?.value || r.recordName,
-        name:        r.fields.name?.value || '',
-        role:        r.fields.role?.value || '',
-        company:     r.fields.company?.value || '',
-        email:       r.fields.email?.value || '',
-        phone:       r.fields.phone?.value || '',
-        comment:     r.fields.comment?.value || '',
-        notes:       r.fields.notes?.value || '',
-        isCheckedIn: (r.fields.isCheckedIn?.value || 0) === 1,
+        _ckRecord:   r,
+        id:          fields.attendeeID?.value || r.recordName,
+        name:        fields.name?.value || '',
+        role:        fields.role?.value || '',
+        company:     fields.company?.value || '',
+        email:       fields.email?.value || '',
+        phone:       fields.phone?.value || '',
+        comment:     fields.comment?.value || '',
+        notes:       fields.notes?.value || '',
+        isCheckedIn: (fields.isCheckedIn?.value || 0) === 1,
       };
     }).sort((a,b) => a.name.localeCompare(b.name));
     renderAttendees(allAttendees);
@@ -964,56 +990,43 @@ async function saveNote() {
 
     const stored = currentAttendee._ckRecord;
     if (!stored) throw new Error('No record stored for this attendee');
-
-    console.log('saveNote: ckWebAuthToken captured:', ckWebAuthToken ? 'yes (len='+ckWebAuthToken.length+')' : 'NO');
-    if (!ckWebAuthToken) throw new Error('Not authenticated — no web auth token captured yet');
+    if (!ckWebAuthToken) throw new Error('No auth token — please reload the page');
 
     const ckParams = new URLSearchParams({
-      ckjsBuildVersion: '2420ProjectDev22',
-      ckjsVersion: '2.6.4',
-      ckAPIToken: API_TOKEN,
-      ckWebAuthToken
+      ckjsBuildVersion: '2420ProjectDev22', ckjsVersion: '2.6.4',
+      ckAPIToken: API_TOKEN, ckWebAuthToken
     }).toString();
     const baseURL = `https://api.apple-cloudkit.com/database/1/${CONTAINER}/${ENV}/private/records`;
     const zoneID  = { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.ownerName };
 
-    // 1. Lookup live record to get current changeTag
-    const lookupResp = await fetch(`${baseURL}/lookup?${ckParams}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    // Lookup live record to get current changeTag
+    const luResp = await fetch(`${baseURL}/lookup?${ckParams}`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ records: [{ recordName: stored.recordName, zoneID }] })
     });
-    const lookupData = await lookupResp.json();
-    console.log('REST lookup:', lookupResp.status, 'records:', lookupData.records?.length, 'errors:', JSON.stringify((lookupData.records||[]).filter(r=>r.serverErrorCode)));
-    const liveRec = (lookupData.records || [])[0];
+    const luData = await luResp.json();
+    console.log('REST lookup:', luResp.status, 'records:', luData.records?.length);
+    const liveRec = (luData.records || [])[0];
     if (!liveRec || liveRec.serverErrorCode) throw new Error(liveRec?.reason || liveRec?.serverErrorCode || 'Lookup failed');
-    console.log('saveNote live changeTag:', liveRec.recordChangeTag);
+    console.log('saveNote changeTag:', liveRec.recordChangeTag);
 
     const serverNotes = liveRec.fields?.notes?.value || '';
     const mergedNotes = serverNotes ? serverNotes + '|' + entry : entry;
 
-    // 2. Modify with correct changeTag
-    const modifyResp = await fetch(`${baseURL}/modify?${ckParams}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        operations: [{
-          operationType: 'update',
-          record: {
-            recordName: stored.recordName,
-            recordType: 'Attendee',
-            recordChangeTag: liveRec.recordChangeTag,
-            zoneID,
-            fields: { notes: { value: mergedNotes } }
-          }
-        }]
-      })
+    // Save with correct changeTag
+    const moResp = await fetch(`${baseURL}/modify?${ckParams}`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ operations: [{ operationType: 'update', record: {
+        recordName: stored.recordName, recordType: 'Attendee',
+        recordChangeTag: liveRec.recordChangeTag, zoneID,
+        fields: { notes: { value: mergedNotes } }
+      }}]})
     });
-    const modifyData = await modifyResp.json();
-    console.log('REST modify:', modifyResp.status, 'errors:', JSON.stringify((modifyData.records||[]).filter(r=>r.serverErrorCode)));
-    const savedRec = (modifyData.records || [])[0];
+    const moData = await moResp.json();
+    console.log('REST modify:', moResp.status, 'errors:', JSON.stringify((moData.records||[]).filter(r=>r.serverErrorCode)));
+    const savedRec = (moData.records || [])[0];
     if (!savedRec || savedRec.serverErrorCode) throw new Error(savedRec?.reason || savedRec?.serverErrorCode || 'Modify failed');
-    console.log('saveNote saved OK, new changeTag:', savedRec.recordChangeTag);
+    console.log('saveNote OK, new changeTag:', savedRec.recordChangeTag);
 
     a.notes = mergedNotes;
     const idx = allAttendees.findIndex(x => x.id === a.id);
