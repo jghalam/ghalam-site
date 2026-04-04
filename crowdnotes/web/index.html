@@ -461,7 +461,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.23';
+const VERSION     = 'v1.0.24';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '334bed51ea26c4a9bade8cf8991010ae0e59ebb74dc4e7bab038c92f2fcb490b';
@@ -900,7 +900,24 @@ async function toggleCheckin() {
     const record = a._ckRecord;
     if (!record) throw new Error('No record stored');
     record.fields.isCheckedIn = { value: a.isCheckedIn ? 1 : 0 };
-    await activeEvent.database.saveRecords([record]);
+    const saveResp = await activeEvent.database.saveRecords([record]);
+    console.log('toggleCheckin saveResp:', typeof saveResp);
+    try { console.log('toggleCheckin saveResp full:', JSON.stringify(saveResp)); } catch(e) {}
+
+    const savedRecords = saveResp.records || saveResp._results || [];
+    if (savedRecords.length > 0) {
+      const r0 = savedRecords[0];
+      if (r0._error || r0.serverErrorCode) {
+        throw new Error(r0._error?.reason || r0.serverErrorCode || 'Record save error');
+      }
+      // Update stored record with new changeTag
+      currentAttendee._ckRecord = r0;
+      const idx = allAttendees.findIndex(x => x.id === a.id);
+      if (idx !== -1) allAttendees[idx]._ckRecord = r0;
+    } else if (saveResp._error || saveResp.serverErrorCode) {
+      throw new Error(saveResp._error?.reason || saveResp.serverErrorCode || 'Save failed');
+    }
+
     const idx = allAttendees.findIndex(x => x.id === a.id);
     if (idx !== -1) allAttendees[idx].isCheckedIn = a.isCheckedIn;
     renderDetail();
@@ -930,11 +947,29 @@ async function saveNote() {
     // Use the stored CKRecord directly — no need to re-fetch
     const record = currentAttendee._ckRecord;
     if (!record) throw new Error('No record stored for this attendee');
-    console.log('saveNote using stored record:', record.recordName);
+    console.log('saveNote using stored record:', record.recordName, 'changeTag:', record.recordChangeTag);
     record.fields.notes = { value: newNotes };
     console.log('saveNote saving...');
     const saveResp = await activeEvent.database.saveRecords([record]);
-    console.log('saveNote saveResp:', JSON.stringify(saveResp).slice(0,300));
+    // Log full response (not truncated) to debug
+    console.log('saveNote saveResp type:', typeof saveResp);
+    try { console.log('saveNote saveResp full:', JSON.stringify(saveResp)); } catch(e) { console.log('saveNote saveResp (not serializable):', saveResp); }
+
+    // CloudKit JS saveRecords returns {records:[...]} where each record may have _error
+    const savedRecords = saveResp.records || saveResp._results || [];
+    console.log('saveNote savedRecords count:', savedRecords.length);
+    if (savedRecords.length > 0) {
+      const r0 = savedRecords[0];
+      if (r0._error || r0.serverErrorCode) {
+        throw new Error(r0._error?.reason || r0.serverErrorCode || 'Record save error');
+      }
+      // Update stored record with new changeTag so subsequent saves work
+      currentAttendee._ckRecord = r0;
+      const idx2 = allAttendees.findIndex(x => x.id === a.id);
+      if (idx2 !== -1) allAttendees[idx2]._ckRecord = r0;
+    } else if (saveResp._error || saveResp.serverErrorCode) {
+      throw new Error(saveResp._error?.reason || saveResp.serverErrorCode || 'Save failed');
+    }
 
     a.notes = newNotes;
     const idx = allAttendees.findIndex(x => x.id === a.id);
