@@ -563,11 +563,15 @@ async function joinWithLink() {
   // Attempt 2: container.acceptShares (some CloudKit JS versions)
   if (!zoneName && typeof container.acceptShares === 'function') {
     try {
-      const resp = await container.acceptShares([{ shareURL: input }]);
-      const meta = (resp.shares || [])[0];
-      zoneName  = meta?.rootRecord?.recordID?.zoneID?.zoneName;
-      ownerName = meta?.rootRecord?.recordID?.zoneID?.ownerName;
-      console.log('acceptShares result:', JSON.stringify(meta || {}).slice(0, 300));
+      // CloudKit JS acceptShares expects array of share URLs as strings
+      const resp = await container.acceptShares([input]);
+      console.log('acceptShares raw result:', JSON.stringify(resp).slice(0, 500));
+      const share = (resp.shares || resp.results || [])[0] || resp;
+      zoneName  = share?.rootRecord?.recordID?.zoneID?.zoneName
+               || share?.zoneID?.zoneName;
+      ownerName = share?.rootRecord?.recordID?.zoneID?.ownerName
+               || share?.ownerIdentity?.userRecordName
+               || share?.zoneID?.ownerName;
     } catch(e) { console.log('acceptShares failed:', e.message); }
   }
 
