@@ -691,6 +691,12 @@ async function fetchEventRecord(zoneID, database, isOrganizer) {
       optionsByRecordZoneID: { [zid.zoneName]: { previousServerChangeToken: null } }
     });
 
+    console.log('fetchEventRecord zoneChanges keys:', Object.keys(resp));
+    console.log('fetchEventRecord changed:', resp.records?.changed?.length, 'moreComing:', resp.moreComing);
+    if (resp.errors) console.log('fetchEventRecord errors:', JSON.stringify(resp.errors).slice(0, 300));
+    // Log first few records
+    (resp.records?.changed || []).slice(0, 3).forEach(r => console.log('record type:', r.recordType, 'fields:', Object.keys(r.fields || {})));
+
     for (const record of (resp.records?.changed || [])) {
       if (record.recordType === 'Event') {
         eventName = record.fields?.name?.value || 'Untitled Event';
