@@ -461,7 +461,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.54';
+const VERSION     = 'v1.0.55';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '334bed51ea26c4a9bade8cf8991010ae0e59ebb74dc4e7bab038c92f2fcb490b';
@@ -515,13 +515,30 @@ function signOut() {
   ckWebAuthToken = ''; currentUserRecordName = '';
   localStorage.removeItem('recruiterName');
   recruiterName = '';
-  // Trigger CloudKit JS sign-out then show signin screen
-  container.whenUserSignsOut().then(() => {
-    showScreen('signin');
+
+  // Clear CloudKit JS persisted auth tokens from localStorage
+  Object.keys(localStorage).forEach(k => {
+    if (k.includes('cloudkit') || k.includes('CloudKit') || k.includes('ckSession') || k.includes('ckWebAuth')) {
+      localStorage.removeItem(k);
+    }
   });
+  // Clear any CloudKit cookies by expiring them
+  document.cookie.split(';').forEach(c => {
+    const key = c.split('=')[0].trim();
+    if (key.includes('cloudkit') || key.includes('ck_')) {
+      document.cookie = key + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
+    }
+  });
+
+  // Click the hidden CloudKit sign-out button to deauth server-side
   const btn = document.querySelector('#ck-signout button');
-  if (btn) btn.click();
-  else showScreen('signin');
+  if (btn) {
+    btn.click();
+    // Give CloudKit JS a moment to process, then reload to show fresh sign-in
+    setTimeout(() => { window.location.reload(); }, 800);
+  } else {
+    window.location.reload();
+  }
 }
 
 function onSignedIn(userInfo) {
