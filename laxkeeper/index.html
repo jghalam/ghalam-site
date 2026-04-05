@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="images/appicon.png">
+<link rel="apple-touch-icon" href="images/appicon.png">
+<title>LAX Keeper – Lacrosse Scorekeeping for iOS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #0d0f14;
+    --surface:   #161820;
+    --border:    #2a2d3a;
+    --text:      #e8eaf0;
+    --muted:     #8b8fa8;
+    --accent:    #6dbf82;
+    --accent2:   #4fa36a;
+    --radius:    14px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* ── NAV ── */
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 2rem;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: rgba(13,15,20,0.92);
+    backdrop-filter: blur(12px);
+    z-index: 100;
+  }
+  nav .brand {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.2rem;
+    color: var(--accent);
+    text-decoration: none;
+    letter-spacing: 0.02em;
+  }
+  nav .nav-links { display: flex; gap: 2rem; list-style: none; }
+  nav .nav-links a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    transition: color 0.2s;
+  }
+  nav .nav-links a:hover { color: var(--text); }
+  nav .nav-links a.active { color: var(--accent); }
+
+  /* ── HERO ── */
+  .hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 5rem 2rem 4rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(109,191,130,0.08) 0%, transparent 70%);
+    top: -100px; left: 50%; transform: translateX(-50%);
+    pointer-events: none;
+  }
+  .app-icon {
+    width: 110px; height: 110px;
+    border-radius: 24px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.5), 0 0 0 1px var(--border);
+    margin-bottom: 1.75rem;
+    object-fit: cover;
+  }
+  .hero h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2.2rem, 5vw, 3.2rem);
+    font-weight: 400;
+    line-height: 1.15;
+    margin-bottom: 1rem;
+    color: var(--text);
+  }
+  .hero h1 span { color: var(--accent); font-style: italic; }
+  .hero .tagline {
+    font-size: 1.1rem;
+    color: var(--muted);
+    max-width: 480px;
+    margin-bottom: 2.5rem;
+  }
+  .badge-link img { height: 44px; }
+  .badge-link { display: inline-block; }
+
+  /* ── SCREENSHOT ── */
+  .screenshot-wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 2rem 3rem;
+    display: flex;
+    justify-content: center;
+  }
+  .screenshot-wrap img {
+    width: 100%;
+    max-width: 640px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    box-shadow: 0 12px 48px rgba(0,0,0,0.4);
+    object-fit: contain;
+  }
+
+  /* ── SECTION ── */
+  section {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 3rem 2rem;
+  }
+  section + section { border-top: 1px solid var(--border); }
+
+  h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.75rem;
+    font-weight: 400;
+    margin-bottom: 1.25rem;
+    color: var(--text);
+  }
+  h2 .dot { color: var(--accent); }
+
+  p { color: var(--muted); margin-bottom: 1rem; }
+  p:last-child { margin-bottom: 0; }
+
+  /* ── FEATURES GRID ── */
+  .features {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  .feature-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.5rem;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .feature-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .feature-card .icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.6rem;
+    display: block;
+  }
+  .feature-card h3 {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 0.35rem;
+  }
+  .feature-card p { font-size: 0.85rem; margin-bottom: 0; }
+
+  /* ── FAQ ── */
+  .faq-list { margin-top: 1.25rem; display: flex; flex-direction: column; gap: 1rem; }
+  .faq-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.5rem;
+  }
+  .faq-item .q {
+    font-weight: 500;
+    color: var(--text);
+    font-size: 0.95rem;
+    margin-bottom: 0.4rem;
+  }
+  .faq-item .a {
+    color: var(--muted);
+    font-size: 0.88rem;
+    margin-bottom: 0;
+  }
+
+  /* ── CONTACT ── */
+  .contact-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+    text-align: center;
+  }
+  .contact-card p { margin-bottom: 1rem; }
+  .contact-card a {
+    display: inline-block;
+    background: var(--accent);
+    color: #0d0f14;
+    font-weight: 500;
+    font-size: 0.9rem;
+    padding: 0.6rem 1.6rem;
+    border-radius: 100px;
+    text-decoration: none;
+    letter-spacing: 0.03em;
+    transition: opacity 0.2s;
+  }
+  .contact-card a:hover { opacity: 0.85; }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    padding: 2rem;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.82rem;
+  }
+  footer a { color: var(--muted); text-decoration: none; }
+  footer a:hover { color: var(--accent); }
+
+  @media (max-width: 600px) {
+    nav { padding: 1rem; }
+    nav .nav-links { gap: 1.25rem; }
+    .hero { padding: 3.5rem 1.25rem 3rem; }
+    section { padding: 2.5rem 1.25rem; }
+    .screenshot-wrap { padding: 0 1.25rem 2.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="brand">LAX Keeper</a>
+  <ul class="nav-links">
+    <li><a href="index.html" class="active">Home</a></li>
+    <li><a href="https://ghalam.net/" target="_blank">Ghalam.net</a></li>
+  </ul>
+</nav>
+
+<div class="hero">
+  <img src="images/appicon.png" alt="LAX Keeper App Icon" class="app-icon">
+  <h1>Lacrosse scorekeeping<br><span>made simple</span></h1>
+  <p class="tagline">A clean, all-in-one tool for lacrosse referees and timekeepers — manage time, score, and penalties without ever leaving the main screen.</p>
+</div>
+
+<div class="screenshot-wrap">
+  <img src="images/laxkeeper_screen.png" alt="LAX Keeper main screen">
+</div>
+
+<section>
+  <h2>About LAX Keeper<span class="dot">.</span></h2>
+  <p>LAX Keeper is designed with one goal in mind: keep the referee focused on the game. Every control you need — clock, score, timeouts, and penalties for both teams — is right there on the main screen, bright and readable even in direct sunlight.</p>
+  <p>Configurable sounds and warnings let you adapt the app to your setup, whether you're using a physical horn or relying entirely on the app's audio cues.</p>
+</section>
+
+<section>
+  <h2>Features<span class="dot">.</span></h2>
+  <div class="features">
+    <div class="feature-card">
+      <span class="icon">⏱️</span>
+      <h3>Large, Bright Clock</h3>
+      <p>High-visibility green and red countdown timer, easy to read on the brightest sunny days.</p>
+    </div>
+    <div class="feature-card">
+      <span class="icon">🔴</span>
+      <h3>Time Warnings</h3>
+      <p>Visual and audio alerts at 30 seconds, 1 minute, and 2 minutes (4th period) remaining.</p>
+    </div>
+    <div class="feature-card">
+      <span class="icon">⚙️</span>
+      <h3>Adjustable Periods</h3>
+      <p>Tap the remaining time before the game starts to set a custom period length.</p>
+    </div>
+    <div class="feature-card">
+      <span class="icon">🔔</span>
+      <h3>Stopped-Clock Alert</h3>
+      <p>Continuous 5-second warning tone when the clock is paused during an active game.</p>
+    </div>
+    <div class="feature-card">
+      <span class="icon">🔄</span>
+      <h3>Auto Period Tracking</h3>
+      <p>Automatically advances period numbers and handles overtime seamlessly.</p>
+    </div>
+    <div class="feature-card">
+      <span class="icon">🏒</span>
+      <h3>Score & Timeouts</h3>
+      <p>Quick-reference score and timeout tracking for both teams on a single screen.</p>
+    </div>
+    <div class="feature-card">
+      <span class="icon">🟦</span>
+      <h3>Penalty Tracking</h3>
+      <p>Up to 4 penalties per side (Blue and Red), with optional player number and preset durations.</p>
+    </div>
+    <div class="feature-card">
+      <span class="icon">📢</span>
+      <h3>Horn & Penalty Sounds</h3>
+      <p>Horn at period end, beep when penalties expire. All sounds individually configurable.</p>
+    </div>
+    <div class="feature-card">
+      <span class="icon">📱</span>
+      <h3>Screen Always On</h3>
+      <p>Disables auto-lock by default so the screen stays visible throughout the game.</p>
+    </div>
+    <div class="feature-card">
+      <span class="icon">🔇</span>
+      <h3>Background Timing</h3>
+      <p>Clock keeps running if the app goes to background — picks up correctly when you return.</p>
+    </div>
+    <div class="feature-card">
+      <span class="icon">🎛️</span>
+      <h3>Sound Settings</h3>
+      <p>Fine-grained control over which alerts play, for setups with external audio equipment.</p>
+    </div>
+    <div class="feature-card">
+      <span class="icon">📋</span>
+      <h3>Record Mode</h3>
+      <p>Optional detailed game log — scores, penalties, and periods — viewable as a report.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>FAQ<span class="dot">.</span></h2>
+  <div class="faq-list">
+    <div class="faq-item">
+      <p class="q">When I open the app, I can't adjust the score or add penalties.</p>
+      <p class="a">Score and penalty buttons are disabled until the game has started. Press Start to begin.</p>
+    </div>
+    <div class="faq-item">
+      <p class="q">How do I change the period time?</p>
+      <p class="a">Before starting the game, tap on the remaining time display to select a new value.</p>
+    </div>
+    <div class="faq-item">
+      <p class="q">Tapping the remaining time doesn't do anything.</p>
+      <p class="a">The game has most likely already started. Period time can only be adjusted before the game begins.</p>
+    </div>
+    <div class="faq-item">
+      <p class="q">How do I disable sounds?</p>
+      <p class="a">Tap the Settings button in the lower right corner to choose which sounds to enable or disable.</p>
+    </div>
+    <div class="faq-item">
+      <p class="q">How do I release or delete a penalty?</p>
+      <p class="a">Tap on the active penalty entry. A confirmation prompt will appear before removing it.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Get in Touch<span class="dot">.</span></h2>
+  <div class="contact-card">
+    <p>Questions, feedback, or support? Reach out directly.</p>
+    <a href="mailto:joe.ghalam@gmail.com">Contact Joe</a>
+  </div>
+</section>
+
+<footer>
+  <p>© 2026 LAX Keeper &nbsp;·&nbsp; <a href="https://ghalam.net/">Ghalam.net</a></p>
+</footer>
+
+</body>
+</html>
