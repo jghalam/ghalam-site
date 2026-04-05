@@ -461,7 +461,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.49';
+const VERSION     = 'v1.0.50';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '334bed51ea26c4a9bade8cf8991010ae0e59ebb74dc4e7bab038c92f2fcb490b';
@@ -921,11 +921,11 @@ async function toggleCheckin() {
     const fRec2 = (fResp2.records || []).find(r => r.recordName === stored.recordName);
     if (!fRec2) throw new Error('Record not found for checkin');
     const dbName2 = activeEvent.dbName || (activeEvent.isOrganizer ? 'private' : 'shared');
-    const zoneID2 = dbName2 === 'shared' ? { zoneName: activeEvent.zoneName } : { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.ownerName };
+    const ownerRN2 = activeEvent.organizerID || activeEvent.ownerName;
     const ckP2 = new URLSearchParams({ ckjsBuildVersion:'2420ProjectDev22', ckjsVersion:'2.6.4', ckAPIToken:API_TOKEN, ckWebAuthToken }).toString();
     const mo2 = await fetch(`https://api.apple-cloudkit.com/database/1/${CONTAINER}/${ENV}/${dbName2}/records/modify?${ckP2}`, {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ zoneID: zoneID2, operations:[{ operationType:'update', record:{ recordName:fRec2.recordName, recordChangeTag:fRec2.recordChangeTag, fields:{ isCheckedIn:{ value: a.isCheckedIn ? 1 : 0 } } } }] })
+      body: JSON.stringify({ zoneID: { zoneName: activeEvent.zoneName, ownerRecordName: ownerRN2 }, operations:[{ operationType:'update', record:{ recordName:fRec2.recordName, recordChangeTag:fRec2.recordChangeTag, fields:{ isCheckedIn:{ value: a.isCheckedIn ? 1 : 0 } } } }] })
     });
     const md2 = await mo2.json();
     const mr2 = (md2.records||[])[0];
@@ -972,13 +972,10 @@ async function saveNote() {
     const serverNotes = freshRec.fields.notes?.value || '';
     const mergedNotes = serverNotes ? serverNotes + '|' + entry : entry;
 
-    // Per Apple docs: zoneID goes at TOP LEVEL of request body, not inside record.
-    // For shared DB zones: zoneName only — ownerRecordName is not needed/wanted.
-    // For private DB zones: include ownerRecordName.
     const dbName = activeEvent.dbName || (activeEvent.isOrganizer ? 'private' : 'shared');
-    const topLevelZoneID = dbName === 'shared'
-      ? { zoneName: activeEvent.zoneName }
-      : { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.ownerName };
+    // Use organizerID as ownerRecordName for shared DB — this is the zone owner
+    const ownerRN = activeEvent.organizerID || activeEvent.ownerName;
+    const topLevelZoneID = { zoneName: activeEvent.zoneName, ownerRecordName: ownerRN };
 
     const ckParams = new URLSearchParams({
       ckjsBuildVersion: '2420ProjectDev22', ckjsVersion: '2.6.4',
@@ -986,25 +983,39 @@ async function saveNote() {
     }).toString();
     const modifyURL = `https://api.apple-cloudkit.com/database/1/${CONTAINER}/${ENV}/${dbName}/records/modify?${ckParams}`;
 
-    const reqBody = {
-      zoneID: topLevelZoneID,
-      operations: [{ operationType: 'update', record: {
-        recordName: freshRec.recordName,
-        recordChangeTag: freshRec.recordChangeTag,
-        fields: { notes: { value: mergedNotes } }
-      }}]
-    };
-    console.log('saveNote: changeTag:', freshRec.recordChangeTag, 'db:', dbName, 'zoneID:', JSON.stringify(topLevelZoneID));
+    // Try all three zoneID variants to find what shared DB accepts
+    const variants = [
+      { zoneName: activeEvent.zoneName, ownerRecordName: ownerRN },
+      { zoneName: activeEvent.zoneName, ownerRecordName: '_defaultOwner_' },
+      { zoneName: activeEvent.zoneName }
+    ];
 
-    const moResp = await fetch(modifyURL, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(reqBody)
-    });
-    const moData = await moResp.json();
-    console.log('REST modify:', moResp.status, 'response:', JSON.stringify(moData).slice(0, 300));
-    const savedRec = (moData.records || [])[0];
-    if (!savedRec || savedRec.serverErrorCode) throw new Error(savedRec?.reason || moData.reason || moData.serverErrorCode || 'Modify failed');
-    console.log('saveNote OK, new changeTag:', savedRec.recordChangeTag);
+    let savedRec = null;
+    for (const zoneIDVariant of variants) {
+      const reqBody = {
+        zoneID: zoneIDVariant,
+        operations: [{ operationType: 'update', record: {
+          recordName: freshRec.recordName,
+          recordChangeTag: freshRec.recordChangeTag,
+          fields: { notes: { value: mergedNotes } }
+        }}]
+      };
+      console.log('saveNote trying zoneID:', JSON.stringify(zoneIDVariant));
+      const moResp = await fetch(modifyURL, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(reqBody)
+      });
+      const moData = await moResp.json();
+      console.log('REST modify:', moResp.status, JSON.stringify(moData).slice(0, 200));
+      if (moResp.ok) {
+        savedRec = (moData.records || [])[0];
+        if (savedRec && !savedRec.serverErrorCode) {
+          console.log('saveNote OK with zoneID:', JSON.stringify(zoneIDVariant), 'new changeTag:', savedRec.recordChangeTag);
+          break;
+        }
+      }
+    }
+    if (!savedRec || savedRec.serverErrorCode) throw new Error(savedRec?.reason || 'All zoneID variants failed');
 
     a.notes = mergedNotes;
     const idx = allAttendees.findIndex(x => x.id === a.id);
