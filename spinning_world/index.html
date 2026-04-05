@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="images/appicon.png">
+<link rel="apple-touch-icon" href="images/appicon.png">
+<title>Spinning World – Globe Geography Game for iOS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:        #0d0f14;
+    --surface:   #161820;
+    --border:    #2a2d3a;
+    --text:      #e8eaf0;
+    --muted:     #8b8fa8;
+    --accent:    #7eb8d4;
+    --radius:    14px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  /* ── NAV ── */
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 2rem;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: rgba(13,15,20,0.92);
+    backdrop-filter: blur(12px);
+    z-index: 100;
+  }
+  nav .brand {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.2rem;
+    color: var(--accent);
+    text-decoration: none;
+    letter-spacing: 0.02em;
+  }
+  nav .nav-links { display: flex; gap: 2rem; list-style: none; }
+  nav .nav-links a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    transition: color 0.2s;
+  }
+  nav .nav-links a:hover { color: var(--text); }
+  nav .nav-links a.active { color: var(--accent); }
+
+  /* ── HERO ── */
+  .hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 5rem 2rem 4rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(126,184,212,0.08) 0%, transparent 70%);
+    top: -100px; left: 50%; transform: translateX(-50%);
+    pointer-events: none;
+  }
+  .app-icon {
+    width: 110px; height: 110px;
+    border-radius: 24px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.5), 0 0 0 1px var(--border);
+    margin-bottom: 1.75rem;
+    object-fit: cover;
+  }
+  .hero h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2.2rem, 5vw, 3.2rem);
+    font-weight: 400;
+    line-height: 1.15;
+    margin-bottom: 1rem;
+    color: var(--text);
+  }
+  .hero h1 span { color: var(--accent); font-style: italic; }
+  .hero .tagline {
+    font-size: 1.1rem;
+    color: var(--muted);
+    max-width: 480px;
+    margin-bottom: 2.5rem;
+  }
+  .badge-link img { height: 44px; }
+  .badge-link { display: inline-block; }
+
+  /* ── SCREENSHOT ── */
+  .screenshot-wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 2rem 3rem;
+    display: flex;
+    justify-content: center;
+  }
+  .screenshot-wrap img {
+    width: auto;
+    max-width: 280px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    box-shadow: 0 12px 48px rgba(0,0,0,0.4);
+    object-fit: contain;
+  }
+
+  /* ── SECTION ── */
+  section {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 3rem 2rem;
+  }
+  section + section { border-top: 1px solid var(--border); }
+
+  h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.75rem;
+    font-weight: 400;
+    margin-bottom: 1.25rem;
+    color: var(--text);
+  }
+  h2 .dot { color: var(--accent); }
+
+  p { color: var(--muted); margin-bottom: 1rem; }
+  p:last-child { margin-bottom: 0; }
+
+  /* ── FEATURES GRID ── */
+  .features {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  .feature-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.5rem;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .feature-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .feature-card .icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.6rem;
+    display: block;
+  }
+  .feature-card h3 {
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: var(--text);
+    margin-bottom: 0.35rem;
+  }
+  .feature-card p { font-size: 0.85rem; margin-bottom: 0; }
+
+  /* ── SCORING TABLE ── */
+  .score-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  .score-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.5rem;
+    text-align: center;
+  }
+  .score-card .value {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2rem;
+    color: var(--accent);
+    line-height: 1;
+    margin-bottom: 0.4rem;
+  }
+  .score-card .label {
+    font-size: 0.82rem;
+    color: var(--muted);
+    letter-spacing: 0.04em;
+  }
+
+  /* ── CONTACT ── */
+  .contact-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+    text-align: center;
+  }
+  .contact-card p { margin-bottom: 1rem; }
+  .contact-card a {
+    display: inline-block;
+    background: var(--accent);
+    color: #0d0f14;
+    font-weight: 500;
+    font-size: 0.9rem;
+    padding: 0.6rem 1.6rem;
+    border-radius: 100px;
+    text-decoration: none;
+    letter-spacing: 0.03em;
+    transition: opacity 0.2s;
+  }
+  .contact-card a:hover { opacity: 0.85; }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    padding: 2rem;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.82rem;
+  }
+  footer a { color: var(--muted); text-decoration: none; }
+  footer a:hover { color: var(--accent); }
+
+  @media (max-width: 600px) {
+    nav { padding: 1rem; }
+    nav .nav-links { gap: 1.25rem; }
+    .hero { padding: 3.5rem 1.25rem 3rem; }
+    section { padding: 2.5rem 1.25rem; }
+    .screenshot-wrap { padding: 0 1.25rem 2.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="brand">Spinning World</a>
+  <ul class="nav-links">
+    <li><a href="index.html" class="active">Home</a></li>
+    <li><a href="https://ghalam.net/" target="_blank">Ghalam.net</a></li>
+  </ul>
+</nav>
+
+<div class="hero">
+  <img src="images/appicon.png" alt="Spinning World App Icon" class="app-icon">
+  <h1>Spin the globe,<br><span>guess the country</span></h1>
+  <p class="tagline">A geography game inspired by the classic spinning globe — pick a random spot on Earth and race to identify the country before the clock runs out.</p>
+  <a href="https://apps.apple.com/us/app/spinning-world/id1492624865" class="badge-link" target="_blank">
+    <img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="Download on the App Store">
+  </a>
+</div>
+
+<div class="screenshot-wrap">
+  <img src="images/spinning_world.png" alt="Spinning World app screenshot">
+</div>
+
+<section>
+  <h2>About Spinning World<span class="dot">.</span></h2>
+  <p>Before smartphones, geography buffs would spin a physical globe, stop it with a finger, and challenge themselves to identify wherever it landed. Spinning World brings that same spirit to iOS, powered by Apple Maps.</p>
+  <p>Tap any land location on the map to drop a pin, then race to name the country from a list before your 30-second window closes. Two difficulty modes let you play by feel or with visible borders — perfect for all skill levels.</p>
+</section>
+
+<section>
+  <h2>How to Play<span class="dot">.</span></h2>
+  <div class="features">
+    <div class="feature-card">
+      <span class="icon">🌍</span>
+      <h3>Pick a Location</h3>
+      <p>Tap anywhere on the map to drop a pin on a land mass. Water and invalid taps are rejected.</p>
+    </div>
+    <div class="feature-card">
+      <span class="icon">🔒</span>
+      <h3>Hard Mode</h3>
+      <p>Country names and borders are hidden. Identify the country by continent and general geography alone.</p>
+    </div>
+    <div class="feature-card">
+      <span class="icon">🗺️</span>
+      <h3>Easy Mode</h3>
+      <p>Country borders are shown on the map. The closer you zoom in, the more detail you can see.</p>
+    </div>
+    <div class="feature-card">
+      <span class="icon">⏳</span>
+      <h3>30-Second Timer</h3>
+      <p>Once you're ready to guess, the clock starts. Select the correct country from the list to score.</p>
+    </div>
+    <div class="feature-card">
+      <span class="icon">👁️</span>
+      <h3>Reveal Hint</h3>
+      <p>Tap the counter during the countdown to reveal the location — but it costs you 1 point.</p>
+    </div>
+    <div class="feature-card">
+      <span class="icon">🔄</span>
+      <h3>Change Your Pick</h3>
+      <p>Not happy with your pin? Tap a new location or press Delete to start fresh.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Scoring<span class="dot">.</span></h2>
+  <p>Points are awarded based on how quickly you identify the correct country. Every wrong guess or moment of hesitation counts against you.</p>
+  <div class="score-cards">
+    <div class="score-card">
+      <div class="value">10</div>
+      <div class="label">Max points per pin</div>
+    </div>
+    <div class="score-card">
+      <div class="value">−3</div>
+      <div class="label">Per 10 seconds elapsed</div>
+    </div>
+    <div class="score-card">
+      <div class="value">−1</div>
+      <div class="label">For revealing the location</div>
+    </div>
+    <div class="score-card">
+      <div class="value">−15</div>
+      <div class="label">Timer expires or 3 wrong guesses</div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Get in Touch<span class="dot">.</span></h2>
+  <div class="contact-card">
+    <p>Questions, feedback, or support? Reach out directly.</p>
+    <a href="mailto:joe.ghalam@gmail.com">Contact Joe</a>
+  </div>
+</section>
+
+<footer>
+  <p>© 2026 Spinning World &nbsp;·&nbsp; <a href="https://ghalam.net/">Ghalam.net</a></p>
+</footer>
+
+</body>
+</html>
