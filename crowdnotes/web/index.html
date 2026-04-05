@@ -461,7 +461,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.50';
+const VERSION     = 'v1.0.51';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '334bed51ea26c4a9bade8cf8991010ae0e59ebb74dc4e7bab038c92f2fcb490b';
@@ -915,17 +915,15 @@ async function toggleCheckin() {
     if (!stored) throw new Error('No record stored');
     const zid2 = { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.ownerName };
     const fResp2 = await activeEvent.database.performQuery({
-      recordType: 'Attendee',
-      filterBy: [{ fieldName: 'name', comparator: 'NOT_EQUALS', fieldValue: { value: '' } }]
+      recordType: 'Attendee', filterBy: [{ fieldName: 'name', comparator: 'NOT_EQUALS', fieldValue: { value: '' } }]
     }, { zoneID: zid2 });
     const fRec2 = (fResp2.records || []).find(r => r.recordName === stored.recordName);
     if (!fRec2) throw new Error('Record not found for checkin');
     const dbName2 = activeEvent.dbName || (activeEvent.isOrganizer ? 'private' : 'shared');
-    const ownerRN2 = activeEvent.organizerID || activeEvent.ownerName;
     const ckP2 = new URLSearchParams({ ckjsBuildVersion:'2420ProjectDev22', ckjsVersion:'2.6.4', ckAPIToken:API_TOKEN, ckWebAuthToken }).toString();
     const mo2 = await fetch(`https://api.apple-cloudkit.com/database/1/${CONTAINER}/${ENV}/${dbName2}/records/modify?${ckP2}`, {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ zoneID: { zoneName: activeEvent.zoneName, ownerRecordName: ownerRN2 }, operations:[{ operationType:'update', record:{ recordName:fRec2.recordName, recordChangeTag:fRec2.recordChangeTag, fields:{ isCheckedIn:{ value: a.isCheckedIn ? 1 : 0 } } } }] })
+      body: JSON.stringify({ zoneID:{ zoneName:activeEvent.zoneName, ownerRecordName: activeEvent.organizerID || activeEvent.ownerName }, operations:[{ operationType:'update', record:{ recordName:fRec2.recordName, recordChangeTag:fRec2.recordChangeTag, fields:{ isCheckedIn:{ value: a.isCheckedIn ? 1 : 0 } } } }] })
     });
     const md2 = await mo2.json();
     const mr2 = (md2.records||[])[0];
@@ -960,7 +958,7 @@ async function saveNote() {
     if (!stored) throw new Error('No record stored for this attendee');
     if (!ckWebAuthToken) throw new Error('No auth token — please reload');
 
-    // Re-query for fresh record with current changeTag
+    // Re-query to get fresh record with current changeTag
     const zid = { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.ownerName };
     const freshResp = await activeEvent.database.performQuery({
       recordType: 'Attendee',
@@ -969,53 +967,32 @@ async function saveNote() {
     const freshRec = (freshResp.records || []).find(r => r.recordName === stored.recordName);
     if (!freshRec) throw new Error('Could not find record in re-query');
 
+    // Merge new note onto server's current notes
     const serverNotes = freshRec.fields.notes?.value || '';
     const mergedNotes = serverNotes ? serverNotes + '|' + entry : entry;
 
+    // REST modify: zoneID at top level with organizerID as owner
     const dbName = activeEvent.dbName || (activeEvent.isOrganizer ? 'private' : 'shared');
-    // Use organizerID as ownerRecordName for shared DB — this is the zone owner
-    const ownerRN = activeEvent.organizerID || activeEvent.ownerName;
-    const topLevelZoneID = { zoneName: activeEvent.zoneName, ownerRecordName: ownerRN };
-
     const ckParams = new URLSearchParams({
       ckjsBuildVersion: '2420ProjectDev22', ckjsVersion: '2.6.4',
       ckAPIToken: API_TOKEN, ckWebAuthToken
     }).toString();
-    const modifyURL = `https://api.apple-cloudkit.com/database/1/${CONTAINER}/${ENV}/${dbName}/records/modify?${ckParams}`;
-
-    // Try all three zoneID variants to find what shared DB accepts
-    const variants = [
-      { zoneName: activeEvent.zoneName, ownerRecordName: ownerRN },
-      { zoneName: activeEvent.zoneName, ownerRecordName: '_defaultOwner_' },
-      { zoneName: activeEvent.zoneName }
-    ];
-
-    let savedRec = null;
-    for (const zoneIDVariant of variants) {
-      const reqBody = {
-        zoneID: zoneIDVariant,
-        operations: [{ operationType: 'update', record: {
-          recordName: freshRec.recordName,
-          recordChangeTag: freshRec.recordChangeTag,
-          fields: { notes: { value: mergedNotes } }
-        }}]
-      };
-      console.log('saveNote trying zoneID:', JSON.stringify(zoneIDVariant));
-      const moResp = await fetch(modifyURL, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(reqBody)
-      });
-      const moData = await moResp.json();
-      console.log('REST modify:', moResp.status, JSON.stringify(moData).slice(0, 200));
-      if (moResp.ok) {
-        savedRec = (moData.records || [])[0];
-        if (savedRec && !savedRec.serverErrorCode) {
-          console.log('saveNote OK with zoneID:', JSON.stringify(zoneIDVariant), 'new changeTag:', savedRec.recordChangeTag);
-          break;
-        }
+    const moResp = await fetch(
+      `https://api.apple-cloudkit.com/database/1/${CONTAINER}/${ENV}/${dbName}/records/modify?${ckParams}`,
+      { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          zoneID: { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.organizerID || activeEvent.ownerName },
+          operations: [{ operationType: 'update', record: {
+            recordName: freshRec.recordName,
+            recordChangeTag: freshRec.recordChangeTag,
+            fields: { notes: { value: mergedNotes } }
+          }}]
+        })
       }
-    }
-    if (!savedRec || savedRec.serverErrorCode) throw new Error(savedRec?.reason || 'All zoneID variants failed');
+    );
+    const moData = await moResp.json();
+    const savedRec = (moData.records || [])[0];
+    if (!moResp.ok || !savedRec || savedRec.serverErrorCode) throw new Error(savedRec?.reason || moData.reason || 'Save failed');
 
     a.notes = mergedNotes;
     const idx = allAttendees.findIndex(x => x.id === a.id);
