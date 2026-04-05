@@ -461,7 +461,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.52';
+const VERSION     = 'v1.0.53';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '334bed51ea26c4a9bade8cf8991010ae0e59ebb74dc4e7bab038c92f2fcb490b';
@@ -742,7 +742,19 @@ function renderEvents() {
   const sub  = document.getElementById('events-subtitle');
   if (allEvents.length === 0) {
     sub.textContent = 'No events found.';
-    list.innerHTML = `<div class="empty"><div class="empty-icon">📅</div>No events yet.<br>Create one in the iOS app or accept a share link.</div>`;
+    list.innerHTML = `<div class="empty">
+      <div class="empty-icon">📅</div>
+      <div style="font-size:16px;font-weight:600;margin-bottom:8px;">No events yet</div>
+      <div style="font-size:14px;line-height:1.6;max-width:320px;margin:0 auto 20px;">
+        Events must be created in the <strong style="color:var(--text)">CrowdNotes iOS app</strong> by an organizer,
+        who then shares an invite link with you.
+      </div>
+      <a href="https://apps.apple.com/us/app/crowdnotes/id6760520709" target="_blank"
+        style="display:inline-flex;align-items:center;gap:8px;background:var(--cyan);color:#000;
+               text-decoration:none;padding:12px 20px;border-radius:var(--radius);font-weight:600;font-size:14px;">
+        🍎 Get CrowdNotes on the App Store
+      </a>
+    </div>`;
     return;
   }
   sub.textContent = `${allEvents.length} event${allEvents.length !== 1 ? 's' : ''}`;
