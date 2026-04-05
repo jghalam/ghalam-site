@@ -461,7 +461,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.55';
+const VERSION     = 'v1.0.56';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '334bed51ea26c4a9bade8cf8991010ae0e59ebb74dc4e7bab038c92f2fcb490b';
@@ -925,9 +925,9 @@ function renderDetail() {
 
   const thumbsUpCount   = (a.thumbsUp   || []).length;
   const thumbsDownCount = (a.thumbsDown || []).length;
-  // thumbsUp/Down arrays contain iCloud record names, not display names
-  const myVoteUp   = currentUserRecordName && (a.thumbsUp   || []).includes(currentUserRecordName);
-  const myVoteDown = currentUserRecordName && (a.thumbsDown || []).includes(currentUserRecordName);
+  // thumbsUp/Down arrays contain recruiter display names (same as iOS)
+  const myVoteUp   = recruiterName && (a.thumbsUp   || []).includes(recruiterName);
+  const myVoteDown = recruiterName && (a.thumbsDown || []).includes(recruiterName);
 
   document.getElementById('detail-content').innerHTML = `
     <div class="detail-header">
@@ -1005,9 +1005,9 @@ async function toggleThumb(direction) {
   const otherField = direction === 'up' ? 'thumbsDown' : 'thumbsUp';
   const list = [...(a[field === 'thumbsUp' ? 'thumbsUp' : 'thumbsDown'] || [])];
   const otherList = [...(a[otherField === 'thumbsUp' ? 'thumbsUp' : 'thumbsDown'] || [])];
-  // Use iCloud record name for vote identity (same as iOS app uses)
-  const voteID = currentUserRecordName;
-  if (!voteID) { showToast('Not authenticated'); return; }
+  // Use recruiter display name for vote identity (matches iOS app behavior)
+  const voteID = recruiterName;
+  if (!voteID) { showToast('Set your name first'); return; }
   const myIdx = list.indexOf(voteID);
 
   // Toggle: remove if already voted, add if not. Also remove from opposite.
