@@ -461,7 +461,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.53';
+const VERSION     = 'v1.0.54';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '334bed51ea26c4a9bade8cf8991010ae0e59ebb74dc4e7bab038c92f2fcb490b';
@@ -474,6 +474,7 @@ let activeEvent   = null;
 let allAttendees  = [];
 let currentAttendee = null;
 let recruiterName = localStorage.getItem('recruiterName') || '';
+let currentUserRecordName = ''; // iCloud record name — used for thumbs matching
 let scanStream    = null;
 let scanInterval  = null;
 let ckWebAuthToken = '';
@@ -510,20 +511,25 @@ container.setUpAuth().then(userInfo => {
 
 // ── Auth ──────────────────────────────────────────────────
 function signOut() {
-  // CloudKit JS sign-out: trigger the hidden sign-out button rendered by CloudKit
-  const btn = document.querySelector('#ck-signout button');
-  if (btn) {
-    btn.click();
-  }
   allEvents = []; allAttendees = []; activeEvent = null;
-  ckWebAuthToken = '';
+  ckWebAuthToken = ''; currentUserRecordName = '';
   localStorage.removeItem('recruiterName');
-  showScreen('signin');
+  recruiterName = '';
+  // Trigger CloudKit JS sign-out then show signin screen
+  container.whenUserSignsOut().then(() => {
+    showScreen('signin');
+  });
+  const btn = document.querySelector('#ck-signout button');
+  if (btn) btn.click();
+  else showScreen('signin');
 }
 
 function onSignedIn(userInfo) {
   db       = container.privateCloudDatabase;
   sharedDB = container.sharedCloudDatabase;
+  // Capture the iCloud user record name for thumbs vote comparison
+  currentUserRecordName = userInfo?.userRecordName || userInfo?.recordName || '';
+  console.log('Signed in as:', currentUserRecordName, 'recruiterName:', recruiterName);
   if (!recruiterName) {
     recruiterName = prompt('What is your name? (used for notes)') || 'Member';
     localStorage.setItem('recruiterName', recruiterName);
@@ -902,8 +908,9 @@ function renderDetail() {
 
   const thumbsUpCount   = (a.thumbsUp   || []).length;
   const thumbsDownCount = (a.thumbsDown || []).length;
-  const myVoteUp   = (a.thumbsUp   || []).includes(recruiterName);
-  const myVoteDown = (a.thumbsDown || []).includes(recruiterName);
+  // thumbsUp/Down arrays contain iCloud record names, not display names
+  const myVoteUp   = currentUserRecordName && (a.thumbsUp   || []).includes(currentUserRecordName);
+  const myVoteDown = currentUserRecordName && (a.thumbsDown || []).includes(currentUserRecordName);
 
   document.getElementById('detail-content').innerHTML = `
     <div class="detail-header">
@@ -981,11 +988,14 @@ async function toggleThumb(direction) {
   const otherField = direction === 'up' ? 'thumbsDown' : 'thumbsUp';
   const list = [...(a[field === 'thumbsUp' ? 'thumbsUp' : 'thumbsDown'] || [])];
   const otherList = [...(a[otherField === 'thumbsUp' ? 'thumbsUp' : 'thumbsDown'] || [])];
-  const myIdx = list.indexOf(recruiterName);
+  // Use iCloud record name for vote identity (same as iOS app uses)
+  const voteID = currentUserRecordName;
+  if (!voteID) { showToast('Not authenticated'); return; }
+  const myIdx = list.indexOf(voteID);
 
   // Toggle: remove if already voted, add if not. Also remove from opposite.
   if (myIdx >= 0) list.splice(myIdx, 1);
-  else { list.push(recruiterName); const oi = otherList.indexOf(recruiterName); if (oi >= 0) otherList.splice(oi, 1); }
+  else { list.push(voteID); const oi = otherList.indexOf(voteID); if (oi >= 0) otherList.splice(oi, 1); }
 
   if (!ckWebAuthToken) { showToast('Not authenticated'); return; }
   try {
