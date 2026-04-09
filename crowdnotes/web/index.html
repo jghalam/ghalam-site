@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="CrowdNotes">
-<meta name="theme-color" content="#0a0a0f">
+<meta name="theme-color" content="#f0f0f5">
 <link rel="icon" href="https://ghalam.net/crowdnotes/appicon.png">
 <link rel="apple-touch-icon" href="https://ghalam.net/crowdnotes/appicon.png">
 <title>CrowdNotes</title>
@@ -15,6 +15,23 @@
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
 
   :root {
+    --cyan: #009bb5;
+    --cyan-dim: rgba(0,155,181,0.12);
+    --cyan-border: rgba(0,155,181,0.3);
+    --bg: #f0f0f5;
+    --bg2: #ffffff;
+    --bg3: #e0e0e8;
+    --text: #1c1c1e;
+    --text2: #6e6e73;
+    --green: #22c55e;
+    --red: #ef4444;
+    --orange: #f97316;
+    --radius: 14px;
+    --radius-sm: 8px;
+  }
+
+  /* Sign-in screen keeps the original dark look */
+  #screen-signin {
     --cyan: #00d4e8;
     --cyan-dim: rgba(0,212,232,0.15);
     --cyan-border: rgba(0,212,232,0.3);
@@ -23,36 +40,19 @@
     --bg3: #1a1a26;
     --text: #f0f0f8;
     --text2: #8888aa;
-    --green: #22c55e;
-    --red: #ef4444;
-    --orange: #f97316;
-    --radius: 14px;
-    --radius-sm: 8px;
-  }
-
-  /* Light mode for all screens except sign-in */
-  .screen:not(#screen-signin) {
-    --bg: #ffffff;
-    --bg2: #f2f2f7;
-    --bg3: #e0e0e5;
-    --text: #1c1c1e;
-    --text2: #6e6e73;
-    --cyan-dim: rgba(0,180,200,0.12);
-    --cyan-border: rgba(0,180,200,0.35);
+    background: #0a0a0f;
+    color: #f0f0f8;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
   body {
     font-family: 'DM Sans', sans-serif;
-    background: #ffffff;
+    background: var(--bg);
     color: var(--text);
     min-height: 100vh;
     overflow-x: hidden;
   }
-
-  /* Sign-in screen keeps the dark app background */
-  #screen-signin { background: #0a0a0f; }
 
   /* ── Screens ── */
   .screen { display: none; min-height: 100vh; flex-direction: column; }
@@ -63,8 +63,12 @@
     align-items: center;
     justify-content: center;
     padding: 40px 24px;
-    background: radial-gradient(ellipse at 50% 0%, rgba(0,212,232,0.08) 0%, transparent 70%);
+    background: #0a0a0f radial-gradient(ellipse at 50% 0%, rgba(0,212,232,0.08) 0%, transparent 70%);
+    color: #f0f0f8;
   }
+
+  .signin-title { color: #f0f0f8; }
+  .signin-sub { color: #8888aa; }
 
   .signin-logo {
     width: 80px; height: 80px;
@@ -331,8 +335,8 @@
   /* Bottom nav */
   .bottom-nav {
     position: fixed; bottom: 0; left: 0; right: 0;
-    background: #f2f2f7;
-    border-top: 1px solid #e0e0e5;
+    background: #ffffff;
+    border-top: 1px solid #e0e0e8;
     display: flex;
     padding-bottom: env(safe-area-inset-bottom);
     z-index: 200;
@@ -345,7 +349,7 @@
     color: #6e6e73; font-family: 'DM Sans', sans-serif;
     font-size: 11px; transition: color 0.2s;
   }
-  .nav-item.active { color: var(--cyan); }
+  .nav-item.active { color: #009bb5; }
   .nav-icon { font-size: 22px; }
 
   /* Loader */
