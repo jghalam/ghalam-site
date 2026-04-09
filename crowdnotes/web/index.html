@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="apple-itunes-app" content="app-id=6760520709, app-argument=https://ghalam.net/crowdnotes/web/index.html">
+<meta name="apple-itunes-app" content="app-id=YOUR_APP_STORE_ID, app-argument=https://ghalam.net/crowdnotes/join">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="CrowdNotes">
@@ -506,11 +506,38 @@ const container = CloudKit.getDefaultContainer();
 
 container.setUpAuth().then(userInfo => {
   if (userInfo) onSignedIn(userInfo);
-  else showScreen('signin');
+  else {
+    showScreen('signin');
+    // CloudKit JS sign-in opens a popup that never auto-closes.
+    // Watch for it closing and re-check auth state so the user
+    // doesn't have to manually refresh the page.
+    watchForSignInPopup();
+  }
 }).catch(err => {
   console.error('Auth setup error:', err);
   showScreen('signin');
 });
+
+function watchForSignInPopup() {
+  // Intercept window.open so we can track the popup reference
+  const _originalOpen = window.open.bind(window);
+  window.open = function(...args) {
+    const popup = _originalOpen(...args);
+    if (popup) {
+      const timer = setInterval(() => {
+        if (popup.closed) {
+          clearInterval(timer);
+          window.open = _originalOpen; // restore original
+          // Re-check auth — if sign-in succeeded, setUpAuth resolves with userInfo
+          container.setUpAuth().then(userInfo => {
+            if (userInfo) onSignedIn(userInfo);
+          }).catch(() => {});
+        }
+      }, 500);
+    }
+    return popup;
+  };
+}
 
 // ── Auth ──────────────────────────────────────────────────
 function signOut() {
