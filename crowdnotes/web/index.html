@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="apple-itunes-app" content="app-id=YOUR_APP_STORE_ID, app-argument=https://ghalam.net/crowdnotes/join">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="CrowdNotes">
@@ -464,8 +465,10 @@
 const VERSION     = 'v1.0.57';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
-const API_TOKEN   = '22ec7d5793989a260042f6ef0a55b4e40eaf297dbe7c250b2e52eaa331af781e';
-const ENV         = 'production';
+//const API_TOKEN   = '22ec7d5793989a260042f6ef0a55b4e40eaf297dbe7c250b2e52eaa331af781e';
+//const ENV         = 'production';
+const API_TOKEN   = '334bed51ea26c4a9bade8cf8991010ae0e59ebb74dc4e7bab038c92f2fcb490b';
+const ENV         = 'development';
 
 // ── State ────────────────────────────────────────────────
 let ck, db, sharedDB;
@@ -556,7 +559,31 @@ function onSignedIn(userInfo) {
   const valid = saved.filter(z => z.zoneName && z.ownerName);
   if (valid.length !== saved.length) localStorage.setItem('sharedZones', JSON.stringify(valid));
   showScreen('events');
-  loadEvents();
+  loadEvents().then(() => {
+    // Auto-join from Universal Link: ?share=<cloudkit-url>
+    const urlParams = new URLSearchParams(window.location.search);
+    const shareParam = urlParams.get('share');
+    if (shareParam && shareParam.includes('icloud.com/share/')) {
+      // Clean the URL bar so a refresh doesn't re-trigger
+      history.replaceState(null, '', window.location.pathname);
+      autoJoinShare(shareParam);
+    }
+  });
+}
+
+async function autoJoinShare(ckShareURL) {
+  // Don't re-join if we already have this zone saved
+  const savedShares = JSON.parse(localStorage.getItem('sharedZones') || '[]');
+  if (savedShares.find(z => z.shareURL === ckShareURL)) {
+    showToast('Already a member of this event.');
+    return;
+  }
+  // Feed the CloudKit URL into the existing join flow via the hidden input
+  const inputEl = document.getElementById('share-link-input');
+  if (inputEl) {
+    inputEl.value = ckShareURL;
+    await joinWithLink();
+  }
 }
 
 // ── Screen Navigation ─────────────────────────────────────

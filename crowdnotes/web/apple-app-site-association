@@ -1,0 +1,16 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appIDs": ["TRY27PHH3P.com.joe.ghalam.db.CrowdNotes"],
+        "components": [
+          {
+            "/": "/crowdnotes/join*",
+            "comment": "CrowdNotes event invite links"
+          }
+        ]
+      }
+    ]
+  }
+}
