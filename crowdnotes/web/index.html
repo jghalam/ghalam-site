@@ -34,9 +34,10 @@
   .screen:not(#screen-signin) {
     --bg: #ffffff;
     --bg2: #f2f2f7;
-    --bg3: #e5e5ea;
+    --bg3: #e0e0e5;
     --text: #1c1c1e;
     --text2: #6e6e73;
+    --cyan-dim: rgba(0,180,200,0.12);
     --cyan-border: rgba(0,180,200,0.35);
   }
 
@@ -44,11 +45,14 @@
 
   body {
     font-family: 'DM Sans', sans-serif;
-    background: var(--bg);
+    background: #ffffff;
     color: var(--text);
     min-height: 100vh;
     overflow-x: hidden;
   }
+
+  /* Sign-in screen keeps the dark app background */
+  #screen-signin { background: #0a0a0f; }
 
   /* ── Screens ── */
   .screen { display: none; min-height: 100vh; flex-direction: column; }
@@ -327,8 +331,8 @@
   /* Bottom nav */
   .bottom-nav {
     position: fixed; bottom: 0; left: 0; right: 0;
-    background: var(--bg2);
-    border-top: 1px solid var(--bg3);
+    background: #f2f2f7;
+    border-top: 1px solid #e0e0e5;
     display: flex;
     padding-bottom: env(safe-area-inset-bottom);
     z-index: 200;
@@ -338,7 +342,7 @@
     align-items: center; justify-content: center;
     padding: 10px 0; gap: 4px;
     background: none; border: none; cursor: pointer;
-    color: var(--text2); font-family: 'DM Sans', sans-serif;
+    color: #6e6e73; font-family: 'DM Sans', sans-serif;
     font-size: 11px; transition: color 0.2s;
   }
   .nav-item.active { color: var(--cyan); }
