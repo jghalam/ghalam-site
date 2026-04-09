@@ -6,7 +6,7 @@
         "appIDs": ["TRY27PHH3P.com.joe.ghalam.db.CrowdNotes"],
         "components": [
           {
-            "/": "/crowdnotes/join*",
+            "/": "/crowdnotes/web/index.html*",
             "comment": "CrowdNotes event invite links"
           }
         ]
