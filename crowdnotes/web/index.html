@@ -26,6 +26,7 @@
 <meta name="twitter:image"       content="https://ghalam.net/crowdnotes/appicon.png">
 <title>CrowdNotes</title>
 <script src="https://cdn.apple-cloudkit.com/ck/2/cloudkit.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
 
@@ -127,7 +128,7 @@
   .topbar-title { font-size: 18px; font-weight: 600; }
   .topbar-back {
     background: none; border: none; color: var(--cyan);
-    font-family: 'DM Sans', sans-serif; font-size: 18px; font-weight: 600;
+    font-family: 'DM Sans', sans-serif; font-size: 16px;
     cursor: pointer; padding: 4px 0; display: flex; align-items: center; gap: 4px;
   }
   .topbar-action {
@@ -349,13 +350,12 @@
 
   /* Bottom nav */
   .bottom-nav {
-    position: sticky; bottom: 0; left: 0; right: 0;
+    position: fixed; bottom: 0; left: 0; right: 0;
     background: #ffffff;
     border-top: 1px solid #e0e0e8;
     display: flex;
     padding-bottom: env(safe-area-inset-bottom);
     z-index: 200;
-    margin-top: auto;
   }
   .nav-item {
     flex: 1; display: flex; flex-direction: column;
@@ -439,6 +439,9 @@
     <div class="loader"><div class="spinner"></div></div>
   </div>
   <div class="bottom-nav">
+    <button class="nav-item active" onclick="showScreen('events')">
+      <span class="nav-icon">📅</span>Events
+    </button>
     <button class="nav-item" onclick="showScreen('scan')">
       <span class="nav-icon">📷</span>Scan QR
     </button>
@@ -461,17 +464,6 @@
   <div id="attendee-list" class="attendee-list">
     <div class="loader"><div class="spinner"></div></div>
   </div>
-  <div class="bottom-nav">
-    <button class="nav-item" onclick="showScreen('events')">
-      <span class="nav-icon">📅</span>Events
-    </button>
-    <button class="nav-item active" onclick="showScreen('scan')">
-      <span class="nav-icon">📷</span>Scan QR
-    </button>
-    <button class="nav-item" onclick="signOut()">
-      <span class="nav-icon">🚪</span>Sign Out
-    </button>
-  </div>
 </div>
 
 <!-- Attendee Detail -->
@@ -481,19 +473,8 @@
     <div class="topbar-title">Profile</div>
     <button class="topbar-action" onclick="refreshDetail()" title="Refresh">↺</button>
   </div>
-  <div id="detail-content" style="overflow-y:auto; flex:1;">
+  <div id="detail-content" style="overflow-y:auto; flex:1; padding-bottom:30px;">
     <div class="loader"><div class="spinner"></div></div>
-  </div>
-  <div class="bottom-nav">
-    <button class="nav-item" onclick="showScreen('events')">
-      <span class="nav-icon">📅</span>Events
-    </button>
-    <button class="nav-item" onclick="showScreen('scan')">
-      <span class="nav-icon">📷</span>Scan QR
-    </button>
-    <button class="nav-item" onclick="signOut()">
-      <span class="nav-icon">🚪</span>Sign Out
-    </button>
   </div>
 </div>
 
@@ -515,7 +496,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.57';
+const VERSION     = 'v1.0.58';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '22ec7d5793989a260042f6ef0a55b4e40eaf297dbe7c250b2e52eaa331af781e';
@@ -671,8 +652,10 @@ function showScreen(name) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-' + name).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  const navMap = { attendees: 1, scan: 1 };  // highlight Scan QR when on attendees or scan
-  // Each screen's bottom-nav has active state baked in — no manipulation needed here.
+  const navMap = { events: 0, scan: 1 };
+  if (navMap[name] !== undefined) {
+    document.querySelectorAll('.nav-item')[navMap[name]]?.classList.add('active');
+  }
 }
 
 // ── Join with Share Link ──────────────────────────────────
@@ -1223,7 +1206,9 @@ async function saveNote() {
 // ── QR Scanner ────────────────────────────────────────────
 async function startScan() {
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+    });
     scanStream = stream;
     const video = document.getElementById('qr-video');
     video.srcObject = stream;
@@ -1231,23 +1216,28 @@ async function startScan() {
     document.getElementById('btn-start-scan').style.display = 'none';
     document.getElementById('scan-hint').textContent = 'Scanning…';
 
-    // Use BarcodeDetector if available (Chrome Android)
-    if ('BarcodeDetector' in window) {
-      const detector = new BarcodeDetector({ formats: ['qr_code'] });
-      scanInterval = setInterval(async () => {
-        try {
-          const codes = await detector.detect(video);
-          if (codes.length > 0) {
-            handleQRCode(codes[0].rawValue);
-          }
-        } catch(e) {}
-      }, 500);
-    } else {
-      document.getElementById('scan-hint').textContent = 'QR scanning not supported in this browser. Try Chrome.';
-    }
+    // Wait for video to be ready before starting frame loop
+    video.onloadedmetadata = () => {
+      video.play();
+      scanInterval = setInterval(() => tickScan(video), 250);
+    };
   } catch(e) {
-    document.getElementById('scan-hint').textContent = 'Camera access denied. Please allow camera access.';
+    document.getElementById('scan-hint').textContent = 'Camera access denied. Please allow camera access in your browser settings.';
   }
+}
+
+function tickScan(video) {
+  if (video.readyState !== video.HAVE_ENOUGH_DATA) return;
+  const canvas = document.getElementById('qr-canvas');
+  const ctx = canvas.getContext('2d');
+  canvas.width  = video.videoWidth;
+  canvas.height = video.videoHeight;
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  const code = jsQR(imageData.data, imageData.width, imageData.height, {
+    inversionAttempts: 'dontInvert'
+  });
+  if (code) handleQRCode(code.data);
 }
 
 function stopScan() {
@@ -1257,6 +1247,7 @@ function stopScan() {
   video.style.display = 'none';
   document.getElementById('btn-start-scan').style.display = 'block';
   document.getElementById('scan-hint').textContent = 'Point the camera at a CrowdNotes attendee QR code.';
+  document.getElementById('scan-result').textContent = '';
 }
 
 function handleQRCode(code) {
