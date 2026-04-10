@@ -127,7 +127,7 @@
   .topbar-title { font-size: 18px; font-weight: 600; }
   .topbar-back {
     background: none; border: none; color: var(--cyan);
-    font-family: 'DM Sans', sans-serif; font-size: 16px;
+    font-family: 'DM Sans', sans-serif; font-size: 18px; font-weight: 600;
     cursor: pointer; padding: 4px 0; display: flex; align-items: center; gap: 4px;
   }
   .topbar-action {
@@ -349,12 +349,13 @@
 
   /* Bottom nav */
   .bottom-nav {
-    position: fixed; bottom: 0; left: 0; right: 0;
+    position: sticky; bottom: 0; left: 0; right: 0;
     background: #ffffff;
     border-top: 1px solid #e0e0e8;
     display: flex;
     padding-bottom: env(safe-area-inset-bottom);
     z-index: 200;
+    margin-top: auto;
   }
   .nav-item {
     flex: 1; display: flex; flex-direction: column;
@@ -438,9 +439,6 @@
     <div class="loader"><div class="spinner"></div></div>
   </div>
   <div class="bottom-nav">
-    <button class="nav-item active" onclick="showScreen('events')">
-      <span class="nav-icon">📅</span>Events
-    </button>
     <button class="nav-item" onclick="showScreen('scan')">
       <span class="nav-icon">📷</span>Scan QR
     </button>
@@ -463,6 +461,17 @@
   <div id="attendee-list" class="attendee-list">
     <div class="loader"><div class="spinner"></div></div>
   </div>
+  <div class="bottom-nav">
+    <button class="nav-item" onclick="showScreen('events')">
+      <span class="nav-icon">📅</span>Events
+    </button>
+    <button class="nav-item active" onclick="showScreen('scan')">
+      <span class="nav-icon">📷</span>Scan QR
+    </button>
+    <button class="nav-item" onclick="signOut()">
+      <span class="nav-icon">🚪</span>Sign Out
+    </button>
+  </div>
 </div>
 
 <!-- Attendee Detail -->
@@ -472,8 +481,19 @@
     <div class="topbar-title">Profile</div>
     <button class="topbar-action" onclick="refreshDetail()" title="Refresh">↺</button>
   </div>
-  <div id="detail-content" style="overflow-y:auto; flex:1; padding-bottom:30px;">
+  <div id="detail-content" style="overflow-y:auto; flex:1;">
     <div class="loader"><div class="spinner"></div></div>
+  </div>
+  <div class="bottom-nav">
+    <button class="nav-item" onclick="showScreen('events')">
+      <span class="nav-icon">📅</span>Events
+    </button>
+    <button class="nav-item" onclick="showScreen('scan')">
+      <span class="nav-icon">📷</span>Scan QR
+    </button>
+    <button class="nav-item" onclick="signOut()">
+      <span class="nav-icon">🚪</span>Sign Out
+    </button>
   </div>
 </div>
 
@@ -651,10 +671,8 @@ function showScreen(name) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-' + name).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  const navMap = { events: 0, scan: 1 };
-  if (navMap[name] !== undefined) {
-    document.querySelectorAll('.nav-item')[navMap[name]]?.classList.add('active');
-  }
+  const navMap = { attendees: 1, scan: 1 };  // highlight Scan QR when on attendees or scan
+  // Each screen's bottom-nav has active state baked in — no manipulation needed here.
 }
 
 // ── Join with Share Link ──────────────────────────────────
