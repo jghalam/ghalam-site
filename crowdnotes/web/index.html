@@ -507,7 +507,7 @@
   </div>
   <div class="scan-body">
     <video id="qr-video" playsinline autoplay muted style="display:none"></video>
-    <canvas id="qr-canvas" style="position:absolute; opacity:0; pointer-events:none; width:1px; height:1px;"></canvas>
+    <canvas id="qr-canvas" style="position:fixed; top:-9999px; left:-9999px;"></canvas>
     <div class="scan-hint" id="scan-hint">Point the camera at a CrowdNotes attendee QR code.</div>
     <button class="btn-scan" id="btn-start-scan" onclick="startScan()">📷 Start Camera</button>
     <div id="scan-result" style="color:var(--cyan); font-size:14px; text-align:center;"></div>
@@ -516,7 +516,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.59';
+const VERSION     = 'v1.0.60';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '22ec7d5793989a260042f6ef0a55b4e40eaf297dbe7c250b2e52eaa331af781e';
@@ -534,6 +534,7 @@ let recruiterName = localStorage.getItem('recruiterName') || '';
 let currentUserRecordName = ''; // iCloud record name — used for thumbs matching
 let scanStream    = null;
 let scanInterval  = null;
+let scanAnimFrame = null;
 let ckWebAuthToken = '';
 
 const _origXHROpen = XMLHttpRequest.prototype.open;
@@ -1224,6 +1225,7 @@ async function saveNote() {
 }
 
 // ── QR Scanner ────────────────────────────────────────────
+
 async function startScan() {
   try {
     const stream = await navigator.mediaDevices.getUserMedia({
@@ -1232,40 +1234,48 @@ async function startScan() {
     scanStream = stream;
     const video = document.getElementById('qr-video');
     video.srcObject = stream;
+    video.setAttribute('playsinline', true);
     video.style.display = 'block';
     document.getElementById('btn-start-scan').style.display = 'none';
     document.getElementById('scan-result').textContent = '';
     document.getElementById('scan-hint').textContent = 'Scanning… hold steady over the QR code.';
-    video.addEventListener('canplay', () => {
-      if (!scanInterval) {
-        scanInterval = setInterval(() => tickScan(video), 300);
-      }
-    }, { once: true });
+    video.play().then(() => {
+      scanAnimFrame = requestAnimationFrame(() => tickScan(video));
+    }).catch(() => {
+      // play() rejected — try starting the loop anyway after a short delay
+      setTimeout(() => { scanAnimFrame = requestAnimationFrame(() => tickScan(video)); }, 500);
+    });
   } catch(e) {
     document.getElementById('scan-hint').textContent = 'Camera access denied. Please allow camera access in your browser settings.';
   }
 }
 
 function tickScan(video) {
-  if (video.readyState < video.HAVE_ENOUGH_DATA) return;
-  const canvas = document.getElementById('qr-canvas');
-  const ctx = canvas.getContext('2d');
-  const w = video.videoWidth;
-  const h = video.videoHeight;
-  if (!w || !h) return;
-  canvas.width  = w;
-  canvas.height = h;
-  ctx.drawImage(video, 0, 0, w, h);
-  try {
-    const imageData = ctx.getImageData(0, 0, w, h);
-    const code = jsQR(imageData.data, imageData.width, imageData.height, {
-      inversionAttempts: 'dontInvert'
-    });
-    if (code && code.data) handleQRCode(code.data);
-  } catch(e) {}
+  if (!scanStream) return; // stopped
+  // Keep looping regardless of readyState — iOS may report wrong state
+  if (video.videoWidth > 0 && video.videoHeight > 0) {
+    const canvas = document.getElementById('qr-canvas');
+    const ctx = canvas.getContext('2d');
+    canvas.width  = video.videoWidth;
+    canvas.height = video.videoHeight;
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    try {
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+      const code = jsQR(imageData.data, imageData.width, imageData.height, {
+        inversionAttempts: 'attemptBoth'
+      });
+      if (code && code.data) {
+        handleQRCode(code.data);
+        return; // stop loop on success
+      }
+    } catch(e) {}
+  }
+  // Schedule next frame
+  scanAnimFrame = requestAnimationFrame(() => tickScan(video));
 }
 
 function stopScan() {
+  if (scanAnimFrame) { cancelAnimationFrame(scanAnimFrame); scanAnimFrame = null; }
   if (scanStream) { scanStream.getTracks().forEach(t => t.stop()); scanStream = null; }
   if (scanInterval) { clearInterval(scanInterval); scanInterval = null; }
   const video = document.getElementById('qr-video');
