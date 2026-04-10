@@ -509,7 +509,7 @@
     <div style="width:60px"></div>
   </div>
   <div class="scan-body">
-    <video id="qr-video" playsinline autoplay muted style="display:none"></video>
+    <video id="qr-video" playsinline autoplay muted style="width:100%; border-radius:var(--radius);"></video>
     <div class="scan-hint" id="scan-hint">Point the camera at a CrowdNotes attendee QR code.</div>
     <button class="btn-scan" id="btn-start-scan" onclick="startScan()">📷 Start Camera</button>
     <div id="scan-result" style="color:var(--cyan); font-size:14px; text-align:center;"></div>
@@ -518,7 +518,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.61';
+const VERSION     = 'v1.0.62';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '22ec7d5793989a260042f6ef0a55b4e40eaf297dbe7c250b2e52eaa331af781e';
@@ -1250,6 +1250,8 @@ async function startScan() {
   }
 
   try {
+    video.style.display     = 'block';
+    video.style.visibility  = 'visible';
     qrScannerInstance = new window.QrScanner(
       video,
       r => handleQRCode(r.data),
@@ -1261,7 +1263,6 @@ async function startScan() {
       }
     );
     await qrScannerInstance.start();
-    video.style.display = 'block';
     hint.textContent    = 'Scanning… hold steady over the QR code.';
   } catch(e) {
     hint.textContent  = 'Camera access denied. Please allow camera access in your browser settings.';
@@ -1277,7 +1278,7 @@ function stopScan() {
     qrScannerInstance = null;
   }
   const video = document.getElementById('qr-video');
-  video.style.display = 'none';
+  video.style.visibility = 'hidden';
   document.getElementById('btn-start-scan').style.display = 'block';
   document.getElementById('scan-hint').textContent = 'Point the camera at a CrowdNotes attendee QR code.';
   document.getElementById('scan-result').textContent = '';
