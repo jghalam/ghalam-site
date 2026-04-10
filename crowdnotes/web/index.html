@@ -26,7 +26,10 @@
 <meta name="twitter:image"       content="https://ghalam.net/crowdnotes/appicon.png">
 <title>CrowdNotes</title>
 <script src="https://cdn.apple-cloudkit.com/ck/2/cloudkit.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jsQR/1.4.0/jsQR.min.js"></script>
+<script type="module">
+  import QrScanner from 'https://cdn.jsdelivr.net/npm/qr-scanner@1.4.2/qr-scanner.min.js';
+  window.QrScanner = QrScanner;
+</script>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
 
@@ -507,7 +510,6 @@
   </div>
   <div class="scan-body">
     <video id="qr-video" playsinline autoplay muted style="display:none"></video>
-    <canvas id="qr-canvas" style="position:fixed; top:-9999px; left:-9999px;"></canvas>
     <div class="scan-hint" id="scan-hint">Point the camera at a CrowdNotes attendee QR code.</div>
     <button class="btn-scan" id="btn-start-scan" onclick="startScan()">📷 Start Camera</button>
     <div id="scan-result" style="color:var(--cyan); font-size:14px; text-align:center;"></div>
@@ -516,7 +518,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.60';
+const VERSION     = 'v1.0.61';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '22ec7d5793989a260042f6ef0a55b4e40eaf297dbe7c250b2e52eaa331af781e';
@@ -534,7 +536,6 @@ let recruiterName = localStorage.getItem('recruiterName') || '';
 let currentUserRecordName = ''; // iCloud record name — used for thumbs matching
 let scanStream    = null;
 let scanInterval  = null;
-let scanAnimFrame = null;
 let ckWebAuthToken = '';
 
 const _origXHROpen = XMLHttpRequest.prototype.open;
@@ -1225,61 +1226,57 @@ async function saveNote() {
 }
 
 // ── QR Scanner ────────────────────────────────────────────
+let qrScannerInstance = null;
 
 async function startScan() {
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
-    });
-    scanStream = stream;
-    const video = document.getElementById('qr-video');
-    video.srcObject = stream;
-    video.setAttribute('playsinline', true);
-    video.style.display = 'block';
-    document.getElementById('btn-start-scan').style.display = 'none';
-    document.getElementById('scan-result').textContent = '';
-    document.getElementById('scan-hint').textContent = 'Scanning… hold steady over the QR code.';
-    video.play().then(() => {
-      scanAnimFrame = requestAnimationFrame(() => tickScan(video));
-    }).catch(() => {
-      // play() rejected — try starting the loop anyway after a short delay
-      setTimeout(() => { scanAnimFrame = requestAnimationFrame(() => tickScan(video)); }, 500);
-    });
-  } catch(e) {
-    document.getElementById('scan-hint').textContent = 'Camera access denied. Please allow camera access in your browser settings.';
-  }
-}
+  const video  = document.getElementById('qr-video');
+  const hint   = document.getElementById('scan-hint');
+  const result = document.getElementById('scan-result');
+  const btn    = document.getElementById('btn-start-scan');
 
-function tickScan(video) {
-  if (!scanStream) return; // stopped
-  // Keep looping regardless of readyState — iOS may report wrong state
-  if (video.videoWidth > 0 && video.videoHeight > 0) {
-    const canvas = document.getElementById('qr-canvas');
-    const ctx = canvas.getContext('2d');
-    canvas.width  = video.videoWidth;
-    canvas.height = video.videoHeight;
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-    try {
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const code = jsQR(imageData.data, imageData.width, imageData.height, {
-        inversionAttempts: 'attemptBoth'
-      });
-      if (code && code.data) {
-        handleQRCode(code.data);
-        return; // stop loop on success
-      }
-    } catch(e) {}
+  result.textContent = '';
+  hint.textContent   = 'Starting camera…';
+  btn.style.display  = 'none';
+
+  // Wait for QrScanner to load via ES module (up to 2s)
+  let attempts = 0;
+  while (!window.QrScanner && attempts++ < 20) {
+    await new Promise(r => setTimeout(r, 100));
   }
-  // Schedule next frame
-  scanAnimFrame = requestAnimationFrame(() => tickScan(video));
+  if (!window.QrScanner) {
+    hint.textContent  = 'QR scanner failed to load. Please refresh and try again.';
+    btn.style.display = 'block';
+    return;
+  }
+
+  try {
+    qrScannerInstance = new window.QrScanner(
+      video,
+      r => handleQRCode(r.data),
+      {
+        preferredCamera:      'environment',
+        highlightScanRegion:  true,
+        highlightCodeOutline: true,
+        maxScansPerSecond:    5,
+      }
+    );
+    await qrScannerInstance.start();
+    video.style.display = 'block';
+    hint.textContent    = 'Scanning… hold steady over the QR code.';
+  } catch(e) {
+    hint.textContent  = 'Camera access denied. Please allow camera access in your browser settings.';
+    btn.style.display = 'block';
+    if (qrScannerInstance) { qrScannerInstance.destroy(); qrScannerInstance = null; }
+  }
 }
 
 function stopScan() {
-  if (scanAnimFrame) { cancelAnimationFrame(scanAnimFrame); scanAnimFrame = null; }
-  if (scanStream) { scanStream.getTracks().forEach(t => t.stop()); scanStream = null; }
-  if (scanInterval) { clearInterval(scanInterval); scanInterval = null; }
+  if (qrScannerInstance) {
+    qrScannerInstance.stop();
+    qrScannerInstance.destroy();
+    qrScannerInstance = null;
+  }
   const video = document.getElementById('qr-video');
-  video.srcObject = null;
   video.style.display = 'none';
   document.getElementById('btn-start-scan').style.display = 'block';
   document.getElementById('scan-hint').textContent = 'Point the camera at a CrowdNotes attendee QR code.';
