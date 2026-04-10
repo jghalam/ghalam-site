@@ -128,7 +128,7 @@
   .topbar-title { font-size: 18px; font-weight: 600; }
   .topbar-back {
     background: none; border: none; color: var(--cyan);
-    font-family: 'DM Sans', sans-serif; font-size: 16px;
+    font-family: 'DM Sans', sans-serif; font-size: 18px; font-weight: 600;
     cursor: pointer; padding: 4px 0; display: flex; align-items: center; gap: 4px;
   }
   .topbar-action {
@@ -350,12 +350,13 @@
 
   /* Bottom nav */
   .bottom-nav {
-    position: fixed; bottom: 0; left: 0; right: 0;
+    position: sticky; bottom: 0;
     background: #ffffff;
     border-top: 1px solid #e0e0e8;
     display: flex;
     padding-bottom: env(safe-area-inset-bottom);
     z-index: 200;
+    margin-top: auto;
   }
   .nav-item {
     flex: 1; display: flex; flex-direction: column;
@@ -439,9 +440,6 @@
     <div class="loader"><div class="spinner"></div></div>
   </div>
   <div class="bottom-nav">
-    <button class="nav-item active" onclick="showScreen('events')">
-      <span class="nav-icon">📅</span>Events
-    </button>
     <button class="nav-item" onclick="showScreen('scan')">
       <span class="nav-icon">📷</span>Scan QR
     </button>
@@ -464,6 +462,17 @@
   <div id="attendee-list" class="attendee-list">
     <div class="loader"><div class="spinner"></div></div>
   </div>
+  <div class="bottom-nav">
+    <button class="nav-item" onclick="showScreen('events')">
+      <span class="nav-icon">📅</span>Events
+    </button>
+    <button class="nav-item active" onclick="showScreen('scan')">
+      <span class="nav-icon">📷</span>Scan QR
+    </button>
+    <button class="nav-item" onclick="signOut()">
+      <span class="nav-icon">🚪</span>Sign Out
+    </button>
+  </div>
 </div>
 
 <!-- Attendee Detail -->
@@ -476,6 +485,17 @@
   <div id="detail-content" style="overflow-y:auto; flex:1; padding-bottom:30px;">
     <div class="loader"><div class="spinner"></div></div>
   </div>
+  <div class="bottom-nav">
+    <button class="nav-item" onclick="showScreen('events')">
+      <span class="nav-icon">📅</span>Events
+    </button>
+    <button class="nav-item" onclick="showScreen('scan')">
+      <span class="nav-icon">📷</span>Scan QR
+    </button>
+    <button class="nav-item" onclick="signOut()">
+      <span class="nav-icon">🚪</span>Sign Out
+    </button>
+  </div>
 </div>
 
 <!-- QR Scan -->
@@ -487,7 +507,7 @@
   </div>
   <div class="scan-body">
     <video id="qr-video" playsinline autoplay muted style="display:none"></video>
-    <canvas id="qr-canvas" style="display:none"></canvas>
+    <canvas id="qr-canvas" style="position:absolute; opacity:0; pointer-events:none; width:1px; height:1px;"></canvas>
     <div class="scan-hint" id="scan-hint">Point the camera at a CrowdNotes attendee QR code.</div>
     <button class="btn-scan" id="btn-start-scan" onclick="startScan()">📷 Start Camera</button>
     <div id="scan-result" style="color:var(--cyan); font-size:14px; text-align:center;"></div>
@@ -496,7 +516,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.58';
+const VERSION     = 'v1.0.59';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '22ec7d5793989a260042f6ef0a55b4e40eaf297dbe7c250b2e52eaa331af781e';
@@ -1214,36 +1234,42 @@ async function startScan() {
     video.srcObject = stream;
     video.style.display = 'block';
     document.getElementById('btn-start-scan').style.display = 'none';
-    document.getElementById('scan-hint').textContent = 'Scanning…';
-
-    // Wait for video to be ready before starting frame loop
-    video.onloadedmetadata = () => {
-      video.play();
-      scanInterval = setInterval(() => tickScan(video), 250);
-    };
+    document.getElementById('scan-result').textContent = '';
+    document.getElementById('scan-hint').textContent = 'Scanning… hold steady over the QR code.';
+    video.addEventListener('canplay', () => {
+      if (!scanInterval) {
+        scanInterval = setInterval(() => tickScan(video), 300);
+      }
+    }, { once: true });
   } catch(e) {
     document.getElementById('scan-hint').textContent = 'Camera access denied. Please allow camera access in your browser settings.';
   }
 }
 
 function tickScan(video) {
-  if (video.readyState !== video.HAVE_ENOUGH_DATA) return;
+  if (video.readyState < video.HAVE_ENOUGH_DATA) return;
   const canvas = document.getElementById('qr-canvas');
   const ctx = canvas.getContext('2d');
-  canvas.width  = video.videoWidth;
-  canvas.height = video.videoHeight;
-  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-  const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  const code = jsQR(imageData.data, imageData.width, imageData.height, {
-    inversionAttempts: 'dontInvert'
-  });
-  if (code) handleQRCode(code.data);
+  const w = video.videoWidth;
+  const h = video.videoHeight;
+  if (!w || !h) return;
+  canvas.width  = w;
+  canvas.height = h;
+  ctx.drawImage(video, 0, 0, w, h);
+  try {
+    const imageData = ctx.getImageData(0, 0, w, h);
+    const code = jsQR(imageData.data, imageData.width, imageData.height, {
+      inversionAttempts: 'dontInvert'
+    });
+    if (code && code.data) handleQRCode(code.data);
+  } catch(e) {}
 }
 
 function stopScan() {
   if (scanStream) { scanStream.getTracks().forEach(t => t.stop()); scanStream = null; }
   if (scanInterval) { clearInterval(scanInterval); scanInterval = null; }
   const video = document.getElementById('qr-video');
+  video.srcObject = null;
   video.style.display = 'none';
   document.getElementById('btn-start-scan').style.display = 'block';
   document.getElementById('scan-hint').textContent = 'Point the camera at a CrowdNotes attendee QR code.';
