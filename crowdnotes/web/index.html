@@ -518,7 +518,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.67';
+const VERSION     = 'v1.0.68';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '22ec7d5793989a260042f6ef0a55b4e40eaf297dbe7c250b2e52eaa331af781e';
@@ -560,28 +560,24 @@ CloudKit.configure({
 
 const container = CloudKit.getDefaultContainer();
 
-// If the user just signed out, skip setUpAuth entirely — calling it with an
-// invalidated session causes a 421 Misdirected Request error. Just show the
-// sign-in screen and let CloudKit JS render the button fresh.
 const didExplicitlySignOut = sessionStorage.getItem('ckSignedOut') === '1';
 sessionStorage.removeItem('ckSignedOut');
 
-if (didExplicitlySignOut) {
-  showScreen('signin');
-  watchForSignInPopup();
-} else {
-  container.setUpAuth().then(userInfo => {
-    if (userInfo) onSignedIn(userInfo);
-    else {
-      showScreen('signin');
-      watchForSignInPopup();
-    }
-  }).catch(err => {
-    console.error('Auth setup error:', err);
+// setUpAuth must always be called — CloudKit JS uses it to inject the
+// sign-in button into #ck-signin. After explicit sign-out, ignore any
+// returned userInfo so we don't skip straight to the events screen.
+container.setUpAuth().then(userInfo => {
+  if (userInfo && !didExplicitlySignOut) {
+    onSignedIn(userInfo);
+  } else {
     showScreen('signin');
     watchForSignInPopup();
-  });
-}
+  }
+}).catch(err => {
+  console.error('Auth setup error:', err);
+  showScreen('signin');
+  watchForSignInPopup();
+});
 
 function watchForSignInPopup() {
   // Intercept window.open so we can track the popup reference
@@ -684,84 +680,84 @@ async function onSignedIn(userInfo) {
   });
 }
 
-// Fetch the user's display name from their private CloudKit DB.
-// Mirrors CloudKitService.fetchUserName() in the iOS app —
-// reads the singleton "singleton-user-profile" record written on first Apple Sign-In.
-async function fetchUserProfileName() {
+// ── UserProfile CloudKit helpers ──────────────────────────
+// These use the REST API directly (same pattern as saveNote/vote)
+// because CloudKit JS db.fetchRecords() has a different call signature.
+
+async function fetchUserProfile() {
+  if (!ckWebAuthToken) return null;
   try {
-    const resp = await db.fetchRecords({
-      records: [{ recordName: 'singleton-user-profile' }]
-    });
-    const record = (resp.records || [])[0];
-    if (record && !record.serverErrorCode) {
-      const name = record.fields?.displayName?.value;
-      if (name && name.trim()) return name.trim();
-    }
+    const ckParams = new URLSearchParams({
+      ckjsBuildVersion: '2420ProjectDev22', ckjsVersion: '2.6.4',
+      ckAPIToken: API_TOKEN, ckWebAuthToken
+    }).toString();
+    const resp = await fetch(
+      `https://api.apple-cloudkit.com/database/1/${CONTAINER}/${ENV}/private/records/lookup?${ckParams}`,
+      { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ records: [{ recordName: 'singleton-user-profile' }] }) }
+    );
+    const data = await resp.json();
+    const record = (data.records || [])[0];
+    if (record && !record.serverErrorCode) return record;
   } catch(e) {
-    console.log('fetchUserProfileName: not found or error —', e.message);
+    console.log('fetchUserProfile error:', e.message);
   }
   return null;
 }
 
-// Save the user's display name to their private CloudKit DB.
-// Mirrors CloudKitService.saveUserName() — upserts the singleton UserProfile record.
+async function saveUserProfile(fields) {
+  if (!ckWebAuthToken) return;
+  try {
+    // Fetch existing to get changeTag for upsert
+    let changeTag = null;
+    const existing = await fetchUserProfile();
+    if (existing) changeTag = existing.recordChangeTag;
+
+    const ckParams = new URLSearchParams({
+      ckjsBuildVersion: '2420ProjectDev22', ckjsVersion: '2.6.4',
+      ckAPIToken: API_TOKEN, ckWebAuthToken
+    }).toString();
+    const record = { recordName: 'singleton-user-profile', recordType: 'UserProfile', fields };
+    if (changeTag) record.recordChangeTag = changeTag;
+    const resp = await fetch(
+      `https://api.apple-cloudkit.com/database/1/${CONTAINER}/${ENV}/private/records/modify?${ckParams}`,
+      { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ operations: [{ operationType: changeTag ? 'update' : 'create', record }] }) }
+    );
+    const data = await resp.json();
+    const saved = (data.records || [])[0];
+    if (saved && saved.serverErrorCode) throw new Error(saved.reason || saved.serverErrorCode);
+    console.log('✅ saveUserProfile: saved fields', Object.keys(fields));
+  } catch(e) {
+    console.log('⚠️ saveUserProfile failed:', e.message);
+  }
+}
+
+async function fetchUserProfileName() {
+  const record = await fetchUserProfile();
+  if (!record) return null;
+  const name = record.fields?.displayName?.value;
+  return (name && name.trim()) ? name.trim() : null;
+}
+
 async function saveUserProfileName(name) {
   if (!name) return;
-  try {
-    let changeTag = null;
-    try {
-      const existing = await db.fetchRecords({ records: [{ recordName: 'singleton-user-profile' }] });
-      const rec = (existing.records || [])[0];
-      if (rec && !rec.serverErrorCode) changeTag = rec.recordChangeTag;
-    } catch(e) {}
-    const record = { recordName: 'singleton-user-profile', recordType: 'UserProfile',
-                     fields: { displayName: { value: name } } };
-    if (changeTag) record.recordChangeTag = changeTag;
-    await db.saveRecords({ records: [record] });
-    console.log('✅ saveUserProfileName: saved to CloudKit');
-  } catch(e) {
-    console.log('⚠️ saveUserProfileName failed:', e.message);
-  }
+  await saveUserProfile({ displayName: { value: name } });
 }
 
-// Fetch the left zone names list from the private CloudKit DB.
-// Mirrors CloudKitService.fetchLeftZones().
 async function fetchCloudLeftZones() {
-  try {
-    const resp = await db.fetchRecords({ records: [{ recordName: 'singleton-user-profile' }] });
-    const record = (resp.records || [])[0];
-    if (record && !record.serverErrorCode) {
-      return record.fields?.leftZoneNames?.value || [];
-    }
-  } catch(e) {
-    console.log('fetchCloudLeftZones: not found or error —', e.message);
-  }
-  return [];
+  const record = await fetchUserProfile();
+  if (!record) return [];
+  return record.fields?.leftZoneNames?.value || [];
 }
 
-// Add a zone name to the left-zones list in the private CloudKit DB.
-// Mirrors CloudKitService.addLeftZone().
 async function addCloudLeftZone(zoneName) {
-  try {
-    let existing = [], changeTag = null;
-    try {
-      const resp = await db.fetchRecords({ records: [{ recordName: 'singleton-user-profile' }] });
-      const rec = (resp.records || [])[0];
-      if (rec && !rec.serverErrorCode) {
-        existing  = rec.fields?.leftZoneNames?.value || [];
-        changeTag = rec.recordChangeTag;
-      }
-    } catch(e) {}
-    if (existing.includes(zoneName)) return;
-    existing.push(zoneName);
-    const record = { recordName: 'singleton-user-profile', recordType: 'UserProfile',
-                     fields: { leftZoneNames: { value: existing } } };
-    if (changeTag) record.recordChangeTag = changeTag;
-    await db.saveRecords({ records: [record] });
-    console.log('✅ addCloudLeftZone: saved', zoneName);
-  } catch(e) {
-    console.log('⚠️ addCloudLeftZone failed:', e.message);
-  }
+  const record = await fetchUserProfile();
+  const existing = record?.fields?.leftZoneNames?.value || [];
+  if (existing.includes(zoneName)) return;
+  existing.push(zoneName);
+  await saveUserProfile({ leftZoneNames: { value: existing } });
+  console.log('✅ addCloudLeftZone: saved', zoneName);
 }
 
 async function autoJoinShare(ckShareURL) {
