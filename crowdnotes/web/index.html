@@ -518,7 +518,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.63';
+const VERSION     = 'v1.0.64';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '22ec7d5793989a260042f6ef0a55b4e40eaf297dbe7c250b2e52eaa331af781e';
@@ -637,15 +637,17 @@ async function onSignedIn(userInfo) {
   if (!recruiterName) {
     // Try to fetch the real name from the CloudKit UserProfile singleton first.
     // This is written by the iOS app on first Apple Sign-In and survives reinstalls.
+    // Always check CloudKit on sign-in — not just on first launch — so that after
+    // a sign-out the name is restored without prompting the user again.
     recruiterName = await fetchUserProfileName();
     if (recruiterName) {
       console.log('Got name from CloudKit UserProfile:', recruiterName);
       localStorage.setItem('recruiterName', recruiterName);
     } else {
-      // Fall back to a manual prompt — never default to 'Member'
+      // Fall back to a manual prompt
       const entered = prompt('What is your name? (used for notes and votes)');
-      recruiterName = (entered || '').trim();
-      if (recruiterName) localStorage.setItem('recruiterName', recruiterName);
+      recruiterName = (entered || '').trim() || 'web-user';
+      localStorage.setItem('recruiterName', recruiterName);
     }
   }
 
