@@ -6,12 +6,7 @@
         "components": [
           {
             "/": "/crowdnotes/web/index.html",
-            "?": { "share": "*" },
-            "comment": "CrowdNotes event invite links with share parameter"
-          },
-          {
-            "/": "/crowdnotes/web/index.html",
-            "comment": "CrowdNotes web app root"
+            "comment": "CrowdNotes web app — handles all query params including share links"
           }
         ]
       }
