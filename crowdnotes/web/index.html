@@ -518,7 +518,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.73';
+const VERSION     = 'v1.0.74';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '22ec7d5793989a260042f6ef0a55b4e40eaf297dbe7c250b2e52eaa331af781e';
@@ -566,20 +566,25 @@ const urlParams = new URLSearchParams(window.location.search);
 const justSignedOut = urlParams.get('signedout') === '1';
 if (justSignedOut) {
   history.replaceState(null, '', window.location.pathname);
-}
-
-container.setUpAuth().then(userInfo => {
-  if (userInfo && !justSignedOut) {
-    onSignedIn(userInfo);
-  } else {
-    showScreen('signin');
-    watchForSignInPopup();
-  }
-}).catch(err => {
-  console.error('Auth setup error:', err);
+  // Show sign-in screen immediately before setUpAuth — don't wait for it
   showScreen('signin');
   watchForSignInPopup();
-});
+  // Call setUpAuth in background just to trigger CloudKit JS button injection.
+  // Ignore the result entirely — we never auto-login after explicit sign-out.
+  container.setUpAuth().catch(() => {});
+} else {
+  container.setUpAuth().then(userInfo => {
+    if (userInfo) onSignedIn(userInfo);
+    else {
+      showScreen('signin');
+      watchForSignInPopup();
+    }
+  }).catch(err => {
+    console.error('Auth setup error:', err);
+    showScreen('signin');
+    watchForSignInPopup();
+  });
+}
 
 function watchForSignInPopup() {
   // Intercept window.open so we can track the popup reference
