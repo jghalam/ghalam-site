@@ -518,7 +518,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.62';
+const VERSION     = 'v1.0.63';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '22ec7d5793989a260042f6ef0a55b4e40eaf297dbe7c250b2e52eaa331af781e';
@@ -627,16 +627,28 @@ function signOut() {
   }
 }
 
-function onSignedIn(userInfo) {
+async function onSignedIn(userInfo) {
   db       = container.privateCloudDatabase;
   sharedDB = container.sharedCloudDatabase;
   // Capture the iCloud user record name for thumbs vote comparison
   currentUserRecordName = userInfo?.userRecordName || userInfo?.recordName || '';
   console.log('Signed in as:', currentUserRecordName, 'recruiterName:', recruiterName);
+
   if (!recruiterName) {
-    recruiterName = prompt('What is your name? (used for notes)') || 'Member';
-    localStorage.setItem('recruiterName', recruiterName);
+    // Try to fetch the real name from the CloudKit UserProfile singleton first.
+    // This is written by the iOS app on first Apple Sign-In and survives reinstalls.
+    recruiterName = await fetchUserProfileName();
+    if (recruiterName) {
+      console.log('Got name from CloudKit UserProfile:', recruiterName);
+      localStorage.setItem('recruiterName', recruiterName);
+    } else {
+      // Fall back to a manual prompt — never default to 'Member'
+      const entered = prompt('What is your name? (used for notes and votes)');
+      recruiterName = (entered || '').trim();
+      if (recruiterName) localStorage.setItem('recruiterName', recruiterName);
+    }
   }
+
   // Clear any malformed saved zones from previous attempts
   const saved = JSON.parse(localStorage.getItem('sharedZones') || '[]');
   const valid = saved.filter(z => z.zoneName && z.ownerName);
@@ -652,6 +664,25 @@ function onSignedIn(userInfo) {
       autoJoinShare(shareParam);
     }
   });
+}
+
+// Fetch the user's display name from their private CloudKit DB.
+// Mirrors CloudKitService.fetchUserName() in the iOS app —
+// reads the singleton "singleton-user-profile" record written on first Apple Sign-In.
+async function fetchUserProfileName() {
+  try {
+    const resp = await db.fetchRecords({
+      records: [{ recordName: 'singleton-user-profile' }]
+    });
+    const record = (resp.records || [])[0];
+    if (record && !record.serverErrorCode) {
+      const name = record.fields?.displayName?.value;
+      if (name && name.trim()) return name.trim();
+    }
+  } catch(e) {
+    console.log('fetchUserProfileName: not found or error —', e.message);
+  }
+  return null;
 }
 
 async function autoJoinShare(ckShareURL) {
