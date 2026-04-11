@@ -2,6 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="apple-itunes-app" content="app-id=6760520709, app-argument=https://ghalam.net/crowdnotes/web/index.html">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -518,7 +521,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.74';
+const VERSION     = 'v1.0.75';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '22ec7d5793989a260042f6ef0a55b4e40eaf297dbe7c250b2e52eaa331af781e';
@@ -565,6 +568,7 @@ const container = CloudKit.getDefaultContainer();
 const urlParams = new URLSearchParams(window.location.search);
 const justSignedOut = urlParams.get('signedout') === '1';
 if (justSignedOut) {
+  // Clean the full URL including the cache-bust timestamp param
   history.replaceState(null, '', window.location.pathname);
   // Show sign-in screen immediately before setUpAuth — don't wait for it
   showScreen('signin');
@@ -626,14 +630,10 @@ function signOut() {
     document.cookie = key + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=' + location.hostname;
   });
 
-  // Mark signed-out in sessionStorage BEFORE the reload so setUpAuth
-  // result is ignored on the fresh page load.
-  // Use sessionStorage via a URL param instead since sessionStorage
-  // survives reloads but not navigation — use a query param approach:
-  // Navigate to the same page with ?signedout=1 so the page knows
-  // to show sign-in and call watchForSignInPopup instead of onSignedIn.
+  // Navigate with ?signedout=1 plus a cache-bust timestamp so the browser
+  // never serves a stale cached version of the page after sign-out.
   setTimeout(() => {
-    window.location.replace(window.location.pathname + '?signedout=1');
+    window.location.replace(window.location.pathname + '?signedout=1&t=' + Date.now());
   }, 600);
 }
 
