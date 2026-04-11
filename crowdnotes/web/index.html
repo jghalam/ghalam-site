@@ -518,7 +518,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.68';
+const VERSION     = 'v1.0.69';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '22ec7d5793989a260042f6ef0a55b4e40eaf297dbe7c250b2e52eaa331af781e';
@@ -560,16 +560,9 @@ CloudKit.configure({
 
 const container = CloudKit.getDefaultContainer();
 
-const didExplicitlySignOut = sessionStorage.getItem('ckSignedOut') === '1';
-sessionStorage.removeItem('ckSignedOut');
-
-// setUpAuth must always be called — CloudKit JS uses it to inject the
-// sign-in button into #ck-signin. After explicit sign-out, ignore any
-// returned userInfo so we don't skip straight to the events screen.
 container.setUpAuth().then(userInfo => {
-  if (userInfo && !didExplicitlySignOut) {
-    onSignedIn(userInfo);
-  } else {
+  if (userInfo) onSignedIn(userInfo);
+  else {
     showScreen('signin');
     watchForSignInPopup();
   }
@@ -602,7 +595,6 @@ function watchForSignInPopup() {
 
 // ── Auth ──────────────────────────────────────────────────
 function signOut() {
-  // Show sign-in screen immediately so the user gets instant feedback
   showScreen('signin');
 
   allEvents = []; allAttendees = []; activeEvent = null;
@@ -624,12 +616,27 @@ function signOut() {
     }
   });
 
-  // Click the hidden CloudKit sign-out button to deauth server-side,
-  // then reload so setUpAuth() starts fresh on the sign-in screen.
-  sessionStorage.setItem('ckSignedOut', '1');
+  // Click the hidden CloudKit sign-out button to deauth server-side
   const btn = document.querySelector('#ck-signout button');
   if (btn) btn.click();
-  setTimeout(() => { window.location.reload(); }, 1000);
+
+  // After a short delay for CloudKit JS to process the sign-out,
+  // re-call setUpAuth() so it re-injects the sign-in button in signed-out state.
+  // We do NOT reload — reloading risks setUpAuth() finding a still-valid session.
+  setTimeout(() => {
+    container.setUpAuth().then(userInfo => {
+      if (userInfo) {
+        // Session persisted despite sign-out — force reload as last resort
+        window.location.reload();
+      } else {
+        showScreen('signin');
+        watchForSignInPopup();
+      }
+    }).catch(() => {
+      showScreen('signin');
+      watchForSignInPopup();
+    });
+  }, 800);
 }
 
 async function onSignedIn(userInfo) {
