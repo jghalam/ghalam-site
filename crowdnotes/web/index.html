@@ -420,7 +420,14 @@
   <img src="https://ghalam.net/crowdnotes/appicon.png" style="width:80px;height:80px;border-radius:22px;margin-bottom:28px;" alt="CrowdNotes">
   <div class="signin-title">CrowdNotes</div>
   <div class="signin-sub">Sign in with your Apple ID to access<br>your recruiting events.</div>
-  <div id="ck-signin" style="margin-top:8px;"></div>
+  <div id="ck-signin" style="margin-top:8px;">
+    <button id="manual-signin-btn" onclick="triggerSignIn()"
+      style="background:var(--cyan);color:#000;border:none;border-radius:var(--radius);
+             padding:16px 32px;font-family:'DM Sans',sans-serif;font-size:16px;
+             font-weight:600;cursor:pointer;width:320px;min-width:320px;display:none;">
+      Sign in with Apple ID
+    </button>
+  </div>
   <div id="signin-error" style="margin-top:16px; color:var(--red); font-size:14px; text-align:center;"></div>
 </div>
 
@@ -521,7 +528,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.75';
+const VERSION     = 'v1.0.76';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '22ec7d5793989a260042f6ef0a55b4e40eaf297dbe7c250b2e52eaa331af781e';
@@ -563,29 +570,61 @@ CloudKit.configure({
 
 const container = CloudKit.getDefaultContainer();
 
-// If redirected here after sign-out, skip auto-login and show sign-in screen.
-// Clean the URL so a manual refresh doesn't re-trigger this.
 const urlParams = new URLSearchParams(window.location.search);
 const justSignedOut = urlParams.get('signedout') === '1';
 if (justSignedOut) {
-  // Clean the full URL including the cache-bust timestamp param
   history.replaceState(null, '', window.location.pathname);
-  // Show sign-in screen immediately before setUpAuth — don't wait for it
+}
+
+function showSignInButton() {
+  // Show our manual sign-in button — reliable regardless of CloudKit JS state
+  const btn = document.getElementById('manual-signin-btn');
+  if (btn) btn.style.display = 'block';
   showScreen('signin');
-  watchForSignInPopup();
-  // Call setUpAuth in background just to trigger CloudKit JS button injection.
-  // Ignore the result entirely — we never auto-login after explicit sign-out.
-  container.setUpAuth().catch(() => {});
+}
+
+function triggerSignIn() {
+  // Hide button while signing in
+  const btn = document.getElementById('manual-signin-btn');
+  if (btn) btn.style.display = 'none';
+  // Click the CloudKit JS-managed button inside #ck-signin if it exists,
+  // otherwise fall back to container.signIn()
+  const ckBtn = document.querySelector('#ck-signin button:not(#manual-signin-btn)');
+  if (ckBtn) {
+    ckBtn.click();
+  } else if (typeof container.signIn === 'function') {
+    container.signIn();
+  } else {
+    // Last resort — re-run setUpAuth to get the real button
+    container.setUpAuth().then(userInfo => {
+      if (userInfo) onSignedIn(userInfo);
+      else {
+        const ckBtn2 = document.querySelector('#ck-signin button:not(#manual-signin-btn)');
+        if (ckBtn2) ckBtn2.click();
+        else if (btn) btn.style.display = 'block';
+      }
+    }).catch(() => { if (btn) btn.style.display = 'block'; });
+  }
+}
+
+if (justSignedOut) {
+  showSignInButton();
+  // Still call setUpAuth in background — if CloudKit JS is ready it will
+  // inject its own button and register whenUserSignsIn callback
+  container.setUpAuth().then(userInfo => {
+    if (!userInfo) watchForSignInPopup();
+    // Never call onSignedIn here — user explicitly signed out
+  }).catch(() => {});
 } else {
   container.setUpAuth().then(userInfo => {
     if (userInfo) onSignedIn(userInfo);
     else {
-      showScreen('signin');
+      showSignInButton();
       watchForSignInPopup();
     }
   }).catch(err => {
     console.error('Auth setup error:', err);
-    showScreen('signin');
+    showSignInButton();
     watchForSignInPopup();
   });
 }
