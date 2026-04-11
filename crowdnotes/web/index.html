@@ -518,7 +518,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.65';
+const VERSION     = 'v1.0.66';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '22ec7d5793989a260042f6ef0a55b4e40eaf297dbe7c250b2e52eaa331af781e';
@@ -600,6 +600,9 @@ function watchForSignInPopup() {
 
 // ── Auth ──────────────────────────────────────────────────
 function signOut() {
+  // Show sign-in screen immediately so the user gets instant feedback
+  showScreen('signin');
+
   allEvents = []; allAttendees = []; activeEvent = null;
   ckWebAuthToken = ''; currentUserRecordName = '';
   localStorage.removeItem('recruiterName');
@@ -619,23 +622,12 @@ function signOut() {
     }
   });
 
-  // Use CloudKit JS container.signOut() directly — this clears the internal
-  // auth state so setUpAuth() on the next page load returns null (not signed in).
-  // Fall back to clicking the hidden button if signOut() isn't available.
-  if (typeof container.signOut === 'function') {
-    container.signOut().then(() => {
-      sessionStorage.setItem('ckSignedOut', '1');
-      window.location.reload();
-    }).catch(() => {
-      sessionStorage.setItem('ckSignedOut', '1');
-      window.location.reload();
-    });
-  } else {
-    const btn = document.querySelector('#ck-signout button');
-    if (btn) btn.click();
-    sessionStorage.setItem('ckSignedOut', '1');
-    setTimeout(() => { window.location.reload(); }, 1500);
-  }
+  // Click the hidden CloudKit sign-out button to deauth server-side,
+  // then reload so setUpAuth() starts fresh on the sign-in screen.
+  sessionStorage.setItem('ckSignedOut', '1');
+  const btn = document.querySelector('#ck-signout button');
+  if (btn) btn.click();
+  setTimeout(() => { window.location.reload(); }, 1000);
 }
 
 async function onSignedIn(userInfo) {
