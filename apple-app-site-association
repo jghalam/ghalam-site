@@ -1,0 +1,20 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": ["TRY27PHH3P.com.joe.ghalam.db.CrowdNotes"],
+        "components": [
+          {
+            "/": "/crowdnotes/web/index.html",
+            "?": { "share": "*" },
+            "comment": "CrowdNotes event invite links with share parameter"
+          },
+          {
+            "/": "/crowdnotes/web/index.html",
+            "comment": "CrowdNotes web app root"
+          }
+        ]
+      }
+    ]
+  }
+}
