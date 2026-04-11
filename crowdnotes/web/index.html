@@ -518,7 +518,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.64';
+const VERSION     = 'v1.0.65';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '22ec7d5793989a260042f6ef0a55b4e40eaf297dbe7c250b2e52eaa331af781e';
@@ -560,13 +560,16 @@ CloudKit.configure({
 
 const container = CloudKit.getDefaultContainer();
 
+// Set before setUpAuth so an in-progress sign-out reload doesn't re-trigger onSignedIn
+const didExplicitlySignOut = sessionStorage.getItem('ckSignedOut') === '1';
+
 container.setUpAuth().then(userInfo => {
-  if (userInfo) onSignedIn(userInfo);
-  else {
+  if (userInfo && !didExplicitlySignOut) {
+    sessionStorage.removeItem('ckSignedOut');
+    onSignedIn(userInfo);
+  } else {
+    sessionStorage.removeItem('ckSignedOut');
     showScreen('signin');
-    // CloudKit JS sign-in opens a popup that never auto-closes.
-    // Watch for it closing and re-check auth state so the user
-    // doesn't have to manually refresh the page.
     watchForSignInPopup();
   }
 }).catch(err => {
@@ -602,13 +605,13 @@ function signOut() {
   localStorage.removeItem('recruiterName');
   recruiterName = '';
 
-  // Clear CloudKit JS persisted auth tokens from localStorage
+  // Clear all CloudKit JS persisted tokens from localStorage
   Object.keys(localStorage).forEach(k => {
     if (k.includes('cloudkit') || k.includes('CloudKit') || k.includes('ckSession') || k.includes('ckWebAuth')) {
       localStorage.removeItem(k);
     }
   });
-  // Clear any CloudKit cookies by expiring them
+  // Clear any CloudKit cookies
   document.cookie.split(';').forEach(c => {
     const key = c.split('=')[0].trim();
     if (key.includes('cloudkit') || key.includes('ck_')) {
@@ -616,14 +619,22 @@ function signOut() {
     }
   });
 
-  // Click the hidden CloudKit sign-out button to deauth server-side
-  const btn = document.querySelector('#ck-signout button');
-  if (btn) {
-    btn.click();
-    // Give CloudKit JS a moment to process, then reload to show fresh sign-in
-    setTimeout(() => { window.location.reload(); }, 800);
+  // Use CloudKit JS container.signOut() directly — this clears the internal
+  // auth state so setUpAuth() on the next page load returns null (not signed in).
+  // Fall back to clicking the hidden button if signOut() isn't available.
+  if (typeof container.signOut === 'function') {
+    container.signOut().then(() => {
+      sessionStorage.setItem('ckSignedOut', '1');
+      window.location.reload();
+    }).catch(() => {
+      sessionStorage.setItem('ckSignedOut', '1');
+      window.location.reload();
+    });
   } else {
-    window.location.reload();
+    const btn = document.querySelector('#ck-signout button');
+    if (btn) btn.click();
+    sessionStorage.setItem('ckSignedOut', '1');
+    setTimeout(() => { window.location.reload(); }, 1500);
   }
 }
 
