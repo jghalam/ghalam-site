@@ -518,7 +518,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.70';
+const VERSION     = 'v1.0.71';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '22ec7d5793989a260042f6ef0a55b4e40eaf297dbe7c250b2e52eaa331af781e';
@@ -595,6 +595,7 @@ function watchForSignInPopup() {
 
 // ── Auth ──────────────────────────────────────────────────
 function signOut() {
+  console.log('🚪 signOut() called');
   showScreen('signin');
 
   allEvents = []; allAttendees = []; activeEvent = null;
@@ -604,15 +605,14 @@ function signOut() {
 
   // Click hidden sign-out button first so CloudKit JS invalidates the server token
   const btn = document.querySelector('#ck-signout button');
+  console.log('🚪 hidden signout button found:', !!btn);
   if (btn) btn.click();
 
   // Log all localStorage keys to help identify what CloudKit JS persists
   console.log('localStorage keys after signout:', Object.keys(localStorage));
 
-  // Aggressively clear every localStorage key that could be a CloudKit session token
-  Object.keys(localStorage).forEach(k => {
-    localStorage.removeItem(k);
-  });
+  // Aggressively clear every localStorage key
+  Object.keys(localStorage).forEach(k => { localStorage.removeItem(k); });
 
   // Clear all cookies
   document.cookie.split(';').forEach(c => {
@@ -621,15 +621,14 @@ function signOut() {
     document.cookie = key + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=' + location.hostname;
   });
 
-  // Clear sessionStorage too
   sessionStorage.clear();
 
-  // Wait for CloudKit JS to process sign-out, then re-call setUpAuth.
-  // With all tokens cleared it should return null and show the sign-in button.
+  console.log('🚪 waiting 1s then re-calling setUpAuth...');
   setTimeout(() => {
+    console.log('🚪 calling setUpAuth after signout');
     container.setUpAuth().then(userInfo => {
+      console.log('🚪 setUpAuth after signout returned userInfo:', !!userInfo);
       if (userInfo) {
-        // Token was somehow still valid — hard reload as last resort
         console.log('Session still active after signout, reloading...');
         window.location.reload();
       } else {
