@@ -518,7 +518,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.66';
+const VERSION     = 'v1.0.67';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '22ec7d5793989a260042f6ef0a55b4e40eaf297dbe7c250b2e52eaa331af781e';
@@ -560,22 +560,28 @@ CloudKit.configure({
 
 const container = CloudKit.getDefaultContainer();
 
-// Set before setUpAuth so an in-progress sign-out reload doesn't re-trigger onSignedIn
+// If the user just signed out, skip setUpAuth entirely — calling it with an
+// invalidated session causes a 421 Misdirected Request error. Just show the
+// sign-in screen and let CloudKit JS render the button fresh.
 const didExplicitlySignOut = sessionStorage.getItem('ckSignedOut') === '1';
+sessionStorage.removeItem('ckSignedOut');
 
-container.setUpAuth().then(userInfo => {
-  if (userInfo && !didExplicitlySignOut) {
-    sessionStorage.removeItem('ckSignedOut');
-    onSignedIn(userInfo);
-  } else {
-    sessionStorage.removeItem('ckSignedOut');
+if (didExplicitlySignOut) {
+  showScreen('signin');
+  watchForSignInPopup();
+} else {
+  container.setUpAuth().then(userInfo => {
+    if (userInfo) onSignedIn(userInfo);
+    else {
+      showScreen('signin');
+      watchForSignInPopup();
+    }
+  }).catch(err => {
+    console.error('Auth setup error:', err);
     showScreen('signin');
     watchForSignInPopup();
-  }
-}).catch(err => {
-  console.error('Auth setup error:', err);
-  showScreen('signin');
-});
+  });
+}
 
 function watchForSignInPopup() {
   // Intercept window.open so we can track the popup reference
@@ -633,25 +639,33 @@ function signOut() {
 async function onSignedIn(userInfo) {
   db       = container.privateCloudDatabase;
   sharedDB = container.sharedCloudDatabase;
-  // Capture the iCloud user record name for thumbs vote comparison
   currentUserRecordName = userInfo?.userRecordName || userInfo?.recordName || '';
   console.log('Signed in as:', currentUserRecordName, 'recruiterName:', recruiterName);
 
   if (!recruiterName) {
-    // Try to fetch the real name from the CloudKit UserProfile singleton first.
-    // This is written by the iOS app on first Apple Sign-In and survives reinstalls.
-    // Always check CloudKit on sign-in — not just on first launch — so that after
-    // a sign-out the name is restored without prompting the user again.
+    // Try CloudKit UserProfile first — written by iOS app or a previous web session.
+    // Always check on sign-in so sign-out/sign-in restores name without prompting.
     recruiterName = await fetchUserProfileName();
     if (recruiterName) {
       console.log('Got name from CloudKit UserProfile:', recruiterName);
       localStorage.setItem('recruiterName', recruiterName);
     } else {
-      // Fall back to a manual prompt
       const entered = prompt('What is your name? (used for notes and votes)');
       recruiterName = (entered || '').trim() || 'web-user';
       localStorage.setItem('recruiterName', recruiterName);
+      // Save to CloudKit so it survives sign-out and browser data clears
+      await saveUserProfileName(recruiterName);
     }
+  }
+
+  // Merge left zones from CloudKit so events left on iOS or a previous web session
+  // don't reappear after sign-out or browser data clear.
+  const cloudLeftZones = await fetchCloudLeftZones();
+  if (cloudLeftZones.length > 0) {
+    const localLeft = JSON.parse(localStorage.getItem('leftZoneNames') || '[]');
+    const merged = [...new Set([...localLeft, ...cloudLeftZones])];
+    localStorage.setItem('leftZoneNames', JSON.stringify(merged));
+    console.log('Merged left zones from CloudKit:', cloudLeftZones);
   }
 
   // Clear any malformed saved zones from previous attempts
@@ -664,7 +678,6 @@ async function onSignedIn(userInfo) {
     const urlParams = new URLSearchParams(window.location.search);
     const shareParam = urlParams.get('share');
     if (shareParam && shareParam.includes('icloud.com/share/')) {
-      // Clean the URL bar so a refresh doesn't re-trigger
       history.replaceState(null, '', window.location.pathname);
       autoJoinShare(shareParam);
     }
@@ -688,6 +701,67 @@ async function fetchUserProfileName() {
     console.log('fetchUserProfileName: not found or error —', e.message);
   }
   return null;
+}
+
+// Save the user's display name to their private CloudKit DB.
+// Mirrors CloudKitService.saveUserName() — upserts the singleton UserProfile record.
+async function saveUserProfileName(name) {
+  if (!name) return;
+  try {
+    let changeTag = null;
+    try {
+      const existing = await db.fetchRecords({ records: [{ recordName: 'singleton-user-profile' }] });
+      const rec = (existing.records || [])[0];
+      if (rec && !rec.serverErrorCode) changeTag = rec.recordChangeTag;
+    } catch(e) {}
+    const record = { recordName: 'singleton-user-profile', recordType: 'UserProfile',
+                     fields: { displayName: { value: name } } };
+    if (changeTag) record.recordChangeTag = changeTag;
+    await db.saveRecords({ records: [record] });
+    console.log('✅ saveUserProfileName: saved to CloudKit');
+  } catch(e) {
+    console.log('⚠️ saveUserProfileName failed:', e.message);
+  }
+}
+
+// Fetch the left zone names list from the private CloudKit DB.
+// Mirrors CloudKitService.fetchLeftZones().
+async function fetchCloudLeftZones() {
+  try {
+    const resp = await db.fetchRecords({ records: [{ recordName: 'singleton-user-profile' }] });
+    const record = (resp.records || [])[0];
+    if (record && !record.serverErrorCode) {
+      return record.fields?.leftZoneNames?.value || [];
+    }
+  } catch(e) {
+    console.log('fetchCloudLeftZones: not found or error —', e.message);
+  }
+  return [];
+}
+
+// Add a zone name to the left-zones list in the private CloudKit DB.
+// Mirrors CloudKitService.addLeftZone().
+async function addCloudLeftZone(zoneName) {
+  try {
+    let existing = [], changeTag = null;
+    try {
+      const resp = await db.fetchRecords({ records: [{ recordName: 'singleton-user-profile' }] });
+      const rec = (resp.records || [])[0];
+      if (rec && !rec.serverErrorCode) {
+        existing  = rec.fields?.leftZoneNames?.value || [];
+        changeTag = rec.recordChangeTag;
+      }
+    } catch(e) {}
+    if (existing.includes(zoneName)) return;
+    existing.push(zoneName);
+    const record = { recordName: 'singleton-user-profile', recordType: 'UserProfile',
+                     fields: { leftZoneNames: { value: existing } } };
+    if (changeTag) record.recordChangeTag = changeTag;
+    await db.saveRecords({ records: [record] });
+    console.log('✅ addCloudLeftZone: saved', zoneName);
+  } catch(e) {
+    console.log('⚠️ addCloudLeftZone failed:', e.message);
+  }
 }
 
 async function autoJoinShare(ckShareURL) {
@@ -934,9 +1008,32 @@ function renderEvents() {
         <div class="event-name">${escHtml(e.name)}</div>
         <div class="event-meta">${e.isOrganizer ? '👑 Organizer' : '👤 Member'}</div>
       </div>
-      <span class="badge ${e.isOrganizer ? 'badge-active' : 'badge-shared'}">${e.isOrganizer ? 'ORGANIZER' : 'MEMBER'}</span>
+      ${e.isOrganizer
+        ? `<span class="badge badge-active">ORGANIZER</span>`
+        : `<span class="badge badge-shared" style="cursor:pointer" onclick="event.stopPropagation(); leaveEvent(${i})" title="Leave event">LEAVE</span>`
+      }
     </div>
   `).join('');
+}
+
+async function leaveEvent(idx) {
+  const e = allEvents[idx];
+  if (!e || e.isOrganizer) return;
+  if (!confirm(`Leave "${e.name}"? You can rejoin with the invite link.`)) return;
+
+  // Add to local left zones immediately
+  const left = JSON.parse(localStorage.getItem('leftZoneNames') || '[]');
+  if (!left.includes(e.zoneName)) {
+    left.push(e.zoneName);
+    localStorage.setItem('leftZoneNames', JSON.stringify(left));
+  }
+  // Persist to CloudKit so it survives sign-out
+  await addCloudLeftZone(e.zoneName);
+
+  // Remove from UI
+  allEvents.splice(idx, 1);
+  renderEvents();
+  showToast('Left event');
 }
 
 async function selectEvent(idx) {
