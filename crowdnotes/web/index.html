@@ -105,19 +105,10 @@
   .signin-title { font-size: 28px; font-weight: 600; margin-bottom: 8px; }
   .signin-sub { color: var(--text2); font-size: 15px; text-align: center; margin-bottom: 48px; line-height: 1.5; }
 
-  /* Style the CloudKit JS sign-in button */
-  #ck-signin button {
-    background: var(--cyan) !important;
-    color: #000 !important;
-    border: none !important;
-    border-radius: var(--radius) !important;
-    padding: 16px 32px !important;
-    font-family: 'DM Sans', sans-serif !important;
-    font-size: 16px !important;
-    font-weight: 600 !important;
-    cursor: pointer !important;
-    width: 320px !important;
-    min-width: 320px !important;
+  /* Hide the CloudKit JS-injected Apple button — we use our own styled button
+     that calls triggerSignIn() which clicks the CK button programmatically. */
+  #ck-signin button:not(#manual-signin-btn) {
+    display: none !important;
   }
 
   /* ── Top bar ── */
@@ -528,7 +519,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.77';
+const VERSION     = 'v1.0.78';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '22ec7d5793989a260042f6ef0a55b4e40eaf297dbe7c250b2e52eaa331af781e';
@@ -582,15 +573,10 @@ const justSignedOut = sessionStorage.getItem('ck_signed_out') === '1';
 
 function showSignInButton() {
   showScreen('signin');
-  // Only show our manual button if CloudKit JS has NOT already injected its own.
-  // Give CK JS 400ms to render its button first, then check.
-  setTimeout(() => {
-    const ckInjectedBtn = document.querySelector('#ck-signin button:not(#manual-signin-btn)');
-    const manualBtn = document.getElementById('manual-signin-btn');
-    if (!ckInjectedBtn && manualBtn) {
-      manualBtn.style.display = 'block';
-    }
-  }, 400);
+  // Always show our manual button. The CK JS-injected button is hidden via CSS
+  // (display:none), so triggerSignIn() clicks it programmatically — one button, no race.
+  const manualBtn = document.getElementById('manual-signin-btn');
+  if (manualBtn) manualBtn.style.display = 'block';
 }
 
 function triggerSignIn() {
