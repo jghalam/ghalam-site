@@ -380,7 +380,7 @@
     font-family: 'DM Sans', sans-serif;
     font-size: 13px; font-weight: 700;
     box-shadow: 0 3px 6px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.08);
-    text-shadow: 0 1px 2px rgba(0,100,140,0.18), inset 0 1px 2px rgba(0,0,0,0.15);
+    text-shadow: 0 1px 2px rgba(0,100,140,0.25), 0 -1px 1px rgba(0,0,0,0.12);
     transition: color 0.2s, border-color 0.2s, background 0.2s, box-shadow 0.2s;
   }
   .nav-item.active {
@@ -393,6 +393,10 @@
     background: #e8f4f8;
     box-shadow: 0 1px 2px rgba(0,0,0,0.08);
     transform: translateY(1px);
+  }
+  .nav-item.nav-signout {
+    color: #cc2222;
+    text-shadow: 0 1px 2px rgba(180,0,0,0.25), 0 -1px 1px rgba(0,0,0,0.12);
   }
   .nav-icon { display: none; }
 
@@ -468,7 +472,7 @@
   </div>
   <div class="bottom-nav">
     <button class="nav-item" onclick="showScreen('scan')">Scan QR</button>
-    <button class="nav-item" onclick="signOut()">Sign Out</button>
+    <button class="nav-item nav-signout" onclick="signOut()">Sign Out</button>
   </div>
 </div>
 
@@ -488,7 +492,7 @@
   <div class="bottom-nav">
     <button class="nav-item" onclick="showScreen('events')">Events</button>
     <button class="nav-item active" onclick="showScreen('scan')">Scan QR</button>
-    <button class="nav-item" onclick="signOut()">Sign Out</button>
+    <button class="nav-item nav-signout" onclick="signOut()">Sign Out</button>
   </div>
 </div>
 
@@ -505,7 +509,7 @@
   <div class="bottom-nav">
     <button class="nav-item" onclick="showScreen('events')">Events</button>
     <button class="nav-item" onclick="showScreen('scan')">Scan QR</button>
-    <button class="nav-item" onclick="signOut()">Sign Out</button>
+    <button class="nav-item nav-signout" onclick="signOut()">Sign Out</button>
   </div>
 </div>
 
@@ -526,7 +530,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.87';
+const VERSION     = 'v1.0.88';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '22ec7d5793989a260042f6ef0a55b4e40eaf297dbe7c250b2e52eaa331af781e';
