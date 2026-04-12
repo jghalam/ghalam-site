@@ -154,7 +154,7 @@
   .events-header h1 { font-size: 26px; font-weight: 600; }
   .events-header p { color: var(--text2); font-size: 14px; margin-top: 4px; }
 
-  .event-list { padding: 8px 16px 24px; display: flex; flex-direction: column; gap: 10px; flex: 1; overflow-y: auto; overscroll-behavior-y: contain; }
+  .event-list { padding: 8px 16px 80px; display: flex; flex-direction: column; gap: 10px; flex: 1; overflow-y: auto; overscroll-behavior-y: contain; }
 
   .event-card {
     background: var(--bg2);
@@ -245,7 +245,7 @@
   }
 
   /* ── Attendee detail ── */
-  #screen-detail { background: var(--bg); }
+  #screen-detail { background: var(--bg); height: 100vh; overflow: hidden; }
 
   .detail-header {
     padding: 24px 20px;
@@ -358,14 +358,14 @@
 
   /* Bottom nav */
   .bottom-nav {
-    position: sticky; bottom: 0;
+    position: fixed; bottom: 0; left: 0; right: 0;
     background: #ffffff;
     border-top: 1px solid #e0e0e8;
-    display: flex;
+    display: none;
     padding-bottom: env(safe-area-inset-bottom);
     z-index: 200;
-    margin-top: auto;
   }
+  .screen.active .bottom-nav { display: flex; }
   .nav-item {
     flex: 1; display: flex; flex-direction: column;
     align-items: center; justify-content: center;
@@ -490,7 +490,7 @@
     <div class="topbar-title">Profile</div>
     <button class="topbar-action" onclick="refreshDetail()" title="Refresh">↺</button>
   </div>
-  <div id="detail-content" style="overflow-y:auto; flex:1; padding-bottom:30px; overscroll-behavior-y:contain;">
+  <div id="detail-content" style="overflow-y:auto; flex:1; padding-bottom:80px; overscroll-behavior-y:contain;">
     <div class="loader"><div class="spinner"></div></div>
   </div>
   <div class="bottom-nav">
@@ -523,7 +523,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.83';
+const VERSION     = 'v1.0.84';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '22ec7d5793989a260042f6ef0a55b4e40eaf297dbe7c250b2e52eaa331af781e';
