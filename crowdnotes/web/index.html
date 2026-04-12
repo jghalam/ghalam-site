@@ -105,9 +105,23 @@
   .signin-title { font-size: 28px; font-weight: 600; margin-bottom: 8px; }
   .signin-sub { color: var(--text2); font-size: 15px; text-align: center; margin-bottom: 48px; line-height: 1.5; }
 
-  /* Hide the CloudKit JS-injected Apple button — we use our own styled button
-     that calls triggerSignIn() which clicks the CK button programmatically. */
-  #ck-signin button:not(#manual-signin-btn) {
+  /* Style the CloudKit JS-injected sign-in button to match our design */
+  #ck-signin button {
+    background: var(--cyan) !important;
+    color: #000 !important;
+    border: none !important;
+    border-radius: var(--radius) !important;
+    padding: 16px 32px !important;
+    font-family: 'DM Sans', sans-serif !important;
+    font-size: 16px !important;
+    font-weight: 600 !important;
+    cursor: pointer !important;
+    width: 320px !important;
+    min-width: 320px !important;
+    display: block !important;
+  }
+  /* Hide our manual fallback button — CK JS manages sign-in natively */
+  #manual-signin-btn {
     display: none !important;
   }
 
@@ -519,7 +533,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.78';
+const VERSION     = 'v1.0.79';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '22ec7d5793989a260042f6ef0a55b4e40eaf297dbe7c250b2e52eaa331af781e';
@@ -561,71 +575,31 @@ CloudKit.configure({
 
 const container = CloudKit.getDefaultContainer();
 
+// Clean up cache-bust param from URL without triggering a reload
 const urlParams = new URLSearchParams(window.location.search);
-// Clean up any stale URL params
-if (urlParams.has('signedout') || urlParams.has('t')) {
+if (urlParams.has('t')) {
   history.replaceState(null, '', window.location.pathname);
 }
 
-// Use sessionStorage to track signed-out state — survives manual reloads
-// within the same browser session, unlike a URL param which is lost on reload.
-const justSignedOut = sessionStorage.getItem('ck_signed_out') === '1';
-
 function showSignInButton() {
   showScreen('signin');
-  // Always show our manual button. The CK JS-injected button is hidden via CSS
-  // (display:none), so triggerSignIn() clicks it programmatically — one button, no race.
-  const manualBtn = document.getElementById('manual-signin-btn');
-  if (manualBtn) manualBtn.style.display = 'block';
+  // CloudKit JS injects and manages the sign-in button inside #ck-signin.
+  // Our #manual-signin-btn is permanently hidden via CSS — CK JS owns the button.
 }
 
-function triggerSignIn() {
-  // User is actively choosing to sign in — clear the signed-out guard
-  sessionStorage.removeItem('ck_signed_out');
-  // Hide button while signing in
-  const btn = document.getElementById('manual-signin-btn');
-  if (btn) btn.style.display = 'none';
-  // Click the CloudKit JS-managed button inside #ck-signin if it exists,
-  // otherwise fall back to container.signIn()
-  const ckBtn = document.querySelector('#ck-signin button:not(#manual-signin-btn)');
-  if (ckBtn) {
-    ckBtn.click();
-  } else if (typeof container.signIn === 'function') {
-    container.signIn();
-  } else {
-    // Last resort — re-run setUpAuth to get the real button
-    container.setUpAuth().then(userInfo => {
-      if (userInfo) onSignedIn(userInfo);
-      else {
-        const ckBtn2 = document.querySelector('#ck-signin button:not(#manual-signin-btn)');
-        if (ckBtn2) ckBtn2.click();
-        else if (btn) btn.style.display = 'block';
-      }
-    }).catch(() => { if (btn) btn.style.display = 'block'; });
-  }
-}
-
-if (justSignedOut) {
-  // User signed out — stay on sign-in screen regardless of what CloudKit JS says.
-  // Call setUpAuth only so CK JS can inject its button; never auto-login.
-  showSignInButton();
-  container.setUpAuth().then(userInfo => {
-    if (!userInfo) watchForSignInPopup();
-    // Even if CK JS still sees a session, do NOT call onSignedIn — user signed out.
-  }).catch(() => {});
-} else {
-  container.setUpAuth().then(userInfo => {
-    if (userInfo) onSignedIn(userInfo);
-    else {
-      showSignInButton();
-      watchForSignInPopup();
-    }
-  }).catch(err => {
-    console.error('Auth setup error:', err);
+// On load, check whether there's already a valid CK session.
+// After a true container.signOut(), setUpAuth() will return null here.
+container.setUpAuth().then(userInfo => {
+  if (userInfo) onSignedIn(userInfo);
+  else {
     showSignInButton();
     watchForSignInPopup();
-  });
-}
+  }
+}).catch(err => {
+  console.error('Auth setup error:', err);
+  showSignInButton();
+  watchForSignInPopup();
+});
 
 function watchForSignInPopup() {
   // Intercept window.open so we can track the popup reference
@@ -649,38 +623,27 @@ function watchForSignInPopup() {
 }
 
 // ── Auth ──────────────────────────────────────────────────
-function signOut() {
+async function signOut() {
   allEvents = []; allAttendees = []; activeEvent = null;
   ckWebAuthToken = ''; currentUserRecordName = '';
   recruiterName = '';
-
-  // Click hidden sign-out button to deauth server-side token
-  const btn = document.querySelector('#ck-signout button');
-  if (btn) btn.click();
-
-  // Clear all local storage
   localStorage.clear();
-  // NOTE: do NOT clear sessionStorage here — we write to it right after
-  document.cookie.split(';').forEach(c => {
-    const key = c.split('=')[0].trim();
-    document.cookie = key + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/';
-    document.cookie = key + '=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=' + location.hostname;
-  });
 
-  // Persist the signed-out state in sessionStorage so it survives manual
-  // page reloads within the same browser session (URL param alone is lost on reload).
-  sessionStorage.setItem('ck_signed_out', '1');
+  // Use CloudKit JS container.signOut() — this invalidates the server-side
+  // ckSession cookie (HttpOnly, unreachable by JS) and returns a promise.
+  // We wait for it before reloading so the session is truly dead.
+  try {
+    await container.signOut();
+  } catch(e) {
+    console.warn('container.signOut() error (ignored):', e);
+  }
 
-  // Navigate with a cache-bust timestamp so the browser never serves a stale page.
-  setTimeout(() => {
-    window.location.replace(window.location.pathname + '?t=' + Date.now());
-  }, 600);
+  // Hard reload to a cache-busted URL — forces the browser to re-fetch the
+  // page and re-run CloudKit.configure(), which will now find no session.
+  window.location.replace(window.location.pathname + '?t=' + Date.now());
 }
 
 async function onSignedIn(userInfo) {
-  // Clear the signed-out flag — user has actively authenticated.
-  sessionStorage.removeItem('ck_signed_out');
-
   db       = container.privateCloudDatabase;
   sharedDB = container.sharedCloudDatabase;
   currentUserRecordName = userInfo?.userRecordName || userInfo?.recordName || '';
