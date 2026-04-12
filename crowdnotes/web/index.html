@@ -362,20 +362,26 @@
     background: #ffffff;
     border-top: 1px solid #e0e0e8;
     display: none;
-    padding-bottom: env(safe-area-inset-bottom);
+    padding: 10px 12px;
+    padding-bottom: calc(10px + env(safe-area-inset-bottom));
+    gap: 8px;
     z-index: 200;
   }
   .screen.active .bottom-nav { display: flex; }
   .nav-item {
     flex: 1; display: flex; flex-direction: row;
     align-items: center; justify-content: center;
-    padding: 10px 0; gap: 6px;
-    background: none; border: none; cursor: pointer;
+    padding: 10px 8px; gap: 0;
+    background: none;
+    border: 1.5px solid #e0e0e8;
+    border-radius: 10px;
+    cursor: pointer;
     color: #6e6e73; font-family: 'DM Sans', sans-serif;
-    font-size: 13px; font-weight: 500; transition: color 0.2s;
+    font-size: 13px; font-weight: 700; transition: color 0.2s, border-color 0.2s, background 0.2s;
   }
-  .nav-item.active { color: #009bb5; }
-  .nav-icon { font-size: 18px; line-height: 1; }
+  .nav-item.active { color: #009bb5; border-color: #009bb5; background: rgba(0,155,181,0.07); }
+  .nav-item:active { background: #f0f0f5; }
+  .nav-icon { display: none; }
 
   /* Loader */
   .loader {
@@ -448,12 +454,8 @@
     <div class="loader"><div class="spinner"></div></div>
   </div>
   <div class="bottom-nav">
-    <button class="nav-item" onclick="showScreen('scan')">
-      <span class="nav-icon">📷</span>Scan QR
-    </button>
-    <button class="nav-item" onclick="signOut()">
-      <span class="nav-icon">🚪</span>Sign Out
-    </button>
+    <button class="nav-item" onclick="showScreen('scan')">Scan QR</button>
+    <button class="nav-item" onclick="signOut()">Sign Out</button>
   </div>
 </div>
 
@@ -471,15 +473,9 @@
     <div class="loader"><div class="spinner"></div></div>
   </div>
   <div class="bottom-nav">
-    <button class="nav-item" onclick="showScreen('events')">
-      <span class="nav-icon">📅</span>Events
-    </button>
-    <button class="nav-item active" onclick="showScreen('scan')">
-      <span class="nav-icon">📷</span>Scan QR
-    </button>
-    <button class="nav-item" onclick="signOut()">
-      <span class="nav-icon">🚪</span>Sign Out
-    </button>
+    <button class="nav-item" onclick="showScreen('events')">Events</button>
+    <button class="nav-item active" onclick="showScreen('scan')">Scan QR</button>
+    <button class="nav-item" onclick="signOut()">Sign Out</button>
   </div>
 </div>
 
@@ -494,15 +490,9 @@
     <div class="loader"><div class="spinner"></div></div>
   </div>
   <div class="bottom-nav">
-    <button class="nav-item" onclick="showScreen('events')">
-      <span class="nav-icon">📅</span>Events
-    </button>
-    <button class="nav-item" onclick="showScreen('scan')">
-      <span class="nav-icon">📷</span>Scan QR
-    </button>
-    <button class="nav-item" onclick="signOut()">
-      <span class="nav-icon">🚪</span>Sign Out
-    </button>
+    <button class="nav-item" onclick="showScreen('events')">Events</button>
+    <button class="nav-item" onclick="showScreen('scan')">Scan QR</button>
+    <button class="nav-item" onclick="signOut()">Sign Out</button>
   </div>
 </div>
 
@@ -523,7 +513,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.85';
+const VERSION     = 'v1.0.86';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '22ec7d5793989a260042f6ef0a55b4e40eaf297dbe7c250b2e52eaa331af781e';
