@@ -120,10 +120,7 @@
     min-width: 320px !important;
     display: block !important;
   }
-  /* Hide our manual fallback button — CK JS manages sign-in natively */
-  #manual-signin-btn {
-    display: none !important;
-  }
+
 
   /* ── Top bar ── */
   .topbar {
@@ -425,14 +422,7 @@
   <img src="https://ghalam.net/crowdnotes/appicon.png" style="width:80px;height:80px;border-radius:22px;margin-bottom:28px;" alt="CrowdNotes">
   <div class="signin-title">CrowdNotes</div>
   <div class="signin-sub">Sign in with your Apple ID to access<br>your recruiting events.</div>
-  <div id="ck-signin" style="margin-top:8px;">
-    <button id="manual-signin-btn" onclick="triggerSignIn()"
-      style="background:var(--cyan);color:#000;border:none;border-radius:var(--radius);
-             padding:16px 32px;font-family:'DM Sans',sans-serif;font-size:16px;
-             font-weight:600;cursor:pointer;width:320px;min-width:320px;display:none;">
-      Sign in with Apple ID
-    </button>
-  </div>
+  <div id="ck-signin" style="margin-top:8px;"></div>
   <div id="signin-error" style="margin-top:16px; color:var(--red); font-size:14px; text-align:center;"></div>
 </div>
 
@@ -533,7 +523,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.79';
+const VERSION     = 'v1.0.80';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '22ec7d5793989a260042f6ef0a55b4e40eaf297dbe7c250b2e52eaa331af781e';
