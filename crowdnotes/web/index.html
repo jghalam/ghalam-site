@@ -490,7 +490,7 @@
     <div class="topbar-title">Profile</div>
     <button class="topbar-action" onclick="refreshDetail()" title="Refresh">↺</button>
   </div>
-  <div id="detail-content" style="overflow-y:auto; flex:1; padding-bottom:30px;">
+  <div id="detail-content" style="overflow-y:auto; flex:1; padding-bottom:30px; overscroll-behavior-y:contain;">
     <div class="loader"><div class="spinner"></div></div>
   </div>
   <div class="bottom-nav">
@@ -523,7 +523,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.82';
+const VERSION     = 'v1.0.83';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '22ec7d5793989a260042f6ef0a55b4e40eaf297dbe7c250b2e52eaa331af781e';
