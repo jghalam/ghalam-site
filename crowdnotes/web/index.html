@@ -526,7 +526,13 @@
 <!-- Events -->
 <div id="screen-events" class="screen">
   <div class="events-header">
-    <h1>My Events</h1>
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+      <h1>My Events</h1>
+      <div id="signed-in-user" style="display:none; flex-direction:column; align-items:flex-end; gap:2px;">
+        <div style="font-size:11px; color:var(--text2); text-transform:uppercase; letter-spacing:0.6px;">Signed in as</div>
+        <div id="signed-in-name" style="font-size:13px; font-weight:600; color:var(--cyan);"></div>
+      </div>
+    </div>
     <p id="events-subtitle">Loading your events…</p>
   </div>
   <div style="padding: 0 16px 8px;">
@@ -601,7 +607,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.90';
+const VERSION     = 'v1.0.91';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '22ec7d5793989a260042f6ef0a55b4e40eaf297dbe7c250b2e52eaa331af781e';
@@ -771,6 +777,13 @@ async function onSignedIn(userInfo) {
   const saved = JSON.parse(localStorage.getItem('sharedZones') || '[]');
   const valid = saved.filter(z => z.zoneName && z.ownerName);
   if (valid.length !== saved.length) localStorage.setItem('sharedZones', JSON.stringify(valid));
+  // Update signed-in user display — same name used for notes, votes, and MemberStatus
+  const nameEl = document.getElementById('signed-in-name');
+  const userEl = document.getElementById('signed-in-user');
+  if (nameEl && userEl && recruiterName) {
+    nameEl.textContent = recruiterName;
+    userEl.style.display = 'flex';
+  }
   showScreen('events');
   loadEvents().then(() => {
     // Auto-join from Universal Link: ?share=<cloudkit-url>
