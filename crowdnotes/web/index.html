@@ -658,11 +658,12 @@ if (urlParams.has('t')) {
     itunesMeta.setAttribute('content', 'app-id=6760520709, app-argument=' + location.href);
   }
 
-  // Show a custom banner for iOS non-Safari browsers (Chrome, Firefox, etc.)
-  // Safari shows its own Smart App Banner natively via the meta tag above.
+  // Show the custom banner for all iOS users.
+  // Safari's native Smart App Banner (via the meta tag above) is unreliable —
+  // once a user dismisses it, Safari never shows it again even after the app is deleted.
+  // The custom banner gives us consistent coverage across Safari, Chrome, and Firefox on iOS.
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-  const isSafari = /Safari\//.test(navigator.userAgent) && !/CriOS|FxiOS|OPiOS|EdgiOS|Chrome/.test(navigator.userAgent);
-  if (isIOS && !isSafari && !sessionStorage.getItem('installBannerDismissed')) {
+  if (isIOS && !sessionStorage.getItem('installBannerDismissed')) {
     document.getElementById('ios-install-banner').style.display = 'flex';
   }
 })();
