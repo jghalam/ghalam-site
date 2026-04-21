@@ -537,8 +537,8 @@
   </div>
   <div style="padding: 0 16px 8px;">
     <div style="background:var(--bg2); border:1px solid var(--cyan-border); border-radius:var(--radius); padding:14px; display:flex; flex-direction:column; gap:10px;">
-      <div style="font-size:13px; color:var(--text2);">Have a share link? Paste it below to join an event.</div>
-      <input id="share-link-input" placeholder="https://www.icloud.com/share/..." 
+      <div style="font-size:13px; color:var(--text2);">Have a share link from CrowdNotes? Paste it below to join an event.</div>
+      <input id="share-link-input" placeholder="https://ghalam.net/crowdnotes/web/index.html?share=…" 
         style="background:var(--bg3); border:1px solid var(--bg3); border-radius:var(--radius-sm); padding:10px 12px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:14px; outline:none; width:100%;">
       <button onclick="joinWithLink()" style="background:var(--cyan); color:#000; border:none; border-radius:var(--radius-sm); padding:11px; font-family:'DM Sans',sans-serif; font-size:14px; font-weight:600; cursor:pointer;">Join Event</button>
       <div id="join-error" style="color:var(--red); font-size:13px; display:none;"></div>
@@ -607,7 +607,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.93';
+const VERSION     = 'v1.0.95';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '22ec7d5793989a260042f6ef0a55b4e40eaf297dbe7c250b2e52eaa331af781e';
@@ -967,18 +967,32 @@ async function writeMemberStatus(zoneName, ownerName) {
     );
     const data = await resp.json();
     console.log('writeMemberStatus response:', JSON.stringify(data).slice(0, 300));
+    // Check top-level error (e.g. ZONE_NOT_FOUND) — zone not accepted via CloudKit yet
+    if (data.serverErrorCode) throw new Error(data.reason || data.serverErrorCode);
     const saved = (data.records || [])[0];
     if (saved && saved.serverErrorCode) throw new Error(saved.reason || saved.serverErrorCode);
     console.log('✅ writeMemberStatus: saved', displayName, 'for zone', zoneName);
   } catch(e) {
-    console.error('❌ writeMemberStatus failed:', e.message);
+    // ZONE_NOT_FOUND means the share hasn't been accepted via CloudKit yet — safe to skip
+    if (e.message.includes('ZONE_NOT_FOUND') || e.message.includes('Zone does not exist')) {
+      console.log('⚠️ writeMemberStatus: zone not accessible yet, skipping —', zoneName);
+    } else {
+      console.error('❌ writeMemberStatus failed:', e.message);
+    }
   }
 }
 
 async function joinWithLink() {
-  const input = document.getElementById('share-link-input').value.trim();
+  let input = document.getElementById('share-link-input').value.trim();
   const errEl = document.getElementById('join-error');
   errEl.style.display = 'none';
+
+  // If the user pasted the full ghalam.net share link, extract the CloudKit URL from ?share=
+  try {
+    const parsed = new URL(input);
+    const shareParam = parsed.searchParams.get('share');
+    if (shareParam) input = decodeURIComponent(shareParam);
+  } catch(e) {}
 
   if (!input.includes('icloud.com/share/')) {
     errEl.textContent = 'Please paste a valid CrowdNotes share link.';
@@ -1073,10 +1087,9 @@ async function joinWithLink() {
       localStorage.setItem('sharedZones', JSON.stringify(savedShares));
     }
     document.getElementById('share-link-input').value = '';
-    errEl.innerHTML = `⚠️ Link saved but could not auto-join.<br>
-      <strong>Open this link on an iPhone first</strong> to accept the share, 
-      then return here — the event will appear automatically.
-      <br><a href="${input}" target="_blank" style="color:var(--cyan)">Open share link ↗</a>`;
+    errEl.innerHTML = `⚠️ Could not auto-join from this browser.<br>
+      <a href="${input}" target="_blank" style="color:var(--cyan);font-weight:600;">Open share link ↗</a>
+      — accept the invitation, then come back here and <strong>pull down to refresh</strong>.`;
     errEl.style.display = 'block';
   }
 }
