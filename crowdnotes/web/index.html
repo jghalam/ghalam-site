@@ -436,9 +436,64 @@
     color: var(--red); border-radius: var(--radius-sm);
     padding: 12px 16px; font-size: 14px; margin: 0 16px;
   }
+
+  /* ── iOS Install Banner ── */
+  #ios-install-banner {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    background: #ffffff;
+    border-top: 1px solid #e0e0e8;
+    padding: 12px 16px;
+    padding-bottom: calc(12px + env(safe-area-inset-bottom));
+    display: none;
+    align-items: center;
+    gap: 12px;
+    z-index: 10000;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+    animation: slideUp 0.3s ease;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(100%); opacity: 0; }
+    to   { transform: translateY(0);    opacity: 1; }
+  }
+  #ios-install-banner img {
+    width: 48px; height: 48px;
+    border-radius: 12px; flex-shrink: 0;
+  }
+  .banner-info { flex: 1; min-width: 0; }
+  .banner-title { font-size: 15px; font-weight: 600; color: #1c1c1e; }
+  .banner-sub   { font-size: 12px; color: #6e6e73; margin-top: 2px; }
+  .banner-get {
+    background: #009bb5; color: #000;
+    border: none; border-radius: 20px;
+    padding: 8px 18px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px; font-weight: 600;
+    cursor: pointer; flex-shrink: 0;
+    text-decoration: none; display: inline-block;
+  }
+  .banner-close {
+    background: #e0e0e8; border: none;
+    color: #6e6e73; border-radius: 50%;
+    width: 26px; height: 26px; min-width: 26px;
+    font-size: 13px; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
 </style>
 </head>
 <body>
+
+<!-- iOS Install Banner (shown for non-Safari iOS browsers; Safari uses the apple-itunes-app meta Smart Banner natively) -->
+<div id="ios-install-banner">
+  <img src="https://ghalam.net/crowdnotes/appicon.png" alt="CrowdNotes">
+  <div class="banner-info">
+    <div class="banner-title">CrowdNotes</div>
+    <div class="banner-sub">Get the full experience in the app</div>
+  </div>
+  <a class="banner-get" href="https://apps.apple.com/app/id6760520709">Get</a>
+  <button class="banner-close" onclick="dismissInstallBanner()">✕</button>
+</div>
 
 <!-- Sign In -->
 <div id="screen-signin" class="screen active">
@@ -592,6 +647,29 @@ const container = CloudKit.getDefaultContainer();
 const urlParams = new URLSearchParams(window.location.search);
 if (urlParams.has('t')) {
   history.replaceState(null, '', window.location.pathname);
+}
+
+// ── iOS Install Banner ────────────────────────────────────
+// Always update app-argument to include the current URL (preserving ?share= param)
+// so Safari's Smart App Banner passes the right link through to the installed app.
+(function() {
+  const itunesMeta = document.querySelector('meta[name="apple-itunes-app"]');
+  if (itunesMeta) {
+    itunesMeta.setAttribute('content', 'app-id=6760520709, app-argument=' + location.href);
+  }
+
+  // Show a custom banner for iOS non-Safari browsers (Chrome, Firefox, etc.)
+  // Safari shows its own Smart App Banner natively via the meta tag above.
+  const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+  const isSafari = /Safari\//.test(navigator.userAgent) && !/CriOS|FxiOS|OPiOS|EdgiOS|Chrome/.test(navigator.userAgent);
+  if (isIOS && !isSafari && !sessionStorage.getItem('installBannerDismissed')) {
+    document.getElementById('ios-install-banner').style.display = 'flex';
+  }
+})();
+
+function dismissInstallBanner() {
+  sessionStorage.setItem('installBannerDismissed', '1');
+  document.getElementById('ios-install-banner').style.display = 'none';
 }
 
 function showSignInButton() {
