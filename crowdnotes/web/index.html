@@ -607,7 +607,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.91';
+const VERSION     = 'v1.0.92';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '22ec7d5793989a260042f6ef0a55b4e40eaf297dbe7c250b2e52eaa331af781e';
@@ -636,6 +636,19 @@ XMLHttpRequest.prototype.open = function(method, url, ...rest) {
     } catch(e) {}
   }
   return _origXHROpen.apply(this, [method, url, ...rest]);
+};
+
+// Also intercept fetch — CloudKit JS may use fetch for some requests
+const _origFetch = window.fetch;
+window.fetch = function(input, init) {
+  try {
+    const url = typeof input === 'string' ? input : (input?.url || '');
+    if (url.includes('api.apple-cloudkit.com')) {
+      const tok = new URL(url).searchParams.get('ckWebAuthToken');
+      if (tok) ckWebAuthToken = tok;
+    }
+  } catch(e) {}
+  return _origFetch.apply(this, arguments);
 };
 
 // ── CloudKit Init ─────────────────────────────────────────
@@ -785,7 +798,16 @@ async function onSignedIn(userInfo) {
     userEl.style.display = 'flex';
   }
   showScreen('events');
-  loadEvents().then(() => {
+  loadEvents().then(async () => {
+    // Refresh MemberStatus for every zone we're already a member of so the
+    // organizer always sees our current display name — ckWebAuthToken is
+    // guaranteed to be populated by this point since loadEvents() used CloudKit JS.
+    const existingShares = JSON.parse(localStorage.getItem('sharedZones') || '[]');
+    for (const zone of existingShares) {
+      if (zone.zoneName && zone.ownerName) {
+        await writeMemberStatus(zone.zoneName, zone.ownerName);
+      }
+    }
     // Auto-join from Universal Link: ?share=<cloudkit-url>
     const urlParams = new URLSearchParams(window.location.search);
     const shareParam = urlParams.get('share');
