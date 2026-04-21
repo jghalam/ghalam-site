@@ -601,7 +601,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.89';
+const VERSION     = 'v1.0.90';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '22ec7d5793989a260042f6ef0a55b4e40eaf297dbe7c250b2e52eaa331af781e';
@@ -890,6 +890,43 @@ function showScreen(name) {
 }
 
 // ── Join with Share Link ──────────────────────────────────
+// ── Write MemberStatus to shared zone ────────────────────
+// Called after successfully joining a share so the organizer's
+// iOS app can display the web member's name in Manage Share.
+async function writeMemberStatus(zoneName, ownerName) {
+  if (!ckWebAuthToken || !currentUserRecordName || !recruiterName) return;
+  try {
+    const ckParams = new URLSearchParams({
+      ckjsBuildVersion: '2420ProjectDev22', ckjsVersion: '2.6.4',
+      ckAPIToken: API_TOKEN, ckWebAuthToken
+    }).toString();
+    const recordName = 'memberstatus-' + currentUserRecordName;
+    const resp = await fetch(
+      `https://api.apple-cloudkit.com/database/1/${CONTAINER}/${ENV}/shared/records/modify?${ckParams}`,
+      { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          zoneID: { zoneName, ownerRecordName: ownerName },
+          operations: [{ operationType: 'forceReplace', record: {
+            recordName,
+            recordType: 'MemberStatus',
+            fields: {
+              userID:      { value: currentUserRecordName },
+              status:      { value: 'active' },
+              displayName: { value: recruiterName }
+            }
+          }}]
+        })
+      }
+    );
+    const data = await resp.json();
+    const saved = (data.records || [])[0];
+    if (saved && saved.serverErrorCode) throw new Error(saved.reason || saved.serverErrorCode);
+    console.log('✅ writeMemberStatus: saved displayName', recruiterName, 'for zone', zoneName);
+  } catch(e) {
+    console.log('⚠️ writeMemberStatus failed:', e.message);
+  }
+}
+
 async function joinWithLink() {
   const input = document.getElementById('share-link-input').value.trim();
   const errEl = document.getElementById('join-error');
@@ -975,6 +1012,8 @@ async function joinWithLink() {
       savedShares.push({ zoneName, ownerName, shareURL: input, eventName });
       localStorage.setItem('sharedZones', JSON.stringify(savedShares));
     }
+    // Write MemberStatus with displayName so the iOS organizer sees this member's name
+    await writeMemberStatus(zoneName, ownerName);
     document.getElementById('share-link-input').value = '';
     showToast('Event joined!');
     await loadEvents();
