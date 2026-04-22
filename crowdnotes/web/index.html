@@ -607,7 +607,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.95';
+const VERSION     = 'v1.0.96';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '22ec7d5793989a260042f6ef0a55b4e40eaf297dbe7c250b2e52eaa331af781e';
@@ -1219,6 +1219,37 @@ async function leaveEvent(idx) {
   const e = allEvents[idx];
   if (!e || e.isOrganizer) return;
   if (!confirm(`Leave "${e.name}"? You can rejoin with the invite link.`)) return;
+
+  // Write MemberStatus: "left" so organizer's iOS app hides this member
+  if (e.zoneName && e.ownerName && ckWebAuthToken && currentUserRecordName) {
+    const displayName = document.getElementById('signed-in-name')?.textContent?.trim() || recruiterName;
+    try {
+      const ckParams = new URLSearchParams({
+        ckjsBuildVersion: '2420ProjectDev22', ckjsVersion: '2.6.4',
+        ckAPIToken: API_TOKEN, ckWebAuthToken
+      }).toString();
+      await fetch(
+        `https://api.apple-cloudkit.com/database/1/${CONTAINER}/${ENV}/shared/records/modify?${ckParams}`,
+        { method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            zoneID: { zoneName: e.zoneName, ownerRecordName: e.ownerName },
+            operations: [{ operationType: 'forceReplace', record: {
+              recordName: 'memberstatus-' + currentUserRecordName,
+              recordType: 'MemberStatus',
+              fields: {
+                userID:      { value: currentUserRecordName },
+                status:      { value: 'left' },
+                displayName: { value: displayName }
+              }
+            }}]
+          })
+        }
+      );
+      console.log('✅ leaveEvent: wrote MemberStatus left for zone', e.zoneName);
+    } catch(err) {
+      console.warn('⚠️ leaveEvent: MemberStatus write failed:', err.message);
+    }
+  }
 
   // Add to local left zones immediately
   const left = JSON.parse(localStorage.getItem('leftZoneNames') || '[]');
