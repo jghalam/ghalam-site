@@ -606,7 +606,13 @@
   <div class="topbar">
     <div class="topbar-row1">
       <button class="topbar-back" onclick="showScreen('events')">‹ Events</button>
-      <button class="topbar-action" onclick="loadAttendees()" title="Refresh">↺</button>
+      <div style="display:flex;align-items:center;gap:4px;">
+        <button class="qr-icon-btn" id="topbar-qr-btn" onclick="showShareQR()" title="Show event QR code"
+          style="display:none; background:none; border:none; cursor:pointer; padding:2px; border-radius:6px; overflow:hidden;">
+          <canvas id="topbar-qr-preview" width="28" height="28" style="display:block; border-radius:4px;"></canvas>
+        </button>
+        <button class="topbar-action" onclick="loadAttendees()" title="Refresh">↺</button>
+      </div>
     </div>
     <div class="topbar-row2" id="attendees-title"></div>
   </div>
@@ -657,7 +663,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.1.4';
+const VERSION     = 'v1.1.5';
 console.log('CrowdNotes Web', VERSION);
 // Show version in UI
 document.addEventListener('DOMContentLoaded', () => {
@@ -1348,10 +1354,15 @@ async function leaveEvent(idx) {
 async function selectEvent(idx) {
   activeEvent = allEvents[idx];
   document.getElementById('attendees-title').textContent = activeEvent.name;
-  // Cache share URL on activeEvent for use by showShareQR
-  activeEvent._shareURL = activeEvent.shareURL ||
+  // Cache share URL and update topbar QR icon
+  const _shareURL = activeEvent.shareURL ||
     (JSON.parse(localStorage.getItem('sharedZones') || '[]')
       .find(z => z.zoneName === activeEvent.zoneName)?.shareURL) || null;
+  activeEvent._shareURL = _shareURL;
+  const qrBtn = document.getElementById('topbar-qr-btn');
+  const qrPreview = document.getElementById('topbar-qr-preview');
+  if (qrBtn) qrBtn.style.display = _shareURL ? 'flex' : 'none';
+  if (_shareURL && qrPreview) renderQRToCanvas(_shareURL, qrPreview, 28).catch(() => {});
 
   showScreen('attendees');
   loadAttendees();
