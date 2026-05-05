@@ -125,12 +125,13 @@
   /* ── Top bar ── */
   .topbar {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    justify-content: space-between;
-    padding: 16px 20px;
+    padding: 10px 16px 0;
     background: var(--bg2);
     border-bottom: 1px solid var(--bg3);
     position: sticky; top: 0; z-index: 100;
+    gap: 0;
   }
 
   .topbar-title { font-size: 18px; font-weight: 600; }
@@ -139,10 +140,13 @@
     font-family: 'DM Sans', sans-serif; font-size: 18px; font-weight: 600;
     cursor: pointer; padding: 4px 0; display: flex; align-items: center; gap: 4px;
   }
-  .topbar-subtitle {
-    font-size: 13px; font-weight: 500; color: var(--text);
+  .topbar-row1 {
+    display: flex; align-items: center; justify-content: space-between; width: 100%;
+  }
+  .topbar-row2 {
+    width: 100%; font-size: 14px; font-weight: 600; color: var(--text);
     white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    max-width: calc(100vw - 140px); text-align: center;
+    padding: 2px 4px 6px; box-sizing: border-box;
   }
   /* QR Modal */
   #qr-modal-overlay {
@@ -593,11 +597,22 @@
 
 <!-- Attendees -->
 <div id="screen-attendees" class="screen">
-  <div class="topbar" style="flex-wrap:wrap; row-gap:0;">
-    <button class="topbar-back" onclick="showScreen('events')">‹ Events</button>
-    <button class="qr-icon-btn" id="topbar-qr-btn" onclick="showShareQR()" title="Share event QR" style="display:none;">⊞</button>
-    <button class="topbar-action" onclick="loadAttendees()" title="Refresh">↺</button>
-    <div class="topbar-subtitle" id="attendees-title" style="width:100%; padding: 0 12px 6px; box-sizing:border-box;"></div>
+  <div class="topbar">
+    <div class="topbar-row1">
+      <button class="topbar-back" onclick="showScreen('events')">‹ Events</button>
+      <div style="display:flex;align-items:center;gap:4px;">
+        <button class="qr-icon-btn" id="topbar-qr-btn" onclick="showShareQR()" title="Show event QR code" style="display:none;">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+            <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/>
+            <rect x="19" y="14" width="2" height="2"/><rect x="14" y="19" width="2" height="2"/>
+            <rect x="19" y="19" width="2" height="2"/>
+          </svg>
+        </button>
+        <button class="topbar-action" onclick="loadAttendees()" title="Refresh">↺</button>
+      </div>
+    </div>
+    <div class="topbar-row2" id="attendees-title"></div>
   </div>
   <div class="search-bar">
     <input class="search-input" id="search-input" placeholder="Search attendees…" oninput="filterAttendees(this.value)">
@@ -614,7 +629,7 @@
 
 <!-- Attendee Detail -->
 <div id="screen-detail" class="screen">
-  <div class="topbar">
+  <div class="topbar" style="flex-direction:row;justify-content:space-between;align-items:center;padding-bottom:10px;">
     <button class="topbar-back" onclick="showScreen('attendees')">‹ Attendees</button>
     <div class="topbar-title">Profile</div>
     <button class="topbar-action" onclick="refreshDetail()" title="Refresh">↺</button>
@@ -631,7 +646,7 @@
 
 <!-- QR Scan -->
 <div id="screen-scan" class="screen">
-  <div class="topbar">
+  <div class="topbar" style="flex-direction:row;justify-content:space-between;align-items:center;padding-bottom:10px;">
     <button class="topbar-back" onclick="stopScan(); showScreen('events')">‹ Back</button>
     <div class="topbar-title">Scan QR</div>
     <div style="width:60px"></div>
@@ -646,7 +661,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.97';
+const VERSION     = 'v1.0.98';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '22ec7d5793989a260042f6ef0a55b4e40eaf297dbe7c250b2e52eaa331af781e';
