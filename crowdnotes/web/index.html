@@ -139,6 +139,31 @@
     font-family: 'DM Sans', sans-serif; font-size: 18px; font-weight: 600;
     cursor: pointer; padding: 4px 0; display: flex; align-items: center; gap: 4px;
   }
+  .topbar-subtitle {
+    font-size: 13px; font-weight: 500; color: var(--text);
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    max-width: calc(100vw - 140px); text-align: center;
+  }
+  /* QR Modal */
+  #qr-modal-overlay {
+    display: none; position: fixed; inset: 0; z-index: 9999;
+    background: rgba(0,0,0,0.6); align-items: center; justify-content: center;
+  }
+  #qr-modal-overlay.open { display: flex; }
+  #qr-modal-box {
+    background: #fff; border-radius: 20px; padding: 28px 24px 20px;
+    display: flex; flex-direction: column; align-items: center; gap: 14px;
+    max-width: 320px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+  }
+  #qr-modal-box canvas { border-radius: 8px; }
+  #qr-modal-title { font-size: 15px; font-weight: 600; color: #1c1c1e; text-align: center; }
+  #qr-modal-sub { font-size: 12px; color: #6e6e73; text-align: center; }
+  .qr-icon-btn {
+    background: none; border: none; cursor: pointer; padding: 4px 6px;
+    color: var(--cyan); font-size: 20px; line-height: 1;
+    display: flex; align-items: center;
+  }
+
   .topbar-action {
     background: none; border: none; color: var(--cyan);
     font-size: 22px; cursor: pointer; padding: 4px;
@@ -484,6 +509,19 @@
 </head>
 <body>
 
+<!-- QR Share Modal -->
+<div id="qr-modal-overlay" onclick="closeShareQR()">
+  <div id="qr-modal-box" onclick="event.stopPropagation()">
+    <div id="qr-modal-title"></div>
+    <canvas id="qr-modal-canvas"></canvas>
+    <div id="qr-modal-sub">Scan to join this event</div>
+    <button onclick="closeShareQR()"
+      style="background:var(--cyan);color:#000;border:none;border-radius:20px;padding:9px 28px;font-weight:600;font-size:14px;cursor:pointer;">
+      Done
+    </button>
+  </div>
+</div>
+
 <!-- iOS Install Banner (shown for non-Safari iOS browsers; Safari uses the apple-itunes-app meta Smart Banner natively) -->
 <div id="ios-install-banner">
   <img src="https://ghalam.net/crowdnotes/appicon.png" alt="CrowdNotes">
@@ -555,10 +593,11 @@
 
 <!-- Attendees -->
 <div id="screen-attendees" class="screen">
-  <div class="topbar">
+  <div class="topbar" style="flex-wrap:wrap; row-gap:0;">
     <button class="topbar-back" onclick="showScreen('events')">‹ Events</button>
-    <div class="topbar-title" id="attendees-title">Attendees</div>
+    <button class="qr-icon-btn" id="topbar-qr-btn" onclick="showShareQR()" title="Share event QR" style="display:none;">⊞</button>
     <button class="topbar-action" onclick="loadAttendees()" title="Refresh">↺</button>
+    <div class="topbar-subtitle" id="attendees-title" style="width:100%; padding: 0 12px 6px; box-sizing:border-box;"></div>
   </div>
   <div class="search-bar">
     <input class="search-input" id="search-input" placeholder="Search attendees…" oninput="filterAttendees(this.value)">
@@ -607,7 +646,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.96';
+const VERSION     = 'v1.0.97';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '22ec7d5793989a260042f6ef0a55b4e40eaf297dbe7c250b2e52eaa331af781e';
@@ -1168,6 +1207,7 @@ async function fetchEventRecord(zoneID, database, isOrganizer) {
         name:        r.fields.name?.value || 'Untitled Event',
         recordName:  r.recordName,
         organizerID: r.fields.organizerID?.value || ownerRN,
+        shareURL:    r.fields.shareURL?.value || null,
         isOrganizer,
         database,
         dbName: isOrganizer ? 'private' : 'shared'
@@ -1269,6 +1309,13 @@ async function leaveEvent(idx) {
 async function selectEvent(idx) {
   activeEvent = allEvents[idx];
   document.getElementById('attendees-title').textContent = activeEvent.name;
+  // Show QR button if we have a share URL for this event
+  const qrBtn = document.getElementById('topbar-qr-btn');
+  const shareURL = activeEvent.shareURL ||
+    (JSON.parse(localStorage.getItem('sharedZones') || '[]')
+      .find(z => z.zoneName === activeEvent.zoneName)?.shareURL) || null;
+  activeEvent._shareURL = shareURL;
+  if (qrBtn) qrBtn.style.display = shareURL ? 'flex' : 'none';
   showScreen('attendees');
   loadAttendees();
 }
@@ -1586,6 +1633,27 @@ async function saveNote() {
   } finally {
     btn.disabled = false; btn.textContent = 'Save Note';
   }
+}
+
+// ── Share QR ──────────────────────────────────────────────
+
+function showShareQR() {
+  const url = activeEvent?._shareURL;
+  if (!url) return;
+  document.getElementById('qr-modal-title').textContent = activeEvent.name;
+  const canvas = document.getElementById('qr-modal-canvas');
+  const size = 240;
+  canvas.width = size; canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  const img = new Image();
+  img.crossOrigin = 'anonymous';
+  img.onload = () => { ctx.clearRect(0, 0, size, size); ctx.drawImage(img, 0, 0, size, size); };
+  img.src = `https://chart.googleapis.com/chart?cht=qr&chs=${size}x${size}&chl=${encodeURIComponent(url)}&choe=UTF-8`;
+  document.getElementById('qr-modal-overlay').classList.add('open');
+}
+
+function closeShareQR() {
+  document.getElementById('qr-modal-overlay').classList.remove('open');
 }
 
 // ── QR Scanner ────────────────────────────────────────────
