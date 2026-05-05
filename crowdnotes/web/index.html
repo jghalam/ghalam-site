@@ -510,6 +510,7 @@
     flex-shrink: 0;
   }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
 </head>
 <body>
 
@@ -602,12 +603,8 @@
       <button class="topbar-back" onclick="showScreen('events')">‹ Events</button>
       <div style="display:flex;align-items:center;gap:4px;">
         <button class="qr-icon-btn" id="topbar-qr-btn" onclick="showShareQR()" title="Show event QR code" style="display:none;">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
-            <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="3" height="3"/>
-            <rect x="19" y="14" width="2" height="2"/><rect x="14" y="19" width="2" height="2"/>
-            <rect x="19" y="19" width="2" height="2"/>
-          </svg>
+          <canvas id="topbar-qr-preview" width="28" height="28"
+            style="border-radius:4px;background:#fff;display:block;"></canvas>
         </button>
         <button class="topbar-action" onclick="loadAttendees()" title="Refresh">↺</button>
       </div>
@@ -661,7 +658,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.98';
+const VERSION     = 'v1.0.99';
 console.log('CrowdNotes Web', VERSION);
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '22ec7d5793989a260042f6ef0a55b4e40eaf297dbe7c250b2e52eaa331af781e';
@@ -1330,7 +1327,10 @@ async function selectEvent(idx) {
     (JSON.parse(localStorage.getItem('sharedZones') || '[]')
       .find(z => z.zoneName === activeEvent.zoneName)?.shareURL) || null;
   activeEvent._shareURL = shareURL;
-  if (qrBtn) qrBtn.style.display = shareURL ? 'flex' : 'none';
+  if (qrBtn) {
+    qrBtn.style.display = shareURL ? 'flex' : 'none';
+    if (shareURL) updateTopbarQRPreview(shareURL);
+  }
   showScreen('attendees');
   loadAttendees();
 }
@@ -1652,19 +1652,36 @@ async function saveNote() {
 
 // ── Share QR ──────────────────────────────────────────────
 
-function showShareQR() {
+function renderQRToCanvas(text, canvas, size) {
+  return new Promise((resolve, reject) => {
+    if (typeof QRCode === 'undefined') { reject('QRCode lib not loaded'); return; }
+    QRCode.toCanvas(canvas, text, {
+      width: size, margin: 1,
+      color: { dark: '#000000', light: '#ffffff' }
+    }, (err) => err ? reject(err) : resolve());
+  });
+}
+
+async function showShareQR() {
   const url = activeEvent?._shareURL;
   if (!url) return;
   document.getElementById('qr-modal-title').textContent = activeEvent.name;
   const canvas = document.getElementById('qr-modal-canvas');
-  const size = 240;
-  canvas.width = size; canvas.height = size;
-  const ctx = canvas.getContext('2d');
-  const img = new Image();
-  img.crossOrigin = 'anonymous';
-  img.onload = () => { ctx.clearRect(0, 0, size, size); ctx.drawImage(img, 0, 0, size, size); };
-  img.src = `https://chart.googleapis.com/chart?cht=qr&chs=${size}x${size}&chl=${encodeURIComponent(url)}&choe=UTF-8`;
+  try {
+    await renderQRToCanvas(url, canvas, 240);
+  } catch(e) {
+    console.error('QR render failed:', e);
+  }
   document.getElementById('qr-modal-overlay').classList.add('open');
+}
+
+async function updateTopbarQRPreview(url) {
+  if (!url) return;
+  const preview = document.getElementById('topbar-qr-preview');
+  if (!preview) return;
+  try {
+    await renderQRToCanvas(url, preview, 28);
+  } catch(e) { /* silent */ }
 }
 
 function closeShareQR() {
