@@ -591,11 +591,11 @@
   <div id="event-list" class="event-list">
     <div class="loader"><div class="spinner"></div></div>
   </div>
+  <div id="events-version" style="font-size:13px; color:var(--text2); opacity:0.6; padding:12px 0 80px; text-align:center; letter-spacing:0.3px;"></div>
   <div class="bottom-nav">
     <button class="nav-item" onclick="showScreen('scan')">Scan QR</button>
     <button class="nav-item nav-signout" onclick="signOut()">Sign Out</button>
   </div>
-  <div id="events-version" style="font-size:13px; color:var(--text2); opacity:0.6; padding:8px 0 12px; text-align:center; letter-spacing:0.3px;"></div>
 </div>
 
 <!-- Attendees -->
@@ -660,7 +660,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.100';
+const VERSION     = 'v1.1.3';
 console.log('CrowdNotes Web', VERSION);
 // Show version in UI
 document.addEventListener('DOMContentLoaded', () => {
