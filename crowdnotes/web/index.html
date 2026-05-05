@@ -561,6 +561,7 @@
       Create a Free Apple ID ↗
     </a>
   </div>
+  <div id="signin-version" style="margin-top:24px; font-size:11px; color:rgba(255,255,255,0.25); letter-spacing:0.5px;"></div>
 </div>
 
 <!-- Sign Out (hidden, used by CloudKit JS) -->
@@ -577,6 +578,7 @@
       </div>
     </div>
     <p id="events-subtitle">Loading your events…</p>
+    <p id="events-version" style="font-size:11px; color:var(--text2); margin:0; opacity:0.5;"></p>
   </div>
   <div style="padding: 0 16px 8px;">
     <div style="background:var(--bg2); border:1px solid var(--cyan-border); border-radius:var(--radius); padding:14px; display:flex; flex-direction:column; gap:10px;">
@@ -658,8 +660,15 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.0.99';
+const VERSION     = 'v1.0.100';
 console.log('CrowdNotes Web', VERSION);
+// Show version in UI
+document.addEventListener('DOMContentLoaded', () => {
+  const vEl = document.getElementById('signin-version');
+  const evEl = document.getElementById('events-version');
+  if (vEl)  vEl.textContent  = VERSION;
+  if (evEl) evEl.textContent = VERSION;
+});
 const CONTAINER   = 'iCloud.com.joe.ghalam.db.CrowdNotes';
 const API_TOKEN   = '22ec7d5793989a260042f6ef0a55b4e40eaf297dbe7c250b2e52eaa331af781e';
 const ENV         = 'production';
@@ -1652,13 +1661,23 @@ async function saveNote() {
 
 // ── Share QR ──────────────────────────────────────────────
 
-function renderQRToCanvas(text, canvas, size) {
+// Render QR to a target canvas. Uses an offscreen canvas so QRCode.toCanvas
+// can't blow up the target's visible size.
+function renderQRToCanvas(text, targetCanvas, displaySize) {
   return new Promise((resolve, reject) => {
     if (typeof QRCode === 'undefined') { reject('QRCode lib not loaded'); return; }
-    QRCode.toCanvas(canvas, text, {
-      width: size, margin: 1,
+    const off = document.createElement('canvas');
+    QRCode.toCanvas(off, text, {
+      width: displaySize, margin: 1,
       color: { dark: '#000000', light: '#ffffff' }
-    }, (err) => err ? reject(err) : resolve());
+    }, (err) => {
+      if (err) { reject(err); return; }
+      targetCanvas.width  = displaySize;
+      targetCanvas.height = displaySize;
+      const ctx = targetCanvas.getContext('2d');
+      ctx.drawImage(off, 0, 0, displaySize, displaySize);
+      resolve();
+    });
   });
 }
 
@@ -1667,11 +1686,8 @@ async function showShareQR() {
   if (!url) return;
   document.getElementById('qr-modal-title').textContent = activeEvent.name;
   const canvas = document.getElementById('qr-modal-canvas');
-  try {
-    await renderQRToCanvas(url, canvas, 240);
-  } catch(e) {
-    console.error('QR render failed:', e);
-  }
+  try { await renderQRToCanvas(url, canvas, 240); }
+  catch(e) { console.error('QR render failed:', e); }
   document.getElementById('qr-modal-overlay').classList.add('open');
 }
 
@@ -1679,9 +1695,9 @@ async function updateTopbarQRPreview(url) {
   if (!url) return;
   const preview = document.getElementById('topbar-qr-preview');
   if (!preview) return;
-  try {
-    await renderQRToCanvas(url, preview, 28);
-  } catch(e) { /* silent */ }
+  // Render at 28px display size — offscreen canvas keeps the preview element small
+  try { await renderQRToCanvas(url, preview, 28); }
+  catch(e) { /* silent */ }
 }
 
 function closeShareQR() {
