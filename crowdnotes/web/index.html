@@ -584,7 +584,14 @@
   <img src="https://ghalam.net/crowdnotes/appicon.png" style="width:80px;height:80px;border-radius:22px;margin-bottom:28px;" alt="CrowdNotes">
   <div class="signin-title">CrowdNotes</div>
   <div class="signin-sub">Sign in with your Apple ID to access<br>your recruiting events.</div>
-  <div id="ck-signin" style="margin-top:8px;"></div>
+  <div id="ck-signin" style="margin-top:8px; min-height:56px;"></div>
+  <!-- Fallback button shown if CloudKit JS is slow to inject (e.g. Windows Chrome) -->
+  <button id="signin-fallback-btn" onclick="triggerSignIn()"
+    style="display:none; margin-top:8px; background:#00d4e8; color:#000; border:none;
+           border-radius:12px; padding:16px 32px; font-family:'DM Sans',sans-serif;
+           font-size:16px; font-weight:600; cursor:pointer; width:100%; max-width:320px;">
+    Sign in with Apple ID
+  </button>
   <div id="signin-error" style="margin-top:16px; color:var(--red); font-size:14px; text-align:center;"></div>
 
   <!-- No Apple ID helper -->
@@ -713,7 +720,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.1.6';
+const VERSION     = 'v1.1.7';
 console.log('CrowdNotes Web', VERSION);
 // Show version in UI
 document.addEventListener('DOMContentLoaded', () => {
@@ -807,8 +814,7 @@ function dismissInstallBanner() {
 
 function showSignInButton() {
   showScreen('signin');
-  // CloudKit JS injects and manages the sign-in button inside #ck-signin.
-  // Our #manual-signin-btn is permanently hidden via CSS — CK JS owns the button.
+  armSignInFallback();
 }
 
 // On load, check whether there's already a valid CK session.
@@ -844,6 +850,38 @@ function watchForSignInPopup() {
     }
     return popup;
   };
+}
+
+// Show fallback button if CloudKit JS hasn't injected its button after 2.5s.
+// This happens on some non-Safari browsers (e.g. Windows Chrome) where the
+// CloudKit JS sign-in button injection is slow or silently fails.
+function armSignInFallback() {
+  setTimeout(() => {
+    const ckBtn = document.querySelector('#ck-signin button');
+    const fallback = document.getElementById('signin-fallback-btn');
+    if (!ckBtn && fallback && document.getElementById('screen-signin').classList.contains('active')) {
+      fallback.style.display = 'block';
+    }
+  }, 2500);
+}
+
+function triggerSignIn() {
+  // Hide fallback, attempt CloudKit sign-in which opens the Apple ID popup
+  document.getElementById('signin-fallback-btn').style.display = 'none';
+  if (typeof container !== 'undefined') {
+    // Try clicking the CloudKit-injected button if it exists (might have appeared late)
+    const ckBtn = document.querySelector('#ck-signin button');
+    if (ckBtn) { ckBtn.click(); return; }
+    // Otherwise call signIn() directly — CloudKit JS v2.6+ supports this
+    container.signIn().then(userInfo => {
+      if (userInfo) onSignedIn(userInfo);
+      else watchForSignInPopup();
+    }).catch(() => {
+      // Last resort — re-arm fallback in case signIn() isn't available
+      document.getElementById('signin-fallback-btn').style.display = 'block';
+      watchForSignInPopup();
+    });
+  }
 }
 
 // ── Auth ──────────────────────────────────────────────────
