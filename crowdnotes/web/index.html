@@ -720,7 +720,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.1.8';
+const VERSION     = 'v1.1.9';
 console.log('CrowdNotes Web', VERSION);
 // Show version in UI
 document.addEventListener('DOMContentLoaded', () => {
@@ -778,11 +778,16 @@ let container;
 
 function initCloudKit() {
   if (typeof CloudKit === 'undefined') {
-    document.getElementById('signin-error').textContent =
-      'Could not load Apple CloudKit. Check your connection and reload.';
-    showSignInButton();
+    // CloudKit JS not ready yet — this call was too early, ignore silently.
+    // The onload callback will call us again once the script finishes.
+    console.log('initCloudKit: CloudKit not ready yet, waiting for onload...');
     return;
   }
+  // Hide fallback button if CloudKit JS loaded and we can proceed normally
+  const fallback = document.getElementById('signin-fallback-btn');
+  if (fallback) fallback.style.display = 'none';
+  document.getElementById('signin-error').textContent = '';
+
   CloudKit.configure({
     containers: [{
       containerIdentifier: CONTAINER,
@@ -805,14 +810,17 @@ function initCloudKit() {
 }
 
 // If cloudkit.js already loaded (cached), run now; otherwise wait for onload callback
-if (window._ckReady || typeof CloudKit !== 'undefined') {
+if (typeof CloudKit !== 'undefined') {
   initCloudKit();
 } else {
   window._ckReadyCb = initCloudKit;
-  // Final fallback — if onload never fires (e.g. script blocked), show error after 6s
+  // Last resort — if onload never fires after 10s, show a helpful error
   setTimeout(() => {
-    if (!container) initCloudKit();
-  }, 6000);
+    if (!container) {
+      const err = document.getElementById('signin-error');
+      if (err) err.textContent = 'Could not connect to Apple CloudKit. Please check your connection and reload.';
+    }
+  }, 10000);
 }
 
 // Clean up cache-bust param from URL without triggering a reload
@@ -883,7 +891,7 @@ function armSignInFallback() {
     if (!ckBtn && fallback && document.getElementById('screen-signin').classList.contains('active')) {
       fallback.style.display = 'block';
     }
-  }, 2500);
+  }, 5000);
 }
 
 function triggerSignIn() {
