@@ -585,14 +585,13 @@
   <img src="https://ghalam.net/crowdnotes/appicon.png" style="width:80px;height:80px;border-radius:22px;margin-bottom:28px;" alt="CrowdNotes">
   <div class="signin-title">CrowdNotes</div>
   <div class="signin-sub">Sign in with your Apple ID to access<br>your recruiting events.</div>
-  <!-- ck-signin hidden — CloudKit JS injects its button here but we keep it invisible.
-       We use our own styled button below and delegate clicks to CloudKit's button. -->
-  <div id="ck-signin" style="position:absolute; opacity:0; pointer-events:none; height:0; overflow:hidden;"></div>
+  <!-- CloudKit JS injects and manages the sign-in button here -->
+  <div id="ck-signin" style="margin-top:8px;"></div>
+  <!-- Fallback button for browsers where CloudKit JS fails to inject (e.g. Windows Chrome) -->
   <button id="signin-fallback-btn" onclick="triggerSignIn()"
-    style="margin-top:8px; background:#00d4e8; color:#000; border:none;
+    style="display:none; margin-top:8px; background:#00d4e8; color:#000; border:none;
            border-radius:12px; padding:16px 32px; font-family:'DM Sans',sans-serif;
-           font-size:16px; font-weight:600; cursor:pointer; width:100%; max-width:320px;
-           display:block;">
+           font-size:16px; font-weight:600; cursor:pointer; width:100%; max-width:320px;">
     Sign in with Apple ID
   </button>
   <div id="signin-error" style="margin-top:16px; color:var(--red); font-size:14px; text-align:center;"></div>
@@ -723,7 +722,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.1.13';
+const VERSION     = 'v1.1.14';
 console.log('CrowdNotes Web', VERSION);
 // Show version in UI
 document.addEventListener('DOMContentLoaded', () => {
@@ -899,7 +898,14 @@ function watchForSignInPopup() {
 // This happens on some non-Safari browsers (e.g. Windows Chrome) where the
 // CloudKit JS sign-in button injection is slow or silently fails.
 function armSignInFallback() {
-  // Our button is always visible — nothing to arm
+  // Show fallback button only if CloudKit JS fails to inject its button after 5s
+  setTimeout(() => {
+    const ckBtn = document.querySelector('#ck-signin button');
+    const fallback = document.getElementById('signin-fallback-btn');
+    if (!ckBtn && fallback && document.getElementById('screen-signin').classList.contains('active')) {
+      fallback.style.display = 'block';
+    }
+  }, 5000);
 }
 
 function triggerSignIn() {
@@ -947,7 +953,6 @@ async function signOut() {
 }
 
 async function onSignedIn(userInfo) {
-  // Hide the sign-in button now that we're authenticated
   const btn = document.getElementById('signin-fallback-btn');
   if (btn) btn.style.display = 'none';
   db       = container.privateCloudDatabase;
