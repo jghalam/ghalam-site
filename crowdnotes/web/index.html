@@ -591,7 +591,8 @@
   <button id="signin-fallback-btn" onclick="triggerSignIn()"
     style="margin-top:8px; background:#00d4e8; color:#000; border:none;
            border-radius:12px; padding:16px 32px; font-family:'DM Sans',sans-serif;
-           font-size:16px; font-weight:600; cursor:pointer; width:100%; max-width:320px;">
+           font-size:16px; font-weight:600; cursor:pointer; width:100%; max-width:320px;
+           display:block;">
     Sign in with Apple ID
   </button>
   <div id="signin-error" style="margin-top:16px; color:var(--red); font-size:14px; text-align:center;"></div>
@@ -722,7 +723,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.1.11';
+const VERSION     = 'v1.1.12';
 console.log('CrowdNotes Web', VERSION);
 // Show version in UI
 document.addEventListener('DOMContentLoaded', () => {
@@ -891,6 +892,8 @@ function armSignInFallback() {
 }
 
 function triggerSignIn() {
+  const errEl = document.getElementById('signin-error');
+  if (errEl) errEl.textContent = '';
   // Try clicking the hidden CloudKit-injected button first (most reliable)
   const ckBtn = document.querySelector('#ck-signin button');
   if (ckBtn) { ckBtn.click(); return; }
@@ -899,7 +902,12 @@ function triggerSignIn() {
     container.signIn().then(userInfo => {
       if (userInfo) onSignedIn(userInfo);
       else watchForSignInPopup();
-    }).catch(() => { watchForSignInPopup(); });
+    }).catch(err => {
+      console.error('signIn error:', err);
+      // 421 Misdirected Request — Chrome HTTP/2 issue, suggest reload
+      if (errEl) errEl.textContent = 'Connection error — please reload the page and try again.';
+      watchForSignInPopup();
+    });
   } else {
     // CloudKit not ready yet — wait and retry once
     setTimeout(triggerSignIn, 1000);
@@ -928,6 +936,9 @@ async function signOut() {
 }
 
 async function onSignedIn(userInfo) {
+  // Hide the sign-in button now that we're authenticated
+  const btn = document.getElementById('signin-fallback-btn');
+  if (btn) btn.style.display = 'none';
   db       = container.privateCloudDatabase;
   sharedDB = container.sharedCloudDatabase;
   currentUserRecordName = userInfo?.userRecordName || userInfo?.recordName || '';
