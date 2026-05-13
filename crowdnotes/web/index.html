@@ -28,7 +28,7 @@
 <meta name="twitter:description" content="You've been invited to a CrowdNotes event.">
 <meta name="twitter:image"       content="https://ghalam.net/crowdnotes/appicon.png">
 <title>CrowdNotes</title>
-<script src="https://cdn.apple-cloudkit.com/ck/2/cloudkit.js"></script>
+<script src="https://cdn.apple-cloudkit.com/ck/2/cloudkit.js" onload="window._ckReady=true; if(window._ckReadyCb) window._ckReadyCb();" onerror="window._ckLoadError=true;"></script>
 <script type="module">
   import QrScanner from 'https://cdn.jsdelivr.net/npm/qr-scanner@1.4.2/qr-scanner.min.js';
   window.QrScanner = QrScanner;
@@ -720,7 +720,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.1.7';
+const VERSION     = 'v1.1.8';
 console.log('CrowdNotes Web', VERSION);
 // Show version in UI
 document.addEventListener('DOMContentLoaded', () => {
@@ -772,15 +772,48 @@ window.fetch = function(input, init) {
 };
 
 // ── CloudKit Init ─────────────────────────────────────────
-CloudKit.configure({
-  containers: [{
-    containerIdentifier: CONTAINER,
-    apiTokenAuth: { apiToken: API_TOKEN, persist: true, signInButton: { id: 'ck-signin' }, signOutButton: { id: 'ck-signout' } },
-    environment: ENV
-  }]
-});
+// CloudKit JS must be fully loaded before we call CloudKit.configure().
+// On slower connections or Windows Chrome it may not be ready synchronously.
+let container;
 
-const container = CloudKit.getDefaultContainer();
+function initCloudKit() {
+  if (typeof CloudKit === 'undefined') {
+    document.getElementById('signin-error').textContent =
+      'Could not load Apple CloudKit. Check your connection and reload.';
+    showSignInButton();
+    return;
+  }
+  CloudKit.configure({
+    containers: [{
+      containerIdentifier: CONTAINER,
+      apiTokenAuth: { apiToken: API_TOKEN, persist: true, signInButton: { id: 'ck-signin' }, signOutButton: { id: 'ck-signout' } },
+      environment: ENV
+    }]
+  });
+  container = CloudKit.getDefaultContainer();
+  container.setUpAuth().then(userInfo => {
+    if (userInfo) onSignedIn(userInfo);
+    else {
+      showSignInButton();
+      watchForSignInPopup();
+    }
+  }).catch(err => {
+    console.error('Auth setup error:', err);
+    showSignInButton();
+    watchForSignInPopup();
+  });
+}
+
+// If cloudkit.js already loaded (cached), run now; otherwise wait for onload callback
+if (window._ckReady || typeof CloudKit !== 'undefined') {
+  initCloudKit();
+} else {
+  window._ckReadyCb = initCloudKit;
+  // Final fallback — if onload never fires (e.g. script blocked), show error after 6s
+  setTimeout(() => {
+    if (!container) initCloudKit();
+  }, 6000);
+}
 
 // Clean up cache-bust param from URL without triggering a reload
 const urlParams = new URLSearchParams(window.location.search);
@@ -817,19 +850,7 @@ function showSignInButton() {
   armSignInFallback();
 }
 
-// On load, check whether there's already a valid CK session.
-// After a true container.signOut(), setUpAuth() will return null here.
-container.setUpAuth().then(userInfo => {
-  if (userInfo) onSignedIn(userInfo);
-  else {
-    showSignInButton();
-    watchForSignInPopup();
-  }
-}).catch(err => {
-  console.error('Auth setup error:', err);
-  showSignInButton();
-  watchForSignInPopup();
-});
+// (auth setup moved into initCloudKit)
 
 function watchForSignInPopup() {
   // Intercept window.open so we can track the popup reference
@@ -895,7 +916,7 @@ async function signOut() {
   // ckSession cookie (HttpOnly, unreachable by JS) and returns a promise.
   // We wait for it before reloading so the session is truly dead.
   try {
-    await container.signOut();
+    if (container) await container.signOut();
   } catch(e) {
     console.warn('container.signOut() error (ignored):', e);
   }
