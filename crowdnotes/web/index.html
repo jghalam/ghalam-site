@@ -723,7 +723,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.1.12';
+const VERSION     = 'v1.1.13';
 console.log('CrowdNotes Web', VERSION);
 // Show version in UI
 document.addEventListener('DOMContentLoaded', () => {
@@ -771,7 +771,18 @@ window.fetch = function(input, init) {
       if (tok) ckWebAuthToken = tok;
     }
   } catch(e) {}
-  return _origFetch.apply(this, arguments);
+  const result = _origFetch.apply(this, arguments);
+  // Detect 421 Misdirected Request — Chrome HTTP/2 connection reuse bug with Apple CDN
+  result.then(resp => {
+    if (resp.status === 421) {
+      const errEl = document.getElementById('signin-error');
+      if (errEl && document.getElementById('screen-signin').classList.contains('active')) {
+        errEl.innerHTML = `⚠️ Connection error (421). In Chrome, open a new tab and go to <strong>chrome://net-internals/#sockets</strong> → click <strong>"Flush socket pools"</strong>, then reload this page.`;
+        errEl.style.color = '#f97316';
+      }
+    }
+  }).catch(() => {});
+  return result;
 };
 
 // ── CloudKit Init ─────────────────────────────────────────
