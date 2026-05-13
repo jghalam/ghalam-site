@@ -8,6 +8,7 @@
 <meta name="apple-itunes-app" content="app-id=6760520709, app-argument=https://ghalam.net/crowdnotes/web/index.html">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="CrowdNotes">
 <meta name="theme-color" content="#f0f0f5">
 <link rel="icon" href="https://ghalam.net/crowdnotes/appicon.png">
@@ -584,10 +585,11 @@
   <img src="https://ghalam.net/crowdnotes/appicon.png" style="width:80px;height:80px;border-radius:22px;margin-bottom:28px;" alt="CrowdNotes">
   <div class="signin-title">CrowdNotes</div>
   <div class="signin-sub">Sign in with your Apple ID to access<br>your recruiting events.</div>
-  <div id="ck-signin" style="margin-top:8px; min-height:56px;"></div>
-  <!-- Fallback button shown if CloudKit JS is slow to inject (e.g. Windows Chrome) -->
+  <!-- ck-signin hidden — CloudKit JS injects its button here but we keep it invisible.
+       We use our own styled button below and delegate clicks to CloudKit's button. -->
+  <div id="ck-signin" style="position:absolute; opacity:0; pointer-events:none; height:0; overflow:hidden;"></div>
   <button id="signin-fallback-btn" onclick="triggerSignIn()"
-    style="display:none; margin-top:8px; background:#00d4e8; color:#000; border:none;
+    style="margin-top:8px; background:#00d4e8; color:#000; border:none;
            border-radius:12px; padding:16px 32px; font-family:'DM Sans',sans-serif;
            font-size:16px; font-weight:600; cursor:pointer; width:100%; max-width:320px;">
     Sign in with Apple ID
@@ -720,7 +722,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.1.9';
+const VERSION     = 'v1.1.10';
 console.log('CrowdNotes Web', VERSION);
 // Show version in UI
 document.addEventListener('DOMContentLoaded', () => {
@@ -885,13 +887,7 @@ function watchForSignInPopup() {
 // This happens on some non-Safari browsers (e.g. Windows Chrome) where the
 // CloudKit JS sign-in button injection is slow or silently fails.
 function armSignInFallback() {
-  setTimeout(() => {
-    const ckBtn = document.querySelector('#ck-signin button');
-    const fallback = document.getElementById('signin-fallback-btn');
-    if (!ckBtn && fallback && document.getElementById('screen-signin').classList.contains('active')) {
-      fallback.style.display = 'block';
-    }
-  }, 5000);
+  // Our button is always visible — nothing to arm
 }
 
 function triggerSignIn() {
