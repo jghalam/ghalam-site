@@ -587,13 +587,6 @@
   <div class="signin-sub">Sign in with your Apple ID to access<br>your recruiting events.</div>
   <!-- CloudKit JS injects and manages the sign-in button here -->
   <div id="ck-signin" style="margin-top:8px;"></div>
-  <!-- Fallback button for browsers where CloudKit JS fails to inject (e.g. Windows Chrome) -->
-  <button id="signin-fallback-btn" onclick="triggerSignIn()"
-    style="display:none; margin-top:8px; background:#00d4e8; color:#000; border:none;
-           border-radius:12px; padding:16px 32px; font-family:'DM Sans',sans-serif;
-           font-size:16px; font-weight:600; cursor:pointer; width:100%; max-width:320px;">
-    Sign in with Apple ID
-  </button>
   <div id="signin-error" style="margin-top:16px; color:var(--red); font-size:14px; text-align:center;"></div>
 
   <!-- No Apple ID helper -->
@@ -722,7 +715,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.1.14';
+const VERSION     = 'v1.1.15';
 console.log('CrowdNotes Web', VERSION);
 // Show version in UI
 document.addEventListener('DOMContentLoaded', () => {
@@ -796,9 +789,6 @@ function initCloudKit() {
     console.log('initCloudKit: CloudKit not ready yet, waiting for onload...');
     return;
   }
-  // Hide fallback button if CloudKit JS loaded and we can proceed normally
-  const fallback = document.getElementById('signin-fallback-btn');
-  if (fallback) fallback.style.display = 'none';
   document.getElementById('signin-error').textContent = '';
 
   CloudKit.configure({
@@ -897,39 +887,9 @@ function watchForSignInPopup() {
 // Show fallback button if CloudKit JS hasn't injected its button after 2.5s.
 // This happens on some non-Safari browsers (e.g. Windows Chrome) where the
 // CloudKit JS sign-in button injection is slow or silently fails.
-function armSignInFallback() {
-  // Show fallback button only if CloudKit JS fails to inject its button after 5s
-  setTimeout(() => {
-    const ckBtn = document.querySelector('#ck-signin button');
-    const fallback = document.getElementById('signin-fallback-btn');
-    if (!ckBtn && fallback && document.getElementById('screen-signin').classList.contains('active')) {
-      fallback.style.display = 'block';
-    }
-  }, 5000);
-}
+function armSignInFallback() { /* CloudKit JS manages the button */ }
 
-function triggerSignIn() {
-  const errEl = document.getElementById('signin-error');
-  if (errEl) errEl.textContent = '';
-  // Try clicking the hidden CloudKit-injected button first (most reliable)
-  const ckBtn = document.querySelector('#ck-signin button');
-  if (ckBtn) { ckBtn.click(); return; }
-  // Fall back to container.signIn() if available
-  if (container) {
-    container.signIn().then(userInfo => {
-      if (userInfo) onSignedIn(userInfo);
-      else watchForSignInPopup();
-    }).catch(err => {
-      console.error('signIn error:', err);
-      // 421 Misdirected Request — Chrome HTTP/2 issue, suggest reload
-      if (errEl) errEl.textContent = 'Connection error — please reload the page and try again.';
-      watchForSignInPopup();
-    });
-  } else {
-    // CloudKit not ready yet — wait and retry once
-    setTimeout(triggerSignIn, 1000);
-  }
-}
+
 
 // ── Auth ──────────────────────────────────────────────────
 async function signOut() {
@@ -953,8 +913,6 @@ async function signOut() {
 }
 
 async function onSignedIn(userInfo) {
-  const btn = document.getElementById('signin-fallback-btn');
-  if (btn) btn.style.display = 'none';
   db       = container.privateCloudDatabase;
   sharedDB = container.sharedCloudDatabase;
   currentUserRecordName = userInfo?.userRecordName || userInfo?.recordName || '';
