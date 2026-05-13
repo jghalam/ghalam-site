@@ -722,7 +722,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.1.10';
+const VERSION     = 'v1.1.11';
 console.log('CrowdNotes Web', VERSION);
 // Show version in UI
 document.addEventListener('DOMContentLoaded', () => {
@@ -891,21 +891,18 @@ function armSignInFallback() {
 }
 
 function triggerSignIn() {
-  // Hide fallback, attempt CloudKit sign-in which opens the Apple ID popup
-  document.getElementById('signin-fallback-btn').style.display = 'none';
-  if (typeof container !== 'undefined') {
-    // Try clicking the CloudKit-injected button if it exists (might have appeared late)
-    const ckBtn = document.querySelector('#ck-signin button');
-    if (ckBtn) { ckBtn.click(); return; }
-    // Otherwise call signIn() directly — CloudKit JS v2.6+ supports this
+  // Try clicking the hidden CloudKit-injected button first (most reliable)
+  const ckBtn = document.querySelector('#ck-signin button');
+  if (ckBtn) { ckBtn.click(); return; }
+  // Fall back to container.signIn() if available
+  if (container) {
     container.signIn().then(userInfo => {
       if (userInfo) onSignedIn(userInfo);
       else watchForSignInPopup();
-    }).catch(() => {
-      // Last resort — re-arm fallback in case signIn() isn't available
-      document.getElementById('signin-fallback-btn').style.display = 'block';
-      watchForSignInPopup();
-    });
+    }).catch(() => { watchForSignInPopup(); });
+  } else {
+    // CloudKit not ready yet — wait and retry once
+    setTimeout(triggerSignIn, 1000);
   }
 }
 
