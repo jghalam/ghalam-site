@@ -715,7 +715,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.1.15';
+const VERSION     = 'v1.1.16';
 console.log('CrowdNotes Web', VERSION);
 // Show version in UI
 document.addEventListener('DOMContentLoaded', () => {
@@ -1498,6 +1498,7 @@ async function loadAttendees() {
         photoURL:         r.fields.photo?.value?.downloadURL || null,
         attachmentURL:    r.fields.attachment?.value?.downloadURL || null,
         attachmentFilename: r.fields.attachmentFilename?.value || '',
+        targetedBy:       r.fields.targetedBy?.value || '',
       };
     }).sort((a,b) => a.name.localeCompare(b.name));
     renderAttendees(allAttendees);
@@ -1528,7 +1529,7 @@ function renderAttendees(list) {
         ${a.photoURL ? `<img src="${escHtml(a.photoURL)}" alt="${escHtml(a.name)}">` : initials(a.name)}
       </div>
       <div class="attendee-info">
-        <div class="attendee-name">${escHtml(a.name)}</div>
+        <div class="attendee-name">${a.targetedBy ? '🔥 ' : ''}${escHtml(a.name)}</div>
         <div class="attendee-meta">${escHtml([a.role, a.company].filter(Boolean).join(' · '))}</div>
       </div>
       ${a.isCheckedIn ? '<div class="checkin-dot"></div>' : ''}
@@ -1606,6 +1607,9 @@ function renderDetail() {
       <button class="checkin-btn ${a.isCheckedIn ? 'in' : 'out'}" onclick="toggleCheckin()">
         ${a.isCheckedIn ? '✓ Checked In — Tap to Undo' : 'Check In'}
       </button>
+      <button onclick="toggleTarget()" style="width:100%;padding:13px;border-radius:var(--radius);border:1px solid ${a.targetedBy ? 'rgba(251,146,60,0.5)' : 'var(--bg3)'};background:${a.targetedBy ? 'rgba(251,146,60,0.12)' : 'var(--bg2)'};color:${a.targetedBy ? '#fb923c' : 'var(--text2)'};font-size:15px;cursor:pointer;text-align:center;">
+        ${a.targetedBy ? '🔥 Targeted' + (a.targetedBy ? ' by ' + escHtml(a.targetedBy) : '') : '🔥 Mark as Target'}
+      </button>
       <div style="display:flex;gap:10px;">
         <button onclick="toggleThumb('up')" style="flex:1;padding:12px;border-radius:var(--radius);border:1px solid ${myVoteUp ? 'rgba(34,197,94,0.5)' : 'var(--bg3)'};background:${myVoteUp ? 'rgba(34,197,94,0.15)' : 'var(--bg2)'};color:${myVoteUp ? 'var(--green)' : 'var(--text2)'};font-size:18px;cursor:pointer;">
           👍 ${thumbsUpCount}
@@ -1659,6 +1663,42 @@ async function toggleCheckin() {
   } catch(e) {
     a.isCheckedIn = !a.isCheckedIn;
     showToast('Failed to update check-in: ' + e.message);
+  }
+}
+
+async function toggleTarget() {
+  if (!recruiterName) { showToast('Set your name first'); return; }
+  const a = currentAttendee;
+  const prev = a.targetedBy;
+  a.targetedBy = prev ? '' : recruiterName;
+  try {
+    const stored = a._ckRecord;
+    if (!stored) throw new Error('No record stored');
+    const zid = { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.ownerName };
+    const fResp = await activeEvent.database.performQuery({
+      recordType: 'Attendee', filterBy: [{ fieldName: 'name', comparator: 'NOT_EQUALS', fieldValue: { value: '' } }]
+    }, { zoneID: zid });
+    const fRec = (fResp.records || []).find(r => r.recordName === stored.recordName);
+    if (!fRec) throw new Error('Record not found');
+    const dbName = activeEvent.dbName || (activeEvent.isOrganizer ? 'private' : 'shared');
+    const ckP = new URLSearchParams({ ckjsBuildVersion:'2420ProjectDev22', ckjsVersion:'2.6.4', ckAPIToken:API_TOKEN, ckWebAuthToken }).toString();
+    const fields = a.targetedBy
+      ? { targetedBy: { value: a.targetedBy } }
+      : { targetedBy: { value: null } };
+    const mo = await fetch(`https://api.apple-cloudkit.com/database/1/${CONTAINER}/${ENV}/${dbName}/records/modify?${ckP}`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ zoneID:{ zoneName:activeEvent.zoneName, ownerRecordName: activeEvent.organizerID || activeEvent.ownerName }, operations:[{ operationType:'update', record:{ recordName:fRec.recordName, recordChangeTag:fRec.recordChangeTag, fields } }] })
+    });
+    const md = await mo.json();
+    const mr = (md.records||[])[0];
+    if (!mr || mr.serverErrorCode) { a.targetedBy = prev; throw new Error(mr?.reason || 'Target save failed'); }
+    const idx = allAttendees.findIndex(x => x.id === a.id);
+    if (idx !== -1) allAttendees[idx].targetedBy = a.targetedBy;
+    renderDetail();
+    showToast(a.targetedBy ? '🔥 Marked as target' : 'Target removed');
+  } catch(e) {
+    a.targetedBy = prev;
+    showToast('Failed to update target: ' + e.message);
   }
 }
 
