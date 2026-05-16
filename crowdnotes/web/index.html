@@ -715,7 +715,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.1.16';
+const VERSION     = 'v1.1.17';
 console.log('CrowdNotes Web', VERSION);
 // Show version in UI
 document.addEventListener('DOMContentLoaded', () => {
@@ -1548,10 +1548,43 @@ function selectAttendee(id) {
 async function refreshDetail() {
   if (!currentAttendee || !activeEvent) return;
   try {
-    await loadAttendees();
-    // Find updated attendee
-    const updated = allAttendees.find(a => a.id === currentAttendee.id);
-    if (updated) { currentAttendee = updated; renderDetail(); }
+    const stored = currentAttendee._ckRecord;
+    if (!stored) throw new Error('No record stored');
+    const dbName = activeEvent.dbName || (activeEvent.isOrganizer ? 'private' : 'shared');
+    const ckP = new URLSearchParams({ ckjsBuildVersion:'2420ProjectDev22', ckjsVersion:'2.6.4', ckAPIToken:API_TOKEN, ckWebAuthToken }).toString();
+    const zoneID = { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.organizerID || activeEvent.ownerName };
+    const resp = await fetch(`https://api.apple-cloudkit.com/database/1/${CONTAINER}/${ENV}/${dbName}/records/lookup?${ckP}`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ zoneID, records:[{ recordName: stored.recordName }] })
+    });
+    const data = await resp.json();
+    const r = (data.records||[])[0];
+    if (!r || r.serverErrorCode) throw new Error(r?.reason || 'Refresh failed');
+    // Parse the single fresh record the same way loadAttendees does
+    const upList   = (r.fields.thumbsUp?.value   || []).map(x => typeof x === 'object' ? x.value : x);
+    const downList = (r.fields.thumbsDown?.value || []).map(x => typeof x === 'object' ? x.value : x);
+    const updated = {
+      ...currentAttendee,
+      _ckRecord:        r,
+      name:             r.fields.name?.value || '',
+      role:             r.fields.role?.value || '',
+      company:          r.fields.company?.value || '',
+      email:            r.fields.email?.value || '',
+      phone:            r.fields.phone?.value || '',
+      comment:          r.fields.comment?.value || '',
+      notes:            r.fields.notes?.value || '',
+      isCheckedIn:      (r.fields.isCheckedIn?.value || 0) === 1,
+      thumbsUp:         upList,
+      thumbsDown:       downList,
+      photoURL:         r.fields.photo?.value?.downloadURL || null,
+      attachmentURL:    r.fields.attachment?.value?.downloadURL || null,
+      attachmentFilename: r.fields.attachmentFilename?.value || '',
+      targetedBy:       r.fields.targetedBy?.value || '',
+    };
+    currentAttendee = updated;
+    const idx = allAttendees.findIndex(a => a.id === updated.id);
+    if (idx !== -1) allAttendees[idx] = updated;
+    renderDetail();
     showToast('Refreshed');
   } catch(e) {
     showToast('Refresh failed: ' + e.message);
@@ -1641,17 +1674,22 @@ async function toggleCheckin() {
   try {
     const stored = a._ckRecord;
     if (!stored) throw new Error('No record stored');
-    const zid2 = { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.ownerName };
-    const fResp2 = await activeEvent.database.performQuery({
-      recordType: 'Attendee', filterBy: [{ fieldName: 'name', comparator: 'NOT_EQUALS', fieldValue: { value: '' } }]
-    }, { zoneID: zid2 });
-    const fRec2 = (fResp2.records || []).find(r => r.recordName === stored.recordName);
-    if (!fRec2) throw new Error('Record not found for checkin');
     const dbName2 = activeEvent.dbName || (activeEvent.isOrganizer ? 'private' : 'shared');
     const ckP2 = new URLSearchParams({ ckjsBuildVersion:'2420ProjectDev22', ckjsVersion:'2.6.4', ckAPIToken:API_TOKEN, ckWebAuthToken }).toString();
+    const zoneID2 = { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.organizerID || activeEvent.ownerName };
+
+    // Fetch fresh changeTag for this single record — avoids loading all attendees
+    const lookupResp = await fetch(`https://api.apple-cloudkit.com/database/1/${CONTAINER}/${ENV}/${dbName2}/records/lookup?${ckP2}`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ zoneID: zoneID2, records:[{ recordName: stored.recordName }] })
+    });
+    const lookupData = await lookupResp.json();
+    const fRec2 = (lookupData.records||[])[0];
+    if (!fRec2 || fRec2.serverErrorCode) throw new Error(fRec2?.reason || 'Record not found for checkin');
+
     const mo2 = await fetch(`https://api.apple-cloudkit.com/database/1/${CONTAINER}/${ENV}/${dbName2}/records/modify?${ckP2}`, {
       method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ zoneID:{ zoneName:activeEvent.zoneName, ownerRecordName: activeEvent.organizerID || activeEvent.ownerName }, operations:[{ operationType:'update', record:{ recordName:fRec2.recordName, recordChangeTag:fRec2.recordChangeTag, fields:{ isCheckedIn:{ value: a.isCheckedIn ? 1 : 0 } } } }] })
+      body: JSON.stringify({ zoneID: zoneID2, operations:[{ operationType:'update', record:{ recordName:fRec2.recordName, recordChangeTag:fRec2.recordChangeTag, fields:{ isCheckedIn:{ value: a.isCheckedIn ? 1 : 0 } } } }] })
     });
     const md2 = await mo2.json();
     const mr2 = (md2.records||[])[0];
@@ -1674,17 +1712,20 @@ async function toggleTarget() {
   try {
     const stored = a._ckRecord;
     if (!stored) throw new Error('No record stored');
-    const zid = { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.ownerName };
-    const fResp = await activeEvent.database.performQuery({
-      recordType: 'Attendee', filterBy: [{ fieldName: 'name', comparator: 'NOT_EQUALS', fieldValue: { value: '' } }]
-    }, { zoneID: zid });
-    const fRec = (fResp.records || []).find(r => r.recordName === stored.recordName);
-    if (!fRec) throw new Error('Record not found');
     const dbName = activeEvent.dbName || (activeEvent.isOrganizer ? 'private' : 'shared');
     const ckP = new URLSearchParams({ ckjsBuildVersion:'2420ProjectDev22', ckjsVersion:'2.6.4', ckAPIToken:API_TOKEN, ckWebAuthToken }).toString();
-    const fields = a.targetedBy
-      ? { targetedBy: { value: a.targetedBy } }
-      : { targetedBy: { value: null } };
+
+    // Fetch fresh changeTag for this single record — avoids loading all 137
+    const lookupResp = await fetch(`https://api.apple-cloudkit.com/database/1/${CONTAINER}/${ENV}/${dbName}/records/lookup?${ckP}`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ zoneID:{ zoneName:activeEvent.zoneName, ownerRecordName: activeEvent.organizerID || activeEvent.ownerName }, records:[{ recordName: stored.recordName }] })
+    });
+    const lookupData = await lookupResp.json();
+    const fRec = (lookupData.records||[])[0];
+    if (!fRec || fRec.serverErrorCode) throw new Error(fRec?.reason || 'Record not found');
+
+    // Send '' to clear — CloudKit REST ignores { value: null } and won't delete the field
+    const fields = { targetedBy: { value: a.targetedBy } };
     const mo = await fetch(`https://api.apple-cloudkit.com/database/1/${CONTAINER}/${ENV}/${dbName}/records/modify?${ckP}`, {
       method:'POST', headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ zoneID:{ zoneName:activeEvent.zoneName, ownerRecordName: activeEvent.organizerID || activeEvent.ownerName }, operations:[{ operationType:'update', record:{ recordName:fRec.recordName, recordChangeTag:fRec.recordChangeTag, fields } }] })
@@ -1698,6 +1739,7 @@ async function toggleTarget() {
     showToast(a.targetedBy ? '🔥 Marked as target' : 'Target removed');
   } catch(e) {
     a.targetedBy = prev;
+    renderDetail();
     showToast('Failed to update target: ' + e.message);
   }
 }
