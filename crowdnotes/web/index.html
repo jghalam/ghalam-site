@@ -306,10 +306,14 @@
   }
 
   /* ── Attendee detail ── */
-  #screen-detail { background: var(--bg); height: 100vh; overflow: hidden; }
+  #screen-detail { background: var(--bg); height: 100vh; overflow: hidden; display: flex; flex-direction: column; padding-top: 52px; }
   #screen-detail .topbar { position: fixed; top: 0; left: 0; right: 0; z-index: 200; }
-  #detail-content { padding-top: 52px; }
-  #screen-detail .detail-header { position: sticky; top: 0; z-index: 100; background: var(--bg2); }
+  #detail-content { padding-top: 0; overflow-y: auto; flex: 1; padding-bottom: 80px; overscroll-behavior-y: contain; }
+  #detail-header-fixed {
+    background: var(--bg2);
+    border-bottom: 1px solid var(--bg3);
+    flex-shrink: 0;
+  }
 
   .detail-header {
     padding: 24px 20px;
@@ -705,7 +709,8 @@
     <div class="topbar-title">Profile</div>
     <button class="topbar-action" onclick="refreshDetail()" title="Refresh">↺</button>
   </div>
-  <div id="detail-content" style="overflow-y:auto; flex:1; padding-bottom:80px; overscroll-behavior-y:contain;">
+  <div id="detail-header-fixed"></div>
+  <div id="detail-content">
     <div class="loader"><div class="spinner"></div></div>
   </div>
   <div class="bottom-nav">
@@ -732,7 +737,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.1.33';
+const VERSION     = 'v1.1.34';
 console.log('CrowdNotes Web', VERSION);
 // Show version in UI
 document.addEventListener('DOMContentLoaded', () => {
@@ -1704,7 +1709,7 @@ function renderDetail() {
   const myVoteUp   = recruiterName && (a.thumbsUp   || []).includes(recruiterName);
   const myVoteDown = recruiterName && (a.thumbsDown || []).includes(recruiterName);
 
-  document.getElementById('detail-content').innerHTML = `
+  document.getElementById('detail-header-fixed').innerHTML = `
     <div class="detail-header">
       <div class="detail-avatar" style="${a.photoURL ? 'padding:0;overflow:hidden;' : ''}">
         ${a.photoURL ? `<img src="${escHtml(a.photoURL)}" alt="${escHtml(a.name)}" style="width:100%;height:100%;object-fit:cover;">` : initials(a.name)}
@@ -1713,7 +1718,9 @@ function renderDetail() {
         <div class="detail-name">${escHtml(a.name)}</div>
         <div class="detail-meta">${escHtml([a.role, a.company].filter(Boolean).join(' · '))}</div>
       </div>
-    </div>
+    </div>`;
+
+  document.getElementById('detail-content').innerHTML = `
     <div class="detail-body">
       <button class="checkin-btn ${a.isCheckedIn ? 'in' : 'out'}" onclick="toggleCheckin(this)">
         ${a.isCheckedIn ? '✓ Checked In — Tap to Undo' : 'Check In'}
