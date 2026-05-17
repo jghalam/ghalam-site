@@ -726,7 +726,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.1.27';
+const VERSION     = 'v1.1.29';
 console.log('CrowdNotes Web', VERSION);
 // Show version in UI
 document.addEventListener('DOMContentLoaded', () => {
@@ -746,7 +746,7 @@ let ck, db, sharedDB;
 let allEvents     = [];
 let activeEvent   = null;
 let allAttendees  = [];
-// No local cache needed — zone activity is fetched directly from CloudKit
+// No cache — zone activity is fetched before first render to avoid flash.
 
 async function fetchZoneLastActivity(event) {
   // Uses changes/zone with desiredKeys:[] and resultsLimit:1, reverse:true
@@ -1326,18 +1326,13 @@ async function loadEvents() {
       if (event) events.push(event);
     }
 
-    allEvents = events;
-    renderEvents();
-
-    // Fetch last-activity timestamp for each event in parallel using changes/zone.
-    // Fires after initial render so the list appears immediately; timestamps fill in async.
-    Promise.all(events.map(async (e, i) => {
+    // Fetch zone last-activity timestamps before rendering so correct values show immediately.
+    await Promise.all(events.map(async (e, i) => {
       const ts = await fetchZoneLastActivity(e);
-      if (ts && ts > (allEvents[i].modified || 0)) {
-        allEvents[i].modified = ts;
-        renderEvents();
-      }
+      if (ts && ts > (allEvents[i].modified || 0)) allEvents[i].modified = ts;
     }));
+
+    renderEvents();
   } catch(e) {
     console.error('loadEvents error:', e);
     document.getElementById('event-list').innerHTML = `<div class="error-msg">Failed to load events: ${e.message}</div>`;
