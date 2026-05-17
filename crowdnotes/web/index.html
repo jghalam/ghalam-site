@@ -734,7 +734,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.1.37';
+const VERSION     = 'v1.1.38';
 console.log('CrowdNotes Web', VERSION);
 // Show version in UI
 document.addEventListener('DOMContentLoaded', () => {
@@ -757,8 +757,9 @@ let allAttendees  = [];
 // No cache — zone activity is fetched before first render to avoid flash.
 
 async function fetchZoneLastActivity(event) {
-  // Uses changes/zone with desiredKeys:[] and resultsLimit:1, reverse:true
-  // to get only the single most-recently-modified record's metadata — no field payload.
+  // Paginates through all pages of changes/zone with desiredKeys:[] (no field payload)
+  // and returns the maximum modified timestamp across all records.
+  // CloudKit returns ~100 records per page -- must follow moreComing/syncToken.
   try {
     const dbName = event.dbName || (event.isOrganizer ? 'private' : 'shared');
     const ckP = new URLSearchParams({
@@ -766,16 +767,29 @@ async function fetchZoneLastActivity(event) {
       ckAPIToken: API_TOKEN, ckWebAuthToken
     }).toString();
     const zoneID = { zoneName: event.zoneName, ownerRecordName: event.organizerID || event.ownerName };
-    const resp = await fetch(
-      `https://api.apple-cloudkit.com/database/1/${CONTAINER}/${ENV}/${dbName}/changes/zone?${ckP}`,
-      { method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ zones: [{ zoneID, desiredKeys: [], resultsLimit: 1, reverse: true }] }) }
-    );
-    const data = await resp.json();
-    const zone = (data.zones || [])[0];
-    if (!zone || zone.serverErrorCode) return null;
-    const record = (zone.records || [])[0];
-    return record?.modified?.timestamp || null;
+    let latest = 0;
+    let syncToken = null;
+    let moreComing = true;
+    while (moreComing) {
+      const body = { zones: [{ zoneID, desiredKeys: [] }] };
+      if (syncToken) body.zones[0].syncToken = syncToken;
+      const resp = await fetch(
+        `https://api.apple-cloudkit.com/database/1/${CONTAINER}/${ENV}/${dbName}/changes/zone?${ckP}`,
+        { method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body) }
+      );
+      const data = await resp.json();
+      const zone = (data.zones || [])[0];
+      if (!zone || zone.serverErrorCode) break;
+      for (const record of (zone.records || [])) {
+        const ts = record.modified?.timestamp || 0;
+        if (ts > latest) latest = ts;
+      }
+      moreComing = zone.moreComing || false;
+      syncToken  = zone.syncToken  || null;
+      if (!syncToken) break;
+    }
+    return latest || null;
   } catch(e) {
     console.log('fetchZoneLastActivity error:', event.zoneName, e.message);
     return null;
