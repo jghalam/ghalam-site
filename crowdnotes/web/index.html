@@ -373,6 +373,11 @@
     font-size: 14px; line-height: 1.5;
     max-width: 85%;
   }
+  .note-text.tombstone {
+    background: var(--bg3);
+    color: var(--text2);
+    font-style: italic;
+  }
 
   .note-input-area {
     background: var(--bg2);
@@ -726,7 +731,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.1.30';
+const VERSION     = 'v1.1.31';
 console.log('CrowdNotes Web', VERSION);
 // Show version in UI
 document.addEventListener('DOMContentLoaded', () => {
@@ -1679,10 +1684,16 @@ function renderDetail() {
         const parts = meta.split(sep);
         const ts    = parts[0]?.trim() || '';
         const auth  = parts.slice(1).join(sep).trim();
+        const isDeleted       = body === '[deleted]';
+        const isTargetRemoved = body === '[target removed]';
+        const isTombstone     = isDeleted || isTargetRemoved;
+        const displayBody     = isDeleted ? 'Deleted by author'
+                              : isTargetRemoved ? 'Target removed'
+                              : escHtml(body);
         return `
           <div class="note-bubble">
             <div class="note-meta"><span>${escHtml(auth)}</span> – ${escHtml(ts)}</div>
-            <div class="note-text">${escHtml(body)}</div>
+            <div class="note-text${isTombstone ? ' tombstone' : ''}">${displayBody}</div>
           </div>`;
       }).join('');
 
@@ -1848,6 +1859,15 @@ async function toggleTarget(el) {
     const md = await mo.json();
     const mr = (md.records||[])[0];
     if (!mr || mr.serverErrorCode) { a.targetedBy = prev; throw new Error(mr?.reason || 'Target save failed'); }
+    // Append a note when clearing so there's an audit trail
+    if (!a.targetedBy) {
+      const now = new Date();
+      const ts  = `${now.getMonth()+1}/${now.getDate()}/${String(now.getFullYear()).slice(-2)}, ${now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}`;
+      const entry = `[${ts} - ${recruiterName}] [target removed]`;
+      a.notes = a.notes ? a.notes + '|' + entry : entry;
+      const idx2 = allAttendees.findIndex(x => x.id === a.id);
+      if (idx2 !== -1) allAttendees[idx2].notes = a.notes;
+    }
     const idx = allAttendees.findIndex(x => x.id === a.id);
     if (idx !== -1) allAttendees[idx].targetedBy = a.targetedBy;
 
