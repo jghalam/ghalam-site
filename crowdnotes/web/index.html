@@ -731,7 +731,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.1.31';
+const VERSION     = 'v1.1.32';
 console.log('CrowdNotes Web', VERSION);
 // Show version in UI
 document.addEventListener('DOMContentLoaded', () => {
@@ -1852,14 +1852,8 @@ async function toggleTarget(el) {
 
     // Send '' to clear — CloudKit REST ignores { value: null } and won't delete the field
     const fields = { targetedBy: { value: a.targetedBy } };
-    const mo = await fetch(`https://api.apple-cloudkit.com/database/1/${CONTAINER}/${ENV}/${dbName}/records/modify?${ckP}`, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({ zoneID:{ zoneName:activeEvent.zoneName, ownerRecordName: activeEvent.organizerID || activeEvent.ownerName }, operations:[{ operationType:'update', record:{ recordName:fRec.recordName, recordChangeTag:fRec.recordChangeTag, fields } }] })
-    });
-    const md = await mo.json();
-    const mr = (md.records||[])[0];
-    if (!mr || mr.serverErrorCode) { a.targetedBy = prev; throw new Error(mr?.reason || 'Target save failed'); }
-    // Append a note when clearing so there's an audit trail
+
+    // When clearing, also save the audit note in the same operation
     if (!a.targetedBy) {
       const now = new Date();
       const ts  = `${now.getMonth()+1}/${now.getDate()}/${String(now.getFullYear()).slice(-2)}, ${now.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})}`;
@@ -1867,7 +1861,15 @@ async function toggleTarget(el) {
       a.notes = a.notes ? a.notes + '|' + entry : entry;
       const idx2 = allAttendees.findIndex(x => x.id === a.id);
       if (idx2 !== -1) allAttendees[idx2].notes = a.notes;
+      fields.notes = { value: a.notes };
     }
+    const mo = await fetch(`https://api.apple-cloudkit.com/database/1/${CONTAINER}/${ENV}/${dbName}/records/modify?${ckP}`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ zoneID:{ zoneName:activeEvent.zoneName, ownerRecordName: activeEvent.organizerID || activeEvent.ownerName }, operations:[{ operationType:'update', record:{ recordName:fRec.recordName, recordChangeTag:fRec.recordChangeTag, fields } }] })
+    });
+    const md = await mo.json();
+    const mr = (md.records||[])[0];
+    if (!mr || mr.serverErrorCode) { a.targetedBy = prev; throw new Error(mr?.reason || 'Target save failed'); }
     const idx = allAttendees.findIndex(x => x.id === a.id);
     if (idx !== -1) allAttendees[idx].targetedBy = a.targetedBy;
 
