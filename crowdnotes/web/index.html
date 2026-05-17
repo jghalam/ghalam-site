@@ -67,7 +67,7 @@
     color: #f0f0f8;
   }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 
   body {
     font-family: 'DM Sans', sans-serif;
@@ -474,6 +474,12 @@
     animation: spin 0.8s linear infinite;
   }
   @keyframes spin { to { transform: rotate(360deg); } }
+  @keyframes btn-press {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(0.94); }
+    100% { transform: scale(1); }
+  }
+  .btn-pressing { animation: btn-press 0.18s ease-out; }
 
   .empty { text-align: center; padding: 60px 24px; color: var(--text2); }
   .empty-icon { font-size: 48px; margin-bottom: 12px; }
@@ -718,7 +724,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.1.18';
+const VERSION     = 'v1.1.21';
 console.log('CrowdNotes Web', VERSION);
 // Show version in UI
 document.addEventListener('DOMContentLoaded', () => {
@@ -1643,10 +1649,10 @@ function renderDetail() {
       </div>
     </div>
     <div class="detail-body">
-      <button class="checkin-btn ${a.isCheckedIn ? 'in' : 'out'}" onclick="toggleCheckin()">
+      <button class="checkin-btn ${a.isCheckedIn ? 'in' : 'out'}" onclick="toggleCheckin(this)">
         ${a.isCheckedIn ? '✓ Checked In — Tap to Undo' : 'Check In'}
       </button>
-      <button onclick="toggleTarget()" style="width:100%;padding:13px;border-radius:var(--radius);border:1px solid ${a.targetedBy ? 'rgba(251,146,60,0.5)' : 'var(--bg3)'};background:${a.targetedBy ? 'rgba(251,146,60,0.12)' : 'var(--bg2)'};color:${a.targetedBy ? '#fb923c' : 'var(--text2)'};font-size:15px;cursor:pointer;text-align:center;">
+      <button onclick="toggleTarget(this)" style="width:100%;padding:13px;border-radius:var(--radius);border:1px solid ${a.targetedBy ? 'rgba(251,146,60,0.5)' : 'var(--bg3)'};background:${a.targetedBy ? 'rgba(251,146,60,0.12)' : 'var(--bg2)'};color:${a.targetedBy ? '#fb923c' : 'var(--text2)'};font-size:15px;cursor:pointer;text-align:center;">
         ${a.targetedBy ? '🔥 Targeted' + (a.targetedBy ? ' by ' + escHtml(a.targetedBy) : '') : '🔥 Mark as Target'}
       </button>
       <div style="display:flex;gap:10px;">
@@ -1674,9 +1680,52 @@ function renderDetail() {
   `;
 }
 
-async function toggleCheckin() {
+// Cross-platform tap feedback: CSS press animation + synthesized audio tick
+// Attached globally — fires for every button/[onclick] tap automatically.
+function tapFeedback(el) {
+  if (!el) return;
+  el.classList.remove('btn-pressing');
+  void el.offsetWidth;
+  el.classList.add('btn-pressing');
+  el.addEventListener('animationend', () => el.classList.remove('btn-pressing'), { once: true });
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.setValueAtTime(1200, ctx.currentTime);
+    osc.frequency.exponentialRampToValueAtTime(600, ctx.currentTime + 0.04);
+    gain.gain.setValueAtTime(0.08, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.05);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.05);
+    osc.onended = () => ctx.close();
+  } catch(_) {}
+}
+
+// Global delegate — catches taps on any button or element with an onclick
+document.addEventListener('touchstart', e => {
+  const el = e.target.closest('button, [onclick], .attendee-card, .event-card, .nav-item');
+  if (el) tapFeedback(el);
+}, { passive: true });
+
+// Fallback for non-touch (mouse click on desktop)
+document.addEventListener('click', e => {
+  if (window.matchMedia('(hover: hover)').matches) {
+    const el = e.target.closest('button, [onclick], .attendee-card, .event-card, .nav-item');
+    if (el) tapFeedback(el);
+  }
+});
+
+let _actionPending = false;
+
+async function toggleCheckin(el) {
+  if (_actionPending) return;
+  _actionPending = true;
   const a = currentAttendee;
   a.isCheckedIn = !a.isCheckedIn;
+  renderDetail(); // instant optimistic UI update
   try {
     const stored = a._ckRecord;
     if (!stored) throw new Error('No record stored');
@@ -1702,19 +1751,24 @@ async function toggleCheckin() {
     if (!mr2 || mr2.serverErrorCode) { a.isCheckedIn = !a.isCheckedIn; throw new Error(mr2?.reason || 'Checkin save failed'); }
     const idx = allAttendees.findIndex(x => x.id === a.id);
     if (idx !== -1) allAttendees[idx].isCheckedIn = a.isCheckedIn;
-    renderDetail();
     showToast(a.isCheckedIn ? '✓ Checked in' : 'Check-in removed');
   } catch(e) {
     a.isCheckedIn = !a.isCheckedIn;
+    renderDetail();
     showToast('Failed to update check-in: ' + e.message);
+  } finally {
+    _actionPending = false;
   }
 }
 
-async function toggleTarget() {
+async function toggleTarget(el) {
+  if (_actionPending) return;
   if (!recruiterName) { showToast('Set your name first'); return; }
+  _actionPending = true;
   const a = currentAttendee;
   const prev = a.targetedBy;
   a.targetedBy = prev ? '' : recruiterName;
+  renderDetail(); // instant optimistic UI update
   try {
     const stored = a._ckRecord;
     if (!stored) throw new Error('No record stored');
@@ -1741,12 +1795,13 @@ async function toggleTarget() {
     if (!mr || mr.serverErrorCode) { a.targetedBy = prev; throw new Error(mr?.reason || 'Target save failed'); }
     const idx = allAttendees.findIndex(x => x.id === a.id);
     if (idx !== -1) allAttendees[idx].targetedBy = a.targetedBy;
-    renderDetail();
     showToast(a.targetedBy ? '🔥 Marked as target' : 'Target removed');
   } catch(e) {
     a.targetedBy = prev;
     renderDetail();
     showToast('Failed to update target: ' + e.message);
+  } finally {
+    _actionPending = false;
   }
 }
 
