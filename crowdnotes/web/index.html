@@ -726,7 +726,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.1.24';
+const VERSION     = 'v1.1.25';
 console.log('CrowdNotes Web', VERSION);
 // Show version in UI
 document.addEventListener('DOMContentLoaded', () => {
@@ -746,6 +746,8 @@ let ck, db, sharedDB;
 let allEvents     = [];
 let activeEvent   = null;
 let allAttendees  = [];
+// Survives loadEvents() re-fetches — keyed by zoneName, value is max attendee modified ms
+const eventActivityCache = {};
 let currentAttendee = null;
 let recruiterName = localStorage.getItem('recruiterName') || '';
 let currentUserRecordName = ''; // iCloud record name — used for thumbs matching
@@ -1401,7 +1403,11 @@ function renderEvents() {
       <div class="event-info">
         <div class="event-name">${escHtml(e.name)}</div>
         <div class="event-meta">${e.isOrganizer ? '👑 Organizer' : '👤 Member'}</div>
-        ${e.modified ? `<div class="event-meta" style="font-size:11px;margin-top:2px;opacity:0.6;">${fmtModified(e.modified)}</div>` : ''}
+        ${(() => {
+          const cached = eventActivityCache[e.zoneName] || 0;
+          const ts = Math.max(e.modified || 0, cached);
+          return ts ? `<div class="event-meta" style="font-size:11px;margin-top:2px;opacity:0.6;">${fmtModified(ts)}</div>` : '';
+        })()}
       </div>
       ${e.isOrganizer
         ? `<span class="badge badge-active">ORGANIZER</span>`
@@ -1531,17 +1537,12 @@ async function loadAttendees() {
       };
     }).sort((a,b) => a.name.localeCompare(b.name));
 
-    // Update the event's lastActivity to the most recent attendee modification.
-    // The Event record's own modificationDate only moves when the Event record itself
-    // changes — not when attendees are checked in, noted, etc.
+    // Track the most recent attendee modification per event zone.
+    // Stored in eventActivityCache so it survives loadEvents() re-fetches.
     const latestAttendee = allAttendees.reduce((max, a) => Math.max(max, a._modified || 0), 0);
     if (latestAttendee && activeEvent) {
-      const eventModified = activeEvent.modified || 0;
-      if (latestAttendee > eventModified) {
-        activeEvent.modified = latestAttendee;
-        const idx = allEvents.findIndex(e => e.zoneName === activeEvent.zoneName);
-        if (idx !== -1) allEvents[idx].modified = latestAttendee;
-      }
+      const prev = eventActivityCache[activeEvent.zoneName] || 0;
+      if (latestAttendee > prev) eventActivityCache[activeEvent.zoneName] = latestAttendee;
     }
 
     renderAttendees(allAttendees);
@@ -1785,6 +1786,7 @@ async function toggleCheckin(el) {
     if (!mr2 || mr2.serverErrorCode) { a.isCheckedIn = !a.isCheckedIn; throw new Error(mr2?.reason || 'Checkin save failed'); }
     const idx = allAttendees.findIndex(x => x.id === a.id);
     if (idx !== -1) allAttendees[idx].isCheckedIn = a.isCheckedIn;
+    if (activeEvent) eventActivityCache[activeEvent.zoneName] = Date.now();
     showToast(a.isCheckedIn ? '✓ Checked in' : 'Check-in removed');
   } catch(e) {
     a.isCheckedIn = !a.isCheckedIn;
@@ -1829,6 +1831,7 @@ async function toggleTarget(el) {
     if (!mr || mr.serverErrorCode) { a.targetedBy = prev; throw new Error(mr?.reason || 'Target save failed'); }
     const idx = allAttendees.findIndex(x => x.id === a.id);
     if (idx !== -1) allAttendees[idx].targetedBy = a.targetedBy;
+    if (activeEvent) eventActivityCache[activeEvent.zoneName] = Date.now();
     showToast(a.targetedBy ? '🔥 Marked as target' : 'Target removed');
   } catch(e) {
     a.targetedBy = prev;
