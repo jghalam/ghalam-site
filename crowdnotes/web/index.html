@@ -726,7 +726,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.1.25';
+const VERSION     = 'v1.1.27';
 console.log('CrowdNotes Web', VERSION);
 // Show version in UI
 document.addEventListener('DOMContentLoaded', () => {
@@ -746,8 +746,33 @@ let ck, db, sharedDB;
 let allEvents     = [];
 let activeEvent   = null;
 let allAttendees  = [];
-// Survives loadEvents() re-fetches — keyed by zoneName, value is max attendee modified ms
-const eventActivityCache = {};
+// No local cache needed — zone activity is fetched directly from CloudKit
+
+async function fetchZoneLastActivity(event) {
+  // Uses changes/zone with desiredKeys:[] and resultsLimit:1, reverse:true
+  // to get only the single most-recently-modified record's metadata — no field payload.
+  try {
+    const dbName = event.dbName || (event.isOrganizer ? 'private' : 'shared');
+    const ckP = new URLSearchParams({
+      ckjsBuildVersion: '2420ProjectDev22', ckjsVersion: '2.6.4',
+      ckAPIToken: API_TOKEN, ckWebAuthToken
+    }).toString();
+    const zoneID = { zoneName: event.zoneName, ownerRecordName: event.organizerID || event.ownerName };
+    const resp = await fetch(
+      `https://api.apple-cloudkit.com/database/1/${CONTAINER}/${ENV}/${dbName}/changes/zone?${ckP}`,
+      { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ zones: [{ zoneID, desiredKeys: [], resultsLimit: 1, reverse: true }] }) }
+    );
+    const data = await resp.json();
+    const zone = (data.zones || [])[0];
+    if (!zone || zone.serverErrorCode) return null;
+    const record = (zone.records || [])[0];
+    return record?.modified?.timestamp || null;
+  } catch(e) {
+    console.log('fetchZoneLastActivity error:', event.zoneName, e.message);
+    return null;
+  }
+}
 let currentAttendee = null;
 let recruiterName = localStorage.getItem('recruiterName') || '';
 let currentUserRecordName = ''; // iCloud record name — used for thumbs matching
@@ -1303,6 +1328,16 @@ async function loadEvents() {
 
     allEvents = events;
     renderEvents();
+
+    // Fetch last-activity timestamp for each event in parallel using changes/zone.
+    // Fires after initial render so the list appears immediately; timestamps fill in async.
+    Promise.all(events.map(async (e, i) => {
+      const ts = await fetchZoneLastActivity(e);
+      if (ts && ts > (allEvents[i].modified || 0)) {
+        allEvents[i].modified = ts;
+        renderEvents();
+      }
+    }));
   } catch(e) {
     console.error('loadEvents error:', e);
     document.getElementById('event-list').innerHTML = `<div class="error-msg">Failed to load events: ${e.message}</div>`;
@@ -1403,11 +1438,7 @@ function renderEvents() {
       <div class="event-info">
         <div class="event-name">${escHtml(e.name)}</div>
         <div class="event-meta">${e.isOrganizer ? '👑 Organizer' : '👤 Member'}</div>
-        ${(() => {
-          const cached = eventActivityCache[e.zoneName] || 0;
-          const ts = Math.max(e.modified || 0, cached);
-          return ts ? `<div class="event-meta" style="font-size:11px;margin-top:2px;opacity:0.6;">${fmtModified(ts)}</div>` : '';
-        })()}
+        ${e.modified ? `<div class="event-meta" style="font-size:11px;margin-top:2px;opacity:0.6;">${fmtModified(e.modified)}</div>` : ''}
       </div>
       ${e.isOrganizer
         ? `<span class="badge badge-active">ORGANIZER</span>`
@@ -1533,17 +1564,8 @@ async function loadAttendees() {
         attachmentURL:    r.fields.attachment?.value?.downloadURL || null,
         attachmentFilename: r.fields.attachmentFilename?.value || '',
         targetedBy:       r.fields.targetedBy?.value || '',
-        _modified:        r.modified?.timestamp || null,
       };
     }).sort((a,b) => a.name.localeCompare(b.name));
-
-    // Track the most recent attendee modification per event zone.
-    // Stored in eventActivityCache so it survives loadEvents() re-fetches.
-    const latestAttendee = allAttendees.reduce((max, a) => Math.max(max, a._modified || 0), 0);
-    if (latestAttendee && activeEvent) {
-      const prev = eventActivityCache[activeEvent.zoneName] || 0;
-      if (latestAttendee > prev) eventActivityCache[activeEvent.zoneName] = latestAttendee;
-    }
 
     renderAttendees(allAttendees);
   } catch(e) {
@@ -1786,7 +1808,7 @@ async function toggleCheckin(el) {
     if (!mr2 || mr2.serverErrorCode) { a.isCheckedIn = !a.isCheckedIn; throw new Error(mr2?.reason || 'Checkin save failed'); }
     const idx = allAttendees.findIndex(x => x.id === a.id);
     if (idx !== -1) allAttendees[idx].isCheckedIn = a.isCheckedIn;
-    if (activeEvent) eventActivityCache[activeEvent.zoneName] = Date.now();
+
     showToast(a.isCheckedIn ? '✓ Checked in' : 'Check-in removed');
   } catch(e) {
     a.isCheckedIn = !a.isCheckedIn;
@@ -1831,7 +1853,7 @@ async function toggleTarget(el) {
     if (!mr || mr.serverErrorCode) { a.targetedBy = prev; throw new Error(mr?.reason || 'Target save failed'); }
     const idx = allAttendees.findIndex(x => x.id === a.id);
     if (idx !== -1) allAttendees[idx].targetedBy = a.targetedBy;
-    if (activeEvent) eventActivityCache[activeEvent.zoneName] = Date.now();
+
     showToast(a.targetedBy ? '🔥 Marked as target' : 'Target removed');
   } catch(e) {
     a.targetedBy = prev;
