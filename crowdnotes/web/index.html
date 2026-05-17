@@ -726,7 +726,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.1.29';
+const VERSION     = 'v1.1.30';
 console.log('CrowdNotes Web', VERSION);
 // Show version in UI
 document.addEventListener('DOMContentLoaded', () => {
@@ -1325,6 +1325,8 @@ async function loadEvents() {
       const event = await fetchEventRecord(zoneID, targetDB, isOrg);
       if (event) events.push(event);
     }
+
+    allEvents = events;
 
     // Fetch zone last-activity timestamps before rendering so correct values show immediately.
     await Promise.all(events.map(async (e, i) => {
