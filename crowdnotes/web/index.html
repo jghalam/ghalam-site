@@ -726,7 +726,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.1.22';
+const VERSION     = 'v1.1.23';
 console.log('CrowdNotes Web', VERSION);
 // Show version in UI
 document.addEventListener('DOMContentLoaded', () => {
@@ -1340,13 +1340,29 @@ async function fetchEventRecord(zoneID, database, isOrganizer) {
         shareURL:    r.fields.shareURL?.value || null,
         isOrganizer,
         database,
-        dbName: isOrganizer ? 'private' : 'shared'
+        dbName:      isOrganizer ? 'private' : 'shared',
+        modified:    r.modified?.timestamp || null   // ms epoch — CloudKit system field
       };
     }
   } catch(e) {
     console.log('fetchEventRecord error:', zoneID.zoneName, e.message);
   }
   return null;
+}
+
+function fmtModified(ts) {
+  if (!ts) return '';
+  const d = new Date(ts);
+  const now = new Date();
+  const diffMs = now - d;
+  const diffMin  = Math.floor(diffMs / 60000);
+  const diffHr   = Math.floor(diffMs / 3600000);
+  const diffDay  = Math.floor(diffMs / 86400000);
+  if (diffMin < 1)   return 'Updated just now';
+  if (diffMin < 60)  return `Updated ${diffMin}m ago`;
+  if (diffHr  < 24)  return `Updated ${diffHr}h ago`;
+  if (diffDay < 7)   return `Updated ${diffDay}d ago`;
+  return `Updated ${d.toLocaleDateString(undefined, { month:'short', day:'numeric', year: d.getFullYear() !== now.getFullYear() ? 'numeric' : undefined })}`;
 }
 
 function renderEvents() {
@@ -1385,6 +1401,7 @@ function renderEvents() {
       <div class="event-info">
         <div class="event-name">${escHtml(e.name)}</div>
         <div class="event-meta">${e.isOrganizer ? '👑 Organizer' : '👤 Member'}</div>
+        ${e.modified ? `<div class="event-meta" style="font-size:11px;margin-top:2px;opacity:0.6;">${fmtModified(e.modified)}</div>` : ''}
       </div>
       ${e.isOrganizer
         ? `<span class="badge badge-active">ORGANIZER</span>`
