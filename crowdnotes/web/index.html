@@ -307,6 +307,8 @@
 
   /* ── Attendee detail ── */
   #screen-detail { background: var(--bg); height: 100vh; overflow: hidden; }
+  #screen-detail .topbar { position: fixed; top: 0; left: 0; right: 0; z-index: 200; }
+  #detail-content { padding-top: 52px; } /* compensate for fixed topbar height */
 
   .detail-header {
     padding: 24px 20px;
@@ -724,7 +726,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.1.21';
+const VERSION     = 'v1.1.22';
 console.log('CrowdNotes Web', VERSION);
 // Show version in UI
 document.addEventListener('DOMContentLoaded', () => {
@@ -1672,7 +1674,7 @@ function renderDetail() {
         ${notesHTML}
         <div class="note-input-area">
           <div style="font-size:12px;color:var(--text2)">Posting as ${escHtml(recruiterName)}</div>
-          <textarea class="note-textarea" id="note-input" placeholder="Add a note…"></textarea>
+          <textarea class="note-textarea" id="note-input" placeholder="Add a note…" onfocus="setTimeout(()=>this.scrollIntoView({behavior:'smooth',block:'center'}),300)"></textarea>
           <button class="btn-save-note" onclick="saveNote()">Save Note</button>
         </div>
       </div>
