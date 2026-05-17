@@ -726,7 +726,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.1.23';
+const VERSION     = 'v1.1.24';
 console.log('CrowdNotes Web', VERSION);
 // Show version in UI
 document.addEventListener('DOMContentLoaded', () => {
@@ -1527,8 +1527,23 @@ async function loadAttendees() {
         attachmentURL:    r.fields.attachment?.value?.downloadURL || null,
         attachmentFilename: r.fields.attachmentFilename?.value || '',
         targetedBy:       r.fields.targetedBy?.value || '',
+        _modified:        r.modified?.timestamp || null,
       };
     }).sort((a,b) => a.name.localeCompare(b.name));
+
+    // Update the event's lastActivity to the most recent attendee modification.
+    // The Event record's own modificationDate only moves when the Event record itself
+    // changes — not when attendees are checked in, noted, etc.
+    const latestAttendee = allAttendees.reduce((max, a) => Math.max(max, a._modified || 0), 0);
+    if (latestAttendee && activeEvent) {
+      const eventModified = activeEvent.modified || 0;
+      if (latestAttendee > eventModified) {
+        activeEvent.modified = latestAttendee;
+        const idx = allEvents.findIndex(e => e.zoneName === activeEvent.zoneName);
+        if (idx !== -1) allEvents[idx].modified = latestAttendee;
+      }
+    }
+
     renderAttendees(allAttendees);
   } catch(e) {
     document.getElementById('attendee-list').innerHTML = `<div class="error-msg">Failed to load attendees: ${e.message}</div>`;
