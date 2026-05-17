@@ -734,7 +734,7 @@
 
 <script>
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.1.36';
+const VERSION     = 'v1.1.37';
 console.log('CrowdNotes Web', VERSION);
 // Show version in UI
 document.addEventListener('DOMContentLoaded', () => {
@@ -1569,8 +1569,21 @@ async function loadAttendees() {
         attachmentURL:    r.fields.attachment?.value?.downloadURL || null,
         attachmentFilename: r.fields.attachmentFilename?.value || '',
         targetedBy:       r.fields.targetedBy?.value || '',
+        _modified:        r.modified?.timestamp || 0,
       };
     }).sort((a,b) => a.name.localeCompare(b.name));
+
+    // Use attendee modification timestamps as authoritative last-activity.
+    // More reliable than fetchZoneLastActivity which may miss records due to pagination.
+    if (activeEvent) {
+      const latestAttendee = allAttendees.reduce((max, a) => Math.max(max, a._modified), 0);
+      if (latestAttendee) {
+        const idx = allEvents.findIndex(e => e.zoneName === activeEvent.zoneName);
+        if (idx !== -1 && latestAttendee > (allEvents[idx].modified || 0)) {
+          allEvents[idx].modified = latestAttendee;
+        }
+      }
+    }
 
     renderAttendees(allAttendees);
   } catch(e) {
