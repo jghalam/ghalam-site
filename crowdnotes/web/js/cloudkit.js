@@ -293,7 +293,20 @@ async function autoJoinShare(ckShareURL) {
   }
 }
 
-// ── Screen Navigation ─────────────────────────────────────
+async function changeRecruiterName() {
+  const entered = prompt('Change your display name:', recruiterName);
+  if (entered === null) return; // cancelled
+  const name = entered.trim() || recruiterName;
+  if (name === recruiterName) return;
+  recruiterName = name;
+  localStorage.setItem('recruiterName', recruiterName);
+  await saveUserProfileName(recruiterName);
+  const nameEl = document.getElementById('signed-in-name');
+  if (nameEl) nameEl.textContent = recruiterName;
+  showToast('Name updated to ' + recruiterName);
+}
+
+
 function showScreen(name) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-' + name).classList.add('active');

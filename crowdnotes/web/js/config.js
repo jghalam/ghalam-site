@@ -1,6 +1,6 @@
 // CrowdNotes — Configuration & constants
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.1.38';
+const VERSION     = 'v1.1.39';
 console.log('CrowdNotes Web', VERSION);
 // Show version in UI
 document.addEventListener('DOMContentLoaded', () => {
