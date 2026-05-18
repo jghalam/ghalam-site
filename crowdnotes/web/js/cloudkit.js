@@ -293,17 +293,54 @@ async function autoJoinShare(ckShareURL) {
   }
 }
 
-async function changeRecruiterName() {
-  const entered = prompt('Change your display name:', recruiterName);
-  if (entered === null) return; // cancelled
-  const name = entered.trim() || recruiterName;
-  if (name === recruiterName) return;
+function changeRecruiterName() {
+  const nameEl = document.getElementById('signed-in-name');
+  if (!nameEl || nameEl.querySelector('input')) return; // already editing
+
+  const current = recruiterName;
+  nameEl.style.textDecoration = 'none';
+  nameEl.innerHTML = `
+    <div style="display:flex;align-items:center;gap:6px;">
+      <input id="name-edit-input" value="${escHtml(current)}"
+        style="font-size:13px;font-weight:600;color:var(--text);background:var(--bg3);
+               border:1px solid var(--cyan-border);border-radius:6px;padding:2px 6px;
+               width:110px;outline:none;font-family:'DM Sans',sans-serif;"
+        autocomplete="off" autocorrect="off" autocapitalize="words" spellcheck="false">
+      <button onclick="confirmNameChange()" style="font-size:12px;font-weight:600;
+        background:var(--cyan);color:#000;border:none;border-radius:6px;
+        padding:3px 8px;cursor:pointer;">OK</button>
+    </div>`;
+
+  const input = document.getElementById('name-edit-input');
+  input.focus();
+  input.select();
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Enter') confirmNameChange();
+    if (e.key === 'Escape') cancelNameChange(current);
+  });
+}
+
+async function confirmNameChange() {
+  const input = document.getElementById('name-edit-input');
+  if (!input) return;
+  const name = input.value.trim() || recruiterName;
   recruiterName = name;
   localStorage.setItem('recruiterName', recruiterName);
   await saveUserProfileName(recruiterName);
   const nameEl = document.getElementById('signed-in-name');
-  if (nameEl) nameEl.textContent = recruiterName;
+  if (nameEl) {
+    nameEl.style.textDecoration = 'underline';
+    nameEl.textContent = recruiterName;
+  }
   showToast('Name updated to ' + recruiterName);
+}
+
+function cancelNameChange(original) {
+  const nameEl = document.getElementById('signed-in-name');
+  if (nameEl) {
+    nameEl.style.textDecoration = 'underline';
+    nameEl.textContent = original;
+  }
 }
 
 
