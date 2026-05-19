@@ -56,11 +56,12 @@ async function refreshDetail() {
 function renderDetail() {
   const a = currentAttendee;
   const noteList = a.notes ? a.notes.split('|').filter(Boolean) : [];
-  const isURL = s => s && (s.startsWith('http') || s.includes('.com') || s.includes('.org'));
+  const isURL = s => s && (s.startsWith('http') || s.includes('.com') || s.includes('.org') || s.includes('.net') || s.includes('.io'));
+  const toAbsURL = s => (s.startsWith('http://') || s.startsWith('https://')) ? s : 'https://' + s;
 
   const commentHTML = a.comment
     ? isURL(a.comment)
-      ? `<a href="${escHtml(a.comment)}" target="_blank" class="info-link">🔗 ${escHtml(a.comment)}</a>`
+      ? `<a href="${escHtml(toAbsURL(a.comment))}" target="_blank" class="info-link">🔗 ${escHtml(a.comment)}</a>`
       : escHtml(a.comment)
     : '<span style="color:var(--text2)">—</span>';
 
