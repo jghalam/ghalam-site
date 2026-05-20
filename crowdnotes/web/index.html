@@ -64,6 +64,33 @@
   </div>
 </div>
 
+<!-- LinkedIn Migration Modal -->
+<div id="migration-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:9000;display:none;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:var(--bg2);border-radius:16px;padding:24px;width:100%;max-width:420px;max-height:80vh;display:flex;flex-direction:column;gap:14px;box-shadow:0 8px 40px rgba(0,0,0,0.5);">
+    <div style="display:flex;align-items:center;justify-content:space-between;">
+      <div>
+        <div style="font-size:16px;font-weight:600;">LinkedIn Field Migration</div>
+        <div style="font-size:12px;color:var(--text2);margin-top:3px;">Moves LinkedIn URLs from Comment → LinkedIn field</div>
+      </div>
+      <button id="migration-cancel-btn" onclick="cancelMigration()" style="background:var(--bg3);border:none;border-radius:50%;width:30px;height:30px;color:var(--text);font-size:16px;cursor:pointer;flex-shrink:0;">✕</button>
+    </div>
+    <div id="migration-progress-bar-wrap" style="display:none;background:var(--bg3);border-radius:6px;height:6px;overflow:hidden;">
+      <div id="migration-progress-bar" style="height:100%;background:var(--cyan);width:0%;transition:width 0.3s;border-radius:6px;"></div>
+    </div>
+    <div id="migration-status" style="font-size:13px;color:var(--text2);min-height:18px;"></div>
+    <div id="migration-log" style="font-size:12px;color:var(--text2);overflow-y:auto;max-height:240px;display:flex;flex-direction:column;gap:4px;font-family:'DM Mono',monospace;"></div>
+    <div style="display:flex;gap:10px;margin-top:4px;">
+      <button id="migration-run-btn" onclick="runLinkedInMigration()"
+        style="flex:1;padding:12px;background:var(--cyan);color:#000;border:none;border-radius:var(--radius);font-weight:600;font-size:14px;cursor:pointer;">
+        Run Migration
+      </button>
+      <button id="migration-close-btn" onclick="closeMigrationModal()" style="display:none;flex:1;padding:12px;background:var(--bg3);color:var(--text);border:none;border-radius:var(--radius);font-size:14px;cursor:pointer;">
+        Close
+      </button>
+    </div>
+  </div>
+</div>
+
 <!-- iOS Install Banner (shown for non-Safari iOS browsers; Safari uses the apple-itunes-app meta Smart Banner natively) -->
 <div id="ios-install-banner">
   <img src="https://ghalam.net/crowdnotes/appicon.png" alt="CrowdNotes">
@@ -161,7 +188,11 @@
         <button class="topbar-action" onclick="loadAttendees()" title="Refresh">↺</button>
       </div>
     </div>
-    <div class="topbar-row2" id="attendees-title"></div>
+    <div class="topbar-row2" id="attendees-title"
+      title="Long-press to access migration tools"
+      onmousedown="startMigrationLongPress()" onmouseup="cancelMigrationLongPress()" onmouseleave="cancelMigrationLongPress()"
+      ontouchstart="startMigrationLongPress()" ontouchend="cancelMigrationLongPress()" ontouchcancel="cancelMigrationLongPress()"
+      style="cursor:default; user-select:none;"></div>
   </div>
   <div class="search-bar">
     <input class="search-input" id="search-input" placeholder="Search attendees…" oninput="filterAttendees(this.value)">
