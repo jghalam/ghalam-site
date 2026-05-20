@@ -27,6 +27,8 @@ async function loadAttendees() {
         email:            r.fields.email?.value || '',
         phone:            r.fields.phone?.value || '',
         comment:          r.fields.comment?.value || '',
+        linkedInURL:      r.fields.linkedInURL?.value || '',
+        colorTag:         r.fields.colorTag?.value || 'clear',
         notes:            r.fields.notes?.value || '',
         isCheckedIn:      (r.fields.isCheckedIn?.value || 0) === 1,
         thumbsUp:         r.fields.thumbsUp?.value || [],
@@ -73,8 +75,13 @@ function renderAttendees(list) {
     el.innerHTML = '<div class="empty"><div class="empty-icon">👤</div>No attendees found.</div>';
     return;
   }
-  el.innerHTML = list.map((a, i) => `
-    <div class="attendee-card" onclick="selectAttendee('${escHtml(a.id)}')">
+  el.innerHTML = list.map((a, i) => {
+    const tagColor = { red: '#ef4444', blue: '#3b82f6' }[a.colorTag];
+    const stripStyle = tagColor
+      ? `border-left: 4px solid ${tagColor}; padding-left: 10px;`
+      : '';
+    return `
+    <div class="attendee-card" onclick="selectAttendee('${escHtml(a.id)}')" style="${stripStyle}">
       <div class="attendee-avatar ${a.isCheckedIn ? 'checked-in' : ''}">
         ${a.photoURL ? `<img src="${escHtml(a.photoURL)}" alt="${escHtml(a.name)}">` : initials(a.name)}
       </div>
@@ -87,6 +94,6 @@ function renderAttendees(list) {
         ${a.notes ? '<div class="note-dot">✎</div>' : ''}
       </div>
     </div>
-  `).join('');
+  `}).join('');
 }
 
