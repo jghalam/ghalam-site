@@ -66,11 +66,22 @@ function filterAttendees(q) {
         a.company.toLowerCase().includes(q.toLowerCase()) ||
         a.role.toLowerCase().includes(q.toLowerCase())
       );
-  renderAttendees(filtered);
+  renderAttendees(filtered, q.trim() !== '');
 }
 
-function renderAttendees(list) {
+function renderAttendees(list, isFiltered = false) {
   const el = document.getElementById('attendee-list');
+
+  // Update title with count
+  const titleEl = document.getElementById('attendees-title');
+  if (titleEl && activeEvent) {
+    const checkedIn = list.filter(a => a.isCheckedIn).length;
+    const countLabel = isFiltered
+      ? `${list.length} of ${allAttendees.length}`
+      : `${allAttendees.length}`;
+    titleEl.innerHTML = `${escHtml(activeEvent.name)}<span style="font-size:12px;font-weight:400;color:var(--text2);margin-left:8px;">${countLabel} attendees · ${checkedIn} checked in</span>`;
+  }
+
   if (list.length === 0) {
     el.innerHTML = '<div class="empty"><div class="empty-icon">👤</div>No attendees found.</div>';
     return;
@@ -104,14 +115,27 @@ let _migrationTimer = null;
 let _migrationCancelled = false;
 
 function startMigrationLongPress() {
+  const el = document.getElementById('attendees-title');
+  el.style.transition = 'background 1.5s linear';
+  el.style.background = 'rgba(0,212,232,0.15)';
+  el.style.borderRadius = '6px';
   _migrationTimer = setTimeout(() => {
     _migrationTimer = null;
+    el.style.transition = '';
+    el.style.background = '';
     openMigrationModal();
   }, 1500);
 }
 
 function cancelMigrationLongPress() {
-  if (_migrationTimer) { clearTimeout(_migrationTimer); _migrationTimer = null; }
+  if (_migrationTimer) {
+    clearTimeout(_migrationTimer);
+    _migrationTimer = null;
+    const el = document.getElementById('attendees-title');
+    el.style.transition = 'background 0.3s';
+    el.style.background = '';
+    setTimeout(() => { el.style.transition = ''; }, 300);
+  }
 }
 
 function openMigrationModal() {
@@ -151,104 +175,122 @@ function logMigration(msg, type = 'info') {
 }
 
 async function runLinkedInMigration() {
-  if (!activeEvent) { logMigration('No active event.', 'error'); return; }
-  if (!ckWebAuthToken) { logMigration('Not authenticated — please sign in first.', 'error'); return; }
+  console.log('[Migration] Run clicked. activeEvent:', !!activeEvent, 'ckWebAuthToken:', !!ckWebAuthToken, 'allAttendees:', allAttendees?.length);
 
-  _migrationCancelled = false;
-  const runBtn = document.getElementById('migration-run-btn');
-  runBtn.disabled = true;
-  runBtn.textContent = 'Running…';
-  document.getElementById('migration-progress-bar-wrap').style.display = '';
-  document.getElementById('migration-log').innerHTML = '';
+  const runBtn    = document.getElementById('migration-run-btn');
+  const statusEl  = document.getElementById('migration-status');
+  const logEl     = document.getElementById('migration-log');
+  const barWrap   = document.getElementById('migration-progress-bar-wrap');
+  const bar       = document.getElementById('migration-progress-bar');
+  const closeBtn  = document.getElementById('migration-close-btn');
+  const cancelBtn = document.getElementById('migration-cancel-btn');
 
-  // Find candidates: comment looks like a LinkedIn URL, linkedInURL is empty
-  const isLinkedIn = s => s && s.toLowerCase().includes('linkedin.com');
-  const candidates = allAttendees.filter(a => isLinkedIn(a.comment) && !a.linkedInURL);
+  const showError = msg => {
+    statusEl.style.color = 'var(--red)';
+    statusEl.textContent = '⚠ ' + msg;
+    runBtn.disabled = false;
+    runBtn.textContent = 'Run Migration';
+  };
 
-  if (candidates.length === 0) {
-    logMigration('No records found with a LinkedIn URL in the Comment field.', 'info');
-    document.getElementById('migration-status').textContent = 'Nothing to migrate.';
-    document.getElementById('migration-progress-bar').style.width = '100%';
-    runBtn.style.display = 'none';
-    document.getElementById('migration-close-btn').style.display = '';
-    return;
-  }
+  try {
+    if (!activeEvent)      { showError('No active event — go back and open an event first.'); return; }
+    if (!ckWebAuthToken)   { showError('Not authenticated — please sign in first.'); return; }
+    if (!allAttendees?.length) { showError('No attendees loaded — refresh the attendee list first.'); return; }
 
-  logMigration(`Found ${candidates.length} record(s) to migrate out of ${allAttendees.length} total.`, 'info');
-  document.getElementById('migration-status').textContent = `Migrating 0 / ${candidates.length}…`;
+    _migrationCancelled = false;
+    runBtn.disabled = true;
+    runBtn.textContent = 'Running…';
+    statusEl.style.color = '';
+    barWrap.style.display = '';
+    logEl.innerHTML = '';
 
-  const dbName = activeEvent.dbName || (activeEvent.isOrganizer ? 'private' : 'shared');
-  const zoneID = { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.organizerID || activeEvent.ownerName };
-  const ckBase = new URLSearchParams({ ckjsBuildVersion:'2420ProjectDev22', ckjsVersion:'2.6.4', ckAPIToken:API_TOKEN, ckWebAuthToken }).toString();
+    const isLinkedIn = s => s && s.toLowerCase().includes('linkedin.com');
+    const candidates = allAttendees.filter(a => isLinkedIn(a.comment) && !a.linkedInURL);
 
-  let done = 0, succeeded = 0, failed = 0;
+    console.log('[Migration] Candidates:', candidates.length);
 
-  for (const a of candidates) {
-    if (_migrationCancelled) { logMigration('Migration cancelled by user.', 'error'); break; }
-
-    const pct = Math.round((done / candidates.length) * 100);
-    document.getElementById('migration-progress-bar').style.width = pct + '%';
-    document.getElementById('migration-status').textContent = `Migrating ${done + 1} / ${candidates.length}: ${a.name}`;
-
-    try {
-      // Fetch fresh changeTag for this record
-      const lookupResp = await fetch(`https://api.apple-cloudkit.com/database/1/${CONTAINER}/${ENV}/${dbName}/records/lookup?${ckBase}`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ zoneID, records: [{ recordName: a._ckRecord.recordName }] })
-      });
-      const lookupData = await lookupResp.json();
-      const fRec = (lookupData.records || [])[0];
-      if (!fRec || fRec.serverErrorCode) throw new Error(fRec?.reason || 'Lookup failed');
-
-      // Double-check server-side: only migrate if server comment is also a LinkedIn URL
-      // and server linkedInURL is still empty (guard against race)
-      const serverComment    = fRec.fields.comment?.value || '';
-      const serverLinkedInURL = fRec.fields.linkedInURL?.value || '';
-      if (!isLinkedIn(serverComment) || serverLinkedInURL) {
-        logMigration(`${a.name} — skipped (already migrated or comment changed)`, 'skip');
-        done++; continue;
-      }
-
-      // Move: write linkedInURL = comment, clear comment
-      const moResp = await fetch(`https://api.apple-cloudkit.com/database/1/${CONTAINER}/${ENV}/${dbName}/records/modify?${ckBase}`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ zoneID, operations: [{ operationType: 'update', record: {
-          recordName: fRec.recordName,
-          recordChangeTag: fRec.recordChangeTag,
-          fields: {
-            linkedInURL: { value: serverComment },
-            comment:     { value: '' }
-          }
-        }}]})
-      });
-      const moData = await moResp.json();
-      const mr = (moData.records || [])[0];
-      if (!mr || mr.serverErrorCode) throw new Error(mr?.reason || 'Save failed');
-
-      // Update local state
-      a.linkedInURL = serverComment;
-      a.comment = '';
-      const idx = allAttendees.findIndex(x => x.id === a.id);
-      if (idx !== -1) { allAttendees[idx].linkedInURL = serverComment; allAttendees[idx].comment = ''; }
-
-      logMigration(`${a.name} — moved "${serverComment}"`, 'ok');
-      succeeded++;
-    } catch(e) {
-      logMigration(`${a.name} — ERROR: ${e.message}`, 'error');
-      failed++;
+    if (candidates.length === 0) {
+      logMigration('No records found with a LinkedIn URL in the Comment field.', 'info');
+      statusEl.textContent = 'Nothing to migrate.';
+      bar.style.width = '100%';
+      runBtn.style.display = 'none';
+      closeBtn.style.display = '';
+      return;
     }
 
-    done++;
-    // Small delay between records to stay within CloudKit rate limits
-    await new Promise(r => setTimeout(r, 350));
+    logMigration(`Found ${candidates.length} record(s) to migrate out of ${allAttendees.length} total.`, 'info');
+    statusEl.textContent = `Migrating 0 / ${candidates.length}…`;
+
+    const dbName = activeEvent.dbName || (activeEvent.isOrganizer ? 'private' : 'shared');
+    const zoneID = { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.organizerID || activeEvent.ownerName };
+    const ckBase = new URLSearchParams({ ckjsBuildVersion:'2420ProjectDev22', ckjsVersion:'2.6.4', ckAPIToken:API_TOKEN, ckWebAuthToken }).toString();
+
+    console.log('[Migration] dbName:', dbName, 'zoneID:', JSON.stringify(zoneID));
+
+    let done = 0, succeeded = 0, failed = 0;
+
+    for (const a of candidates) {
+      if (_migrationCancelled) { logMigration('Migration cancelled by user.', 'error'); break; }
+
+      bar.style.width = Math.round((done / candidates.length) * 100) + '%';
+      statusEl.textContent = `Migrating ${done + 1} / ${candidates.length}: ${a.name}`;
+
+      try {
+        const lookupResp = await fetch(`https://api.apple-cloudkit.com/database/1/${CONTAINER}/${ENV}/${dbName}/records/lookup?${ckBase}`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ zoneID, records: [{ recordName: a._ckRecord.recordName }] })
+        });
+        const lookupData = await lookupResp.json();
+        const fRec = (lookupData.records || [])[0];
+        if (!fRec || fRec.serverErrorCode) throw new Error(fRec?.reason || 'Lookup failed');
+
+        const serverComment     = fRec.fields.comment?.value || '';
+        const serverLinkedInURL = fRec.fields.linkedInURL?.value || '';
+        if (!isLinkedIn(serverComment) || serverLinkedInURL) {
+          logMigration(`${a.name} — skipped (already migrated or comment changed)`, 'skip');
+          done++; continue;
+        }
+
+        const moResp = await fetch(`https://api.apple-cloudkit.com/database/1/${CONTAINER}/${ENV}/${dbName}/records/modify?${ckBase}`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ zoneID, operations: [{ operationType: 'update', record: {
+            recordName: fRec.recordName,
+            recordChangeTag: fRec.recordChangeTag,
+            fields: { linkedInURL: { value: serverComment }, comment: { value: '' } }
+          }}]})
+        });
+        const moData = await moResp.json();
+        const mr = (moData.records || [])[0];
+        if (!mr || mr.serverErrorCode) throw new Error(mr?.reason || 'Save failed');
+
+        a.linkedInURL = serverComment;
+        a.comment = '';
+        const idx = allAttendees.findIndex(x => x.id === a.id);
+        if (idx !== -1) { allAttendees[idx].linkedInURL = serverComment; allAttendees[idx].comment = ''; }
+
+        logMigration(`${a.name} — moved "${serverComment}"`, 'ok');
+        succeeded++;
+      } catch(e) {
+        console.error('[Migration] Record error:', a.name, e);
+        logMigration(`${a.name} — ERROR: ${e.message}`, 'error');
+        failed++;
+      }
+
+      done++;
+      await new Promise(r => setTimeout(r, 350));
+    }
+
+    bar.style.width = '100%';
+    const summary = `Done — ${succeeded} migrated, ${failed} failed, ${candidates.length - done} cancelled.`;
+    statusEl.textContent = summary;
+    statusEl.style.color = failed === 0 ? 'var(--green)' : '';
+    logMigration(summary, succeeded > 0 && failed === 0 ? 'ok' : 'info');
+    runBtn.style.display = 'none';
+    closeBtn.style.display = '';
+    cancelBtn.style.display = 'none';
+
+  } catch(e) {
+    console.error('[Migration] Unexpected error:', e);
+    showError('Unexpected error: ' + e.message);
   }
-
-  document.getElementById('migration-progress-bar').style.width = '100%';
-  const summary = `Done — ${succeeded} migrated, ${failed} failed, ${candidates.length - done} cancelled.`;
-  document.getElementById('migration-status').textContent = summary;
-  logMigration(summary, succeeded === candidates.length ? 'ok' : 'info');
-
-  runBtn.style.display = 'none';
-  document.getElementById('migration-close-btn').style.display = '';
-  document.getElementById('migration-cancel-btn').style.display = 'none';
 }
