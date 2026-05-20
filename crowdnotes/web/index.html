@@ -191,8 +191,8 @@
     <div class="topbar-row2" id="attendees-title"
       title="Long-press to access migration tools"
       onmousedown="startMigrationLongPress()" onmouseup="cancelMigrationLongPress()" onmouseleave="cancelMigrationLongPress()"
-      ontouchstart="startMigrationLongPress()" ontouchend="cancelMigrationLongPress()" ontouchcancel="cancelMigrationLongPress()"
-      style="cursor:default; user-select:none;"></div>
+      ontouchstart="event.preventDefault(); startMigrationLongPress()" ontouchend="cancelMigrationLongPress()" ontouchcancel="cancelMigrationLongPress()"
+      style="cursor:default; user-select:none; -webkit-user-select:none; -webkit-touch-callout:none;"></div>
   </div>
   <div class="search-bar">
     <input class="search-input" id="search-input" placeholder="Search attendees…" oninput="filterAttendees(this.value)">
