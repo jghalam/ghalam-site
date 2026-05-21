@@ -33,7 +33,7 @@ async function printBadges() {
 
   // Build badge HTML for each attendee
   const logoHTML = activeEvent.logoURL
-    ? `<img src="${activeEvent.logoURL}" alt="" style="height:28px;width:28px;object-fit:contain;flex-shrink:0;">`
+    ? `<img src="${activeEvent.logoURL}" alt="" style="height:44px;width:44px;object-fit:contain;flex-shrink:0;">`
     : '';
 
   const badgesHTML = sorted.map((a, i) => {
