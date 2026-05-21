@@ -91,6 +91,10 @@ function renderAttendees(list, isFiltered = false) {
     const stripStyle = tagColor
       ? `border-left: 4px solid ${tagColor}; padding-left: 10px;`
       : '';
+    const net = (a.thumbsUp?.length || 0) - (a.thumbsDown?.length || 0);
+    const netHTML = net !== 0
+      ? `<span style="font-size:13px;font-weight:600;color:${net > 0 ? '#22c55e' : '#ef4444'};flex-shrink:0;">${net > 0 ? '+' : ''}${net}</span>`
+      : '';
     return `
     <div class="attendee-card" onclick="selectAttendee('${escHtml(a.id)}')" style="${stripStyle}">
       <div class="attendee-avatar ${a.isCheckedIn ? 'checked-in' : ''}">
@@ -101,6 +105,7 @@ function renderAttendees(list, isFiltered = false) {
         <div class="attendee-meta">${escHtml([a.role, a.company].filter(Boolean).join(' · '))}</div>
       </div>
       <div class="attendee-indicators">
+        ${netHTML}
         ${a.isCheckedIn ? '<div class="checkin-dot"></div>' : ''}
         ${a.notes ? '<div class="note-dot">✎</div>' : ''}
       </div>
