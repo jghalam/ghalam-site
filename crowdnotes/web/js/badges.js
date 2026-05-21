@@ -67,12 +67,6 @@ async function printBadges() {
   <meta charset="UTF-8">
   <title>Badges — ${escapeHTML(activeEvent.name)}</title>
   <style>
-    /* ── Avery 8395: 4" × 3", 2 columns × 4 rows, 8 per page
-       Sheet: 8.5" × 11"
-       Top margin: 0.5"  Left margin: 0.19"
-       Label width: 4"   Label height: 3"
-       Horizontal gap: 0.125"  Vertical gap: 0.25"         */
-
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
@@ -84,20 +78,20 @@ async function printBadges() {
 
     .page {
       width: 8.5in;
-      padding: 0.5in 0.19in 0 0.19in;
+      height: 11in;
+      padding: 0.5in 0.19in 0.5in 0.19in;
       display: grid;
-      grid-template-columns: 4in 4in;
-      grid-template-rows: repeat(4, 3in);
+      grid-template-columns: repeat(2, 4in);
+      grid-template-rows: repeat(4, 1fr);
       column-gap: 0.125in;
-      row-gap: 0.25in;
+      row-gap: 0;
       page-break-after: always;
+      overflow: hidden;
     }
 
     .badge {
-      width: 4in;
-      height: 3in;
-      padding: 0.18in 0.22in 0.16in 0.22in;
-      border: 0.5px dashed #ccc;   /* guide line — not printed on laser */
+      padding: 0.15in 0.2in;
+      border: 0.5px dashed #ccc;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -143,7 +137,6 @@ async function printBadges() {
       flex-shrink: 0;
     }
 
-    /* ── Screen preview styles (overridden at print) ── */
     @media screen {
       body {
         background: #f0f0f0;
@@ -153,6 +146,8 @@ async function printBadges() {
         background: #fff;
         box-shadow: 0 2px 16px rgba(0,0,0,0.15);
         margin: 0 auto 32px auto;
+        height: auto;
+        min-height: 11in;
       }
       .print-hint {
         text-align: center;
@@ -164,7 +159,6 @@ async function printBadges() {
       .print-hint strong { color: #111; }
     }
 
-    /* ── Print: hide dashes, enforce exact dimensions ── */
     @media print {
       body { background: #fff; padding: 0; }
       .print-hint { display: none; }
@@ -172,6 +166,7 @@ async function printBadges() {
         box-shadow: none;
         margin: 0;
         page-break-after: always;
+        break-after: page;
       }
       .badge { border-color: transparent; }
     }
