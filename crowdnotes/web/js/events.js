@@ -81,10 +81,11 @@ async function fetchEventRecord(zoneID, database, isOrganizer) {
         recordName:  r.recordName,
         organizerID: r.fields.organizerID?.value || ownerRN,
         shareURL:    r.fields.shareURL?.value || null,
+        logoURL:     r.fields.logo?.value?.downloadURL || null,
         isOrganizer,
         database,
         dbName:      isOrganizer ? 'private' : 'shared',
-        modified:    r.modified?.timestamp || null   // ms epoch — CloudKit system field
+        modified:    r.modified?.timestamp || null
       };
     }
   } catch(e) {

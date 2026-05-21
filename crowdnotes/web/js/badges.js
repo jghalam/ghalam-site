@@ -32,16 +32,23 @@ async function printBadges() {
   const tagColor = { red: '#ef4444', blue: '#3b82f6' };
 
   // Build badge HTML for each attendee
+  const logoHTML = activeEvent.logoURL
+    ? `<img src="${activeEvent.logoURL}" alt="" style="height:28px;width:28px;object-fit:contain;flex-shrink:0;">`
+    : '';
+
   const badgesHTML = sorted.map((a, i) => {
     const qr = qrDataURLs[i];
     const color = tagColor[a.colorTag] || null;
     const colorDot = color
-      ? `<div style="width:36px;height:36px;border-radius:50%;background:${color};flex-shrink:0;"></div>`
-      : `<div style="width:36px;height:36px;flex-shrink:0;"></div>`;
+      ? `<div style="width:44px;height:44px;border-radius:50%;background:${color};flex-shrink:0;"></div>`
+      : `<div style="width:44px;height:44px;flex-shrink:0;"></div>`;
 
     return `
       <div class="badge">
-        <div class="badge-event">${escapeHTML(activeEvent.name)}</div>
+        <div class="badge-header">
+          ${logoHTML}
+          <div class="badge-event">${escapeHTML(activeEvent.name)}</div>
+        </div>
         <div class="badge-name">${escapeHTML(a.name)}</div>
         <div class="badge-footer">
           ${qr ? `<img class="badge-qr" src="${qr}" alt="QR">` : '<div class="badge-qr"></div>'}
@@ -95,6 +102,12 @@ async function printBadges() {
       flex-direction: column;
       justify-content: space-between;
       overflow: hidden;
+    }
+
+    .badge-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .badge-event {
