@@ -308,7 +308,7 @@ function showAttendeeStats() {
     { icon: '👤', label: 'Attendees',   value: a.length,                                          color: '#3b82f6' },
     { icon: '✓',  label: 'Checked In',  value: a.filter(x => x.isCheckedIn).length,               color: '#22c55e' },
     { icon: '🔥', label: 'Targeted',    value: a.filter(x => x.targetedBy).length,                color: '#f97316' },
-    { icon: '📎', label: 'Attachments', value: a.filter(x => x.hasAttachment).length,             color: '#06b6d4' },
+    { icon: '📎', label: 'Attachments', value: a.filter(x => x.attachmentURL).length,             color: '#06b6d4' },
     { icon: '📝', label: 'Have Notes',  value: a.filter(x => x.notes && x.notes.trim()).length,   color: '#eab308' },
   ];
 
