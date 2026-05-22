@@ -299,3 +299,31 @@ async function runLinkedInMigration() {
     showError('Unexpected error: ' + e.message);
   }
 }
+
+// ── Attendee Stats ─────────────────────────────────────────
+
+function showAttendeeStats() {
+  const a = allAttendees;
+  const stats = [
+    { icon: '👤', label: 'Attendees',   value: a.length,                                          color: '#3b82f6' },
+    { icon: '✓',  label: 'Checked In',  value: a.filter(x => x.isCheckedIn).length,               color: '#22c55e' },
+    { icon: '🔥', label: 'Targeted',    value: a.filter(x => x.targetedBy).length,                color: '#f97316' },
+    { icon: '📎', label: 'Attachments', value: a.filter(x => x.hasAttachment).length,             color: '#06b6d4' },
+    { icon: '📝', label: 'Have Notes',  value: a.filter(x => x.notes && x.notes.trim()).length,   color: '#eab308' },
+  ];
+
+  document.getElementById('stats-grid').innerHTML = stats.map(s => `
+    <div style="background:var(--bg3);border-radius:12px;padding:16px 12px;text-align:center;">
+      <div style="font-size:22px;margin-bottom:6px;">${s.icon}</div>
+      <div style="font-size:32px;font-weight:700;color:${s.color};line-height:1;">${s.value}</div>
+      <div style="font-size:12px;color:var(--text2);margin-top:5px;">${s.label}</div>
+    </div>
+  `).join('');
+
+  const overlay = document.getElementById('stats-overlay');
+  overlay.style.display = 'flex';
+}
+
+function closeStatsModal() {
+  document.getElementById('stats-overlay').style.display = 'none';
+}

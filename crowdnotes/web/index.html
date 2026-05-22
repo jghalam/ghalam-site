@@ -91,6 +91,17 @@
   </div>
 </div>
 
+<!-- Attendee Stats Modal -->
+<div id="stats-overlay" onclick="closeStatsModal()" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:9000;align-items:center;justify-content:center;padding:20px;">
+  <div onclick="event.stopPropagation()" style="background:var(--bg2);border-radius:16px;padding:24px;width:100%;max-width:380px;box-shadow:0 8px 40px rgba(0,0,0,0.5);">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+      <div style="font-size:16px;font-weight:600;">Event Stats</div>
+      <button onclick="closeStatsModal()" style="background:var(--bg3);border:none;border-radius:50%;width:30px;height:30px;color:var(--text);font-size:16px;cursor:pointer;">✕</button>
+    </div>
+    <div id="stats-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;"></div>
+  </div>
+</div>
+
 <!-- iOS Install Banner (shown for non-Safari iOS browsers; Safari uses the apple-itunes-app meta Smart Banner natively) -->
 <div id="ios-install-banner">
   <img src="https://ghalam.net/crowdnotes/appicon.png" alt="CrowdNotes">
@@ -185,6 +196,7 @@
           style="display:none; background:none; border:none; cursor:pointer; padding:2px; border-radius:6px; overflow:hidden;">
           <canvas id="topbar-qr-preview" width="28" height="28" style="display:block; border-radius:4px;"></canvas>
         </button>
+        <button class="topbar-action" onclick="showAttendeeStats()" title="Event stats">📊</button>
         <button class="topbar-action" onclick="printBadges()" title="Print badges" style="font-size:18px; line-height:1;">🖨</button>
         <button class="topbar-action" onclick="loadAttendees()" title="Refresh">↺</button>
       </div>
