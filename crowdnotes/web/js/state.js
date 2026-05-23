@@ -52,6 +52,12 @@ let scanStream    = null;
 let scanInterval  = null;
 let ckWebAuthToken = '';
 
+// Attendee cache — populated by loadAttendees, consumed by selectEvent.
+// Avoids re-fetching all attendees when the user taps the same event again.
+const ATTENDEE_CACHE_MS   = 120_000; // 2 minutes
+let _attendeesCachedZone  = null;
+let _attendeesCachedAt    = 0;
+
 const _origXHROpen = XMLHttpRequest.prototype.open;
 XMLHttpRequest.prototype.open = function(method, url, ...rest) {
   if (typeof url === 'string' && url.includes('api.apple-cloudkit.com')) {

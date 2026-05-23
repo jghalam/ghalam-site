@@ -1,6 +1,9 @@
 // CrowdNotes — Events screen
 // ── Events ────────────────────────────────────────────────
 async function loadEvents() {
+  // Invalidate attendee cache — a full events refresh means data may have changed.
+  _attendeesCachedZone = null;
+  _attendeesCachedAt   = 0;
   try {
     const leftZones = JSON.parse(localStorage.getItem('leftZoneNames') || '[]');
     const savedShares = JSON.parse(localStorage.getItem('sharedZones') || '[]');
@@ -232,6 +235,16 @@ async function selectEvent(idx) {
   if (_shareURL && qrPreview) renderQRToCanvas(_shareURL, qrPreview, 28).catch(() => {});
 
   showScreen('attendees');
+
+  // Re-use cached attendees if they're fresh and belong to this event —
+  // avoids a full re-fetch when the user navigates back to events and taps the same card.
+  if (_attendeesCachedZone === activeEvent.zoneName &&
+      allAttendees.length > 0 &&
+      Date.now() - _attendeesCachedAt < ATTENDEE_CACHE_MS) {
+    renderAttendees(allAttendees);
+    return;
+  }
+
   loadAttendees();
 }
 

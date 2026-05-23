@@ -41,6 +41,10 @@ async function loadAttendees() {
       };
     }).sort((a,b) => a.name.localeCompare(b.name));
 
+    // Stamp the cache so selectEvent can skip re-fetching if data is still fresh.
+    _attendeesCachedZone = activeEvent?.zoneName || null;
+    _attendeesCachedAt   = Date.now();
+
     // Use attendee modification timestamps as authoritative last-activity.
     // More reliable than fetchZoneLastActivity which may miss records due to pagination.
     if (activeEvent) {
