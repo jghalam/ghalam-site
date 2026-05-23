@@ -98,7 +98,7 @@ function renderAttendees(list, isFiltered = false) {
     return `
     <div class="attendee-card" onclick="selectAttendee('${escHtml(a.id)}')" style="${stripStyle}">
       <div class="attendee-avatar ${a.isCheckedIn ? 'checked-in' : ''}">
-        ${a.photoURL ? `<img src="${escHtml(a.photoURL)}" alt="${escHtml(a.name)}">` : initials(a.name)}
+        ${a.photoURL ? `<img src="${escHtml(a.photoURL)}" alt="${escHtml(a.name)}" loading="lazy">` : initials(a.name)}
       </div>
       <div class="attendee-info">
         <div class="attendee-name">${a.targetedBy ? '🔥 ' : ''}${escHtml(a.name)}</div>

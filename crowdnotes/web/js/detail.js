@@ -299,14 +299,20 @@ async function toggleThumb(direction) {
   if (!ckWebAuthToken) { showToast('Not authenticated'); return; }
   try {
     const stored = a._ckRecord;
-    const zid = { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.ownerName };
-    const freshResp = await activeEvent.database.performQuery({
-      recordType: 'Attendee', filterBy: [{ fieldName: 'name', comparator: 'NOT_EQUALS', fieldValue: { value: '' } }]
-    }, { zoneID: zid });
-    const freshRec = (freshResp.records || []).find(r => r.recordName === stored.recordName);
-    if (!freshRec) throw new Error('Record not found');
     const dbName = activeEvent.dbName || (activeEvent.isOrganizer ? 'private' : 'shared');
     const ckParams = new URLSearchParams({ ckjsBuildVersion:'2420ProjectDev22', ckjsVersion:'2.6.4', ckAPIToken:API_TOKEN, ckWebAuthToken }).toString();
+    const zoneID = { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.organizerID || activeEvent.ownerName };
+
+    // Fetch just this one record for its fresh recordChangeTag —
+    // previously this did a performQuery over all attendees just to find one.
+    const lookupResp = await fetch(`https://api.apple-cloudkit.com/database/1/${CONTAINER}/${ENV}/${dbName}/records/lookup?${ckParams}`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ zoneID, records: [{ recordName: stored.recordName }] })
+    });
+    const lookupData = await lookupResp.json();
+    const freshRec = (lookupData.records || [])[0];
+    if (!freshRec || freshRec.serverErrorCode) throw new Error(freshRec?.reason || 'Record not found');
+
     const fields = {};
     fields[field] = { value: list };
     fields[otherField] = { value: otherList };
@@ -388,25 +394,29 @@ async function saveNote() {
     const stored = currentAttendee._ckRecord;
     if (!stored) throw new Error('No record stored for this attendee');
     if (!ckWebAuthToken) throw new Error('No auth token — please reload');
-    const zid = { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.ownerName };
-    const freshResp = await activeEvent.database.performQuery({
-      recordType: 'Attendee',
-      filterBy: [{ fieldName: 'name', comparator: 'NOT_EQUALS', fieldValue: { value: '' } }]
-    }, { zoneID: zid });
-    const freshRec = (freshResp.records || []).find(r => r.recordName === stored.recordName);
-    if (!freshRec) throw new Error('Could not find record in re-query');
-    const serverNotes = freshRec.fields.notes?.value || '';
-    const mergedNotes = serverNotes ? serverNotes + '|' + entry : entry;
     const dbName = activeEvent.dbName || (activeEvent.isOrganizer ? 'private' : 'shared');
     const ckParams = new URLSearchParams({
       ckjsBuildVersion: '2420ProjectDev22', ckjsVersion: '2.6.4',
       ckAPIToken: API_TOKEN, ckWebAuthToken
     }).toString();
+    const zoneID = { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.organizerID || activeEvent.ownerName };
+
+    // Fetch just this one record to get the latest notes and recordChangeTag —
+    // previously this did a performQuery over all attendees just to find one.
+    const lookupResp = await fetch(`https://api.apple-cloudkit.com/database/1/${CONTAINER}/${ENV}/${dbName}/records/lookup?${ckParams}`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ zoneID, records: [{ recordName: stored.recordName }] })
+    });
+    const lookupData = await lookupResp.json();
+    const freshRec = (lookupData.records || [])[0];
+    if (!freshRec || freshRec.serverErrorCode) throw new Error(freshRec?.reason || 'Record not found');
+    const serverNotes = freshRec.fields.notes?.value || '';
+    const mergedNotes = serverNotes ? serverNotes + '|' + entry : entry;
     const moResp = await fetch(
       `https://api.apple-cloudkit.com/database/1/${CONTAINER}/${ENV}/${dbName}/records/modify?${ckParams}`,
       { method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          zoneID: { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.organizerID || activeEvent.ownerName },
+          zoneID,
           operations: [{ operationType: 'update', record: {
             recordName: freshRec.recordName,
             recordChangeTag: freshRec.recordChangeTag,
