@@ -299,20 +299,14 @@ async function toggleThumb(direction) {
   if (!ckWebAuthToken) { showToast('Not authenticated'); return; }
   try {
     const stored = a._ckRecord;
+    const zid = { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.ownerName };
+    const freshResp = await activeEvent.database.performQuery({
+      recordType: 'Attendee', filterBy: [{ fieldName: 'name', comparator: 'NOT_EQUALS', fieldValue: { value: '' } }]
+    }, { zoneID: zid });
+    const freshRec = (freshResp.records || []).find(r => r.recordName === stored.recordName);
+    if (!freshRec) throw new Error('Record not found');
     const dbName = activeEvent.dbName || (activeEvent.isOrganizer ? 'private' : 'shared');
     const ckParams = new URLSearchParams({ ckjsBuildVersion:'2420ProjectDev22', ckjsVersion:'2.6.4', ckAPIToken:API_TOKEN, ckWebAuthToken }).toString();
-    const zoneID = { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.organizerID || activeEvent.ownerName };
-
-    // Fetch just this one record for its fresh recordChangeTag —
-    // previously this did a performQuery over all attendees just to find one.
-    const lookupResp = await fetch(`https://api.apple-cloudkit.com/database/1/${CONTAINER}/${ENV}/${dbName}/records/lookup?${ckParams}`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ zoneID, records: [{ recordName: stored.recordName }] })
-    });
-    const lookupData = await lookupResp.json();
-    const freshRec = (lookupData.records || [])[0];
-    if (!freshRec || freshRec.serverErrorCode) throw new Error(freshRec?.reason || 'Record not found');
-
     const fields = {};
     fields[field] = { value: list };
     fields[otherField] = { value: otherList };
@@ -394,29 +388,25 @@ async function saveNote() {
     const stored = currentAttendee._ckRecord;
     if (!stored) throw new Error('No record stored for this attendee');
     if (!ckWebAuthToken) throw new Error('No auth token — please reload');
+    const zid = { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.ownerName };
+    const freshResp = await activeEvent.database.performQuery({
+      recordType: 'Attendee',
+      filterBy: [{ fieldName: 'name', comparator: 'NOT_EQUALS', fieldValue: { value: '' } }]
+    }, { zoneID: zid });
+    const freshRec = (freshResp.records || []).find(r => r.recordName === stored.recordName);
+    if (!freshRec) throw new Error('Could not find record in re-query');
+    const serverNotes = freshRec.fields.notes?.value || '';
+    const mergedNotes = serverNotes ? serverNotes + '|' + entry : entry;
     const dbName = activeEvent.dbName || (activeEvent.isOrganizer ? 'private' : 'shared');
     const ckParams = new URLSearchParams({
       ckjsBuildVersion: '2420ProjectDev22', ckjsVersion: '2.6.4',
       ckAPIToken: API_TOKEN, ckWebAuthToken
     }).toString();
-    const zoneID = { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.organizerID || activeEvent.ownerName };
-
-    // Fetch just this one record to get the latest notes and recordChangeTag —
-    // previously this did a performQuery over all attendees just to find one.
-    const lookupResp = await fetch(`https://api.apple-cloudkit.com/database/1/${CONTAINER}/${ENV}/${dbName}/records/lookup?${ckParams}`, {
-      method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ zoneID, records: [{ recordName: stored.recordName }] })
-    });
-    const lookupData = await lookupResp.json();
-    const freshRec = (lookupData.records || [])[0];
-    if (!freshRec || freshRec.serverErrorCode) throw new Error(freshRec?.reason || 'Record not found');
-    const serverNotes = freshRec.fields.notes?.value || '';
-    const mergedNotes = serverNotes ? serverNotes + '|' + entry : entry;
     const moResp = await fetch(
       `https://api.apple-cloudkit.com/database/1/${CONTAINER}/${ENV}/${dbName}/records/modify?${ckParams}`,
       { method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          zoneID,
+          zoneID: { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.organizerID || activeEvent.ownerName },
           operations: [{ operationType: 'update', record: {
             recordName: freshRec.recordName,
             recordChangeTag: freshRec.recordChangeTag,
@@ -439,4 +429,122 @@ async function saveNote() {
   } finally {
     btn.disabled = false; btn.textContent = 'Save Note';
   }
+}
+
+// ── Share / Print attendee profile ────────────────────────────────────────────
+
+function shareAttendeeProfile() {
+  const a = currentAttendee;
+  if (!a) return;
+
+  const win = window.open('', '_blank');
+  if (!win) { showToast('Pop-up blocked — please allow pop-ups'); return; }
+  win.document.write('<html><body style="font-family:sans-serif;padding:40px;color:#555;">Generating profile…</body></html>');
+
+  const tagColor   = { red: '#ef4444', blue: '#3b82f6' }[a.colorTag];
+  const tagBgColor = { red: 'rgba(239,68,68,0.10)', blue: 'rgba(59,130,246,0.10)' }[a.colorTag] || '';
+  const tagLabel   = { red: 'Red', blue: 'Blue' }[a.colorTag] || null;
+
+  const upNames   = (a.thumbsUp   || []).join(', ') || '—';
+  const downNames = (a.thumbsDown || []).join(', ') || '—';
+  const net       = (a.thumbsUp?.length || 0) - (a.thumbsDown?.length || 0);
+  const netColor  = net > 0 ? '#22c55e' : net < 0 ? '#ef4444' : '#888';
+  const netLabel  = net === 0 ? '0' : net > 0 ? `+${net}` : `${net}`;
+
+  // Parse notes — same logic as renderDetail
+  const noteList = a.notes ? a.notes.split('|').filter(Boolean) : [];
+  const notesHTML = noteList.length === 0
+    ? '<div style="font-style:italic;color:#aaa;font-size:10pt;">No notes recorded.</div>'
+    : noteList.slice().reverse().map(note => {
+        const m = note.match(/^\[([^\]]+)\]\s*(.*)/s);
+        if (!m) return `<div class="note"><div class="note-body">${escHtml(note)}</div></div>`;
+        const meta  = m[1];
+        const body  = m[2];
+        if (body === '[deleted]' || body === '[target removed]') return '';
+        const sep   = meta.includes(' - ') ? ' - ' : ' · ';
+        const parts = meta.split(sep);
+        const ts    = parts[0]?.trim() || '';
+        const auth  = parts.slice(1).join(sep).trim();
+        return `<div class="note"><div class="note-meta">${escHtml(auth)} · ${escHtml(ts)}</div><div class="note-body">${escHtml(body)}</div></div>`;
+      }).filter(Boolean).join('');
+
+  const subtitle = [a.role, a.company].filter(Boolean).map(escHtml).join(' · ');
+  const now = new Date().toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' });
+  const eventName = activeEvent?.name || '';
+
+  const linkedInRow = a.linkedInURL
+    ? `<div class="row"><div class="lbl">LinkedIn</div><div class="val"><a href="${escHtml(a.linkedInURL.startsWith('http') ? a.linkedInURL : 'https://' + a.linkedInURL)}" style="color:#0a66c2;">${escHtml(a.linkedInURL)}</a></div></div>`
+    : '';
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>${escHtml(a.name)} — Profile</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, 'Helvetica Neue', Arial, sans-serif; font-size: 11pt; color: #111; padding: 48pt; line-height: 1.5; }
+  .header { padding: 16pt; border-radius: 10pt; margin-bottom: 24pt; background: #f5f5f7; ${tagColor ? `border-top: 4px solid ${tagColor}; background: ${tagBgColor};` : ''} }
+  .event-name { font-size: 8.5pt; color: #888; text-transform: uppercase; letter-spacing: 0.5pt; margin-bottom: 6pt; }
+  .name { font-size: 22pt; font-weight: 700; color: #111; line-height: 1.2; }
+  .subtitle { font-size: 11pt; color: #555; margin-top: 3pt; }
+  .tag-pill { display: inline-block; margin-top: 8pt; padding: 2pt 10pt; border-radius: 20pt; font-size: 9pt; font-weight: 600; background: ${tagColor || '#e5e5ea'}; color: ${tagColor ? '#fff' : '#888'}; }
+  .targeted { display: inline-block; margin-top: 4pt; padding: 2pt 8pt; border-radius: 6pt; font-size: 9pt; font-weight: 600; background: #fff3e0; color: #e65100; }
+  .section { font-size: 9pt; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.6pt; margin: 20pt 0 8pt 0; border-bottom: 1pt solid #e5e5ea; padding-bottom: 4pt; }
+  .row { display: flex; gap: 12pt; padding: 5pt 0; border-bottom: 0.5pt solid #f0f0f0; }
+  .lbl { min-width: 90pt; color: #888; font-size: 10pt; flex-shrink: 0; }
+  .val { color: #111; font-size: 10pt; flex: 1; }
+  .votes-row { display: flex; gap: 20pt; margin: 6pt 0; align-items: center; }
+  .net-score { font-size: 20pt; font-weight: 700; color: ${netColor}; }
+  .vote-detail { font-size: 9pt; color: #888; }
+  .note { background: #f9f9f9; border-left: 3pt solid #d1d1d6; border-radius: 0 6pt 6pt 0; padding: 8pt 10pt; margin-bottom: 8pt; }
+  .note-meta { font-size: 8.5pt; color: #888; margin-bottom: 3pt; }
+  .note-body { font-size: 10pt; color: #111; }
+  .footer { margin-top: 32pt; font-size: 8pt; color: #bbb; text-align: center; border-top: 0.5pt solid #e5e5ea; padding-top: 8pt; }
+  .print-hint { text-align:center; font-size: 13px; color: #555; margin-bottom: 24pt; }
+  .print-hint button { padding: 6px 16px; border-radius: 6px; border: 1px solid #ccc; background: #fff; cursor: pointer; font-size: 13px; }
+  @media print { .print-hint { display: none; } body { padding: 36pt; } }
+</style>
+</head>
+<body>
+  <div class="print-hint">
+    <strong>${escHtml(a.name)}</strong> — Full Profile
+    &nbsp;·&nbsp; <button onclick="window.print()">🖨 Print / Save as PDF</button>
+  </div>
+
+  <div class="header">
+    <div class="event-name">${escHtml(eventName)}</div>
+    <div class="name">${escHtml(a.name)}</div>
+    ${subtitle ? `<div class="subtitle">${subtitle}</div>` : ''}
+    ${a.targetedBy ? `<div class="targeted">🔥 Targeted by ${escHtml(a.targetedBy)}</div>` : ''}
+    ${tagLabel ? `<div class="tag-pill">${tagLabel}</div>` : ''}
+  </div>
+
+  <div class="section">Contact</div>
+  ${a.email ? `<div class="row"><div class="lbl">Email</div><div class="val"><a href="mailto:${escHtml(a.email)}">${escHtml(a.email)}</a></div></div>` : ''}
+  ${a.phone ? `<div class="row"><div class="lbl">Phone</div><div class="val"><a href="tel:${escHtml(a.phone)}">${escHtml(a.phone)}</a></div></div>` : ''}
+  ${linkedInRow}
+  ${a.comment ? `<div class="section">Comment</div><div class="row"><div class="val">${escHtml(a.comment)}</div></div>` : ''}
+
+  <div class="section">Votes</div>
+  <div class="votes-row">
+    <div class="net-score">${netLabel}</div>
+    <div>
+      <div class="vote-detail">👍 ${a.thumbsUp?.length || 0} — ${escHtml(upNames)}</div>
+      <div class="vote-detail">👎 ${a.thumbsDown?.length || 0} — ${escHtml(downNames)}</div>
+    </div>
+  </div>
+
+  <div class="section">Notes (${noteList.length})</div>
+  ${notesHTML || '<div style="font-style:italic;color:#aaa;font-size:10pt;">No notes recorded.</div>'}
+
+  ${a.attachmentFilename ? `<div class="section">Attachment</div><div class="row"><div class="lbl">File</div><div class="val">${escHtml(a.attachmentFilename)}</div></div>` : ''}
+
+  <div class="footer">Generated by CrowdNotes · ${escHtml(now)}</div>
+</body>
+</html>`;
+
+  win.document.open();
+  win.document.write(html);
+  win.document.close();
 }

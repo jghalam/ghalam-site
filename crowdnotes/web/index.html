@@ -225,7 +225,10 @@
   <div class="topbar" style="flex-direction:row;justify-content:space-between;align-items:center;padding-bottom:10px;">
     <button class="topbar-back" onclick="showScreen('attendees')">‹ Attendees</button>
     <div class="topbar-title">Profile</div>
-    <button class="topbar-action" onclick="refreshDetail()" title="Refresh">↺</button>
+    <div style="display:flex;gap:4px;align-items:center;">
+      <button class="topbar-action" onclick="shareAttendeeProfile()" title="Share / Print profile">⬆</button>
+      <button class="topbar-action" onclick="refreshDetail()" title="Refresh">↺</button>
+    </div>
   </div>
   <div id="detail-header-fixed"></div>
   <div id="detail-content">
