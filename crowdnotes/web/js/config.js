@@ -1,7 +1,14 @@
 // CrowdNotes — Configuration & constants
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.1.55';
+const VERSION     = 'v1.1.56';
 console.log('CrowdNotes Web', VERSION);
+
+// Optional: a hosted endpoint that serves the meeting as `text/calendar`
+// (inline). When set, the iOS "Add to Apple Calendar" button navigates here
+// so Safari shows the native "Add All" prompt — the only clean way to import
+// on iOS. Leave null to fall back to the Web Share sheet for the .ics file.
+// Expected to accept ?title=&start=&end=&uid=&notes= (UTC times, YYYYMMDDTHHMMSSZ).
+const HOSTED_EVENT_URL = null; // e.g. 'https://ghalam.net/.netlify/functions/event'
 // Show version in UI
 document.addEventListener('DOMContentLoaded', () => {
   const vEl = document.getElementById('signin-version');

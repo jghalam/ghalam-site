@@ -548,3 +548,198 @@ function shareAttendeeProfile() {
   win.document.write(html);
   win.document.close();
 }
+
+// ── Schedule Meeting / Calendar event ─────────────────────────────────────────
+
+// iOS detection that also catches iPadOS 13+ (reports as "MacIntel" desktop UA).
+function isIOSDevice() {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+    (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
+function openScheduleMeeting() {
+  if (!currentAttendee) return;
+  document.getElementById('sched-title').textContent = meetingTitle();
+  document.getElementById('sched-datetime').value = defaultMeetingLocal();
+  document.getElementById('sched-duration').value = '30';
+  renderScheduleActions();
+  updateSchedulePreview();
+  document.getElementById('schedule-overlay').style.display = 'flex';
+}
+
+function closeScheduleMeeting() {
+  document.getElementById('schedule-overlay').style.display = 'none';
+}
+
+function updateSchedulePreview() {
+  const el = document.getElementById('sched-invitee');
+  const email = currentAttendee && currentAttendee.email;
+  el.textContent = email
+    ? 'Google Calendar invitee: ' + email
+    : 'No email on file — invitee can\u2019t be pre-filled';
+}
+
+// Apple Calendar is iOS-only (per design); other platforms get a file download.
+function renderScheduleActions() {
+  const ios = isIOSDevice();
+  const btns = [];
+  if (ios) {
+    btns.push(scheduleActionBtn('🗓️', 'Add to Apple Calendar', '#ef4444', 'scheduleToApple()'));
+  }
+  btns.push(scheduleActionBtn('📅', 'Add to Google Calendar', '#3b82f6', 'scheduleToGoogle()'));
+  if (!ios) {
+    btns.push(scheduleActionBtn('⬇️', 'Download .ics file', '#6e6e73', 'scheduleDownloadICS()'));
+  }
+  document.getElementById('sched-actions').innerHTML = btns.join('');
+}
+
+function scheduleActionBtn(icon, label, color, onclick) {
+  return `<button onclick="${onclick}" style="display:flex;align-items:center;gap:12px;width:100%;padding:13px;border-radius:var(--radius);border:1px solid var(--bg3);background:var(--bg);color:var(--text);font-size:15px;cursor:pointer;text-align:left;">
+    <span style="width:30px;height:30px;border-radius:7px;background:${color};display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">${icon}</span>${label}</button>`;
+}
+
+// ── Calendar destinations ─────────────────────────────────────────────────────
+
+function scheduleToGoogle() {
+  const { start, end } = meetingDates();
+  const params = new URLSearchParams({
+    action: 'TEMPLATE',
+    text:   meetingTitle(),
+    dates:  `${start}/${end}`,
+    details: meetingNotes(),
+  });
+  if (currentAttendee.email) params.append('add', currentAttendee.email);
+  window.open('https://calendar.google.com/calendar/render?' + params.toString(), '_blank');
+  closeScheduleMeeting();
+}
+
+async function scheduleToApple() {
+  // Cleanest path: a hosted endpoint serving text/calendar → Safari "Add All".
+  if (typeof HOSTED_EVENT_URL !== 'undefined' && HOSTED_EVENT_URL) {
+    const { start, end } = meetingDates();
+    const p = new URLSearchParams({
+      title: meetingTitle(), start, end,
+      uid: (currentAttendee.id || 'evt') + '@crowdnotes',
+      notes: meetingNotes(),
+    });
+    window.location.href = HOSTED_EVENT_URL + '?' + p.toString();
+    closeScheduleMeeting();
+    return;
+  }
+  // Client-only fallback: share the .ics file via the native share sheet.
+  const ics  = buildMeetingICS();
+  const name = icsFileName();
+  try {
+    const file = new File([ics], name, { type: 'text/calendar' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      await navigator.share({ files: [file], title: meetingTitle() });
+      closeScheduleMeeting();
+      return;
+    }
+  } catch (e) {
+    if (e && e.name === 'AbortError') return; // user cancelled the sheet
+  }
+  // Last resort: open the .ics blob so Safari offers to add it.
+  const url = URL.createObjectURL(new Blob([ics], { type: 'text/calendar' }));
+  window.location.href = url;
+  setTimeout(() => URL.revokeObjectURL(url), 10000);
+  closeScheduleMeeting();
+}
+
+function scheduleDownloadICS() {
+  const blob = new Blob([buildMeetingICS()], { type: 'text/calendar;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = icsFileName();
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  showToast('.ics file downloaded');
+  closeScheduleMeeting();
+}
+
+// ── Content builders ──────────────────────────────────────────────────────────
+
+function meetingTitle() {
+  return 'Meet with ' + (currentAttendee.name || '');
+}
+
+function meetingNotes() {
+  const a = currentAttendee;
+  const lines = [];
+  if (a.role)        lines.push('Role: ' + a.role);
+  if (a.company)     lines.push('Company: ' + a.company);
+  if (a.email)       lines.push('Email: ' + a.email);
+  if (a.phone)       lines.push('Phone: ' + a.phone);
+  if (a.linkedInURL) lines.push('LinkedIn: ' + a.linkedInURL);
+  if (activeEvent && activeEvent.name) lines.push('Event: ' + activeEvent.name);
+  return lines.join('\n');
+}
+
+// Returns UTC strings in iCal basic format (YYYYMMDDTHHMMSSZ) for start/end.
+function meetingDates() {
+  const val = document.getElementById('sched-datetime').value; // local, no tz
+  const mins = parseInt(document.getElementById('sched-duration').value, 10) || 30;
+  const startDate = val ? new Date(val) : new Date();
+  const endDate   = new Date(startDate.getTime() + mins * 60000);
+  return { start: icsDateUTC(startDate), end: icsDateUTC(endDate) };
+}
+
+function buildMeetingICS() {
+  const { start, end } = meetingDates();
+  const a = currentAttendee;
+  const lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//CrowdNotes//Web//EN',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    'BEGIN:VEVENT',
+    'UID:' + (a.id || 'evt') + '@crowdnotes',
+    'DTSTAMP:' + icsDateUTC(new Date()),
+    'DTSTART:' + start,
+    'DTEND:'   + end,
+    'SUMMARY:' + icsEsc(meetingTitle()),
+    'DESCRIPTION:' + icsEsc(meetingNotes()),
+  ];
+  if (a.linkedInURL) {
+    const u = a.linkedInURL.startsWith('http') ? a.linkedInURL : 'https://' + a.linkedInURL;
+    lines.push('URL:' + u);
+  }
+  lines.push('END:VEVENT', 'END:VCALENDAR');
+  return lines.join('\r\n') + '\r\n';
+}
+
+// ── Small helpers ─────────────────────────────────────────────────────────────
+
+function icsEsc(s) {
+  return String(s)
+    .replace(/\\/g, '\\\\')
+    .replace(/;/g, '\\;')
+    .replace(/,/g, '\\,')
+    .replace(/\n/g, '\\n');
+}
+
+function icsDateUTC(d) {
+  return d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+}
+
+function icsFileName() {
+  const safe = (currentAttendee.name || 'attendee')
+    .replace(/\s+/g, '_')
+    .replace(/\//g, '-');
+  return 'Meet_with_' + safe + '.ics';
+}
+
+function defaultMeetingLocal() {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  d.setHours(10, 0, 0, 0);
+  const wd = d.getDay();              // 0 Sun … 6 Sat
+  if (wd === 0) d.setDate(d.getDate() + 1);   // Sun → Mon
+  if (wd === 6) d.setDate(d.getDate() + 2);   // Sat → Mon
+  const p = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+}
