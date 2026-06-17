@@ -1,6 +1,6 @@
 // CrowdNotes — Configuration & constants
 // ── Config ──────────────────────────────────────────────
-const VERSION     = 'v1.1.56';
+const VERSION     = 'v1.1.57';
 console.log('CrowdNotes Web', VERSION);
 
 // Optional: a hosted endpoint that serves the meeting as `text/calendar`

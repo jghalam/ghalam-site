@@ -580,16 +580,19 @@ function updateSchedulePreview() {
 }
 
 // Apple Calendar is iOS-only (per design); other platforms get a file download.
+// Apple Calendar gets a true "Add" label only when a hosted text/calendar
+// endpoint is configured. Otherwise the .ics path (share on iOS, download
+// elsewhere) is the honest option and is always offered.
 function renderScheduleActions() {
-  const ios = isIOSDevice();
+  const ios    = isIOSDevice();
+  const hosted = (typeof HOSTED_EVENT_URL !== 'undefined' && HOSTED_EVENT_URL);
   const btns = [];
-  if (ios) {
+  if (ios && hosted) {
     btns.push(scheduleActionBtn('🗓️', 'Add to Apple Calendar', '#ef4444', 'scheduleToApple()'));
   }
   btns.push(scheduleActionBtn('📅', 'Add to Google Calendar', '#3b82f6', 'scheduleToGoogle()'));
-  if (!ios) {
-    btns.push(scheduleActionBtn('⬇️', 'Download .ics file', '#6e6e73', 'scheduleDownloadICS()'));
-  }
+  btns.push(scheduleActionBtn('📤', ios ? 'Share .ics file' : 'Download .ics file',
+                              '#6e6e73', 'scheduleICSFile()'));
   document.getElementById('sched-actions').innerHTML = btns.join('');
 }
 
@@ -610,53 +613,50 @@ function scheduleToGoogle() {
   });
   if (currentAttendee.email) params.append('add', currentAttendee.email);
   window.open('https://calendar.google.com/calendar/render?' + params.toString(), '_blank');
+  appendMeetingNote();          // log to the attendee record (page stays alive)
   closeScheduleMeeting();
 }
 
+// Only invoked when HOSTED_EVENT_URL is configured: navigates Safari to a
+// hosted text/calendar response so it shows the native "Add All" prompt.
 async function scheduleToApple() {
-  // Cleanest path: a hosted endpoint serving text/calendar → Safari "Add All".
-  if (typeof HOSTED_EVENT_URL !== 'undefined' && HOSTED_EVENT_URL) {
-    const { start, end } = meetingDates();
-    const p = new URLSearchParams({
-      title: meetingTitle(), start, end,
-      uid: (currentAttendee.id || 'evt') + '@crowdnotes',
-      notes: meetingNotes(),
-    });
-    window.location.href = HOSTED_EVENT_URL + '?' + p.toString();
-    closeScheduleMeeting();
-    return;
-  }
-  // Client-only fallback: share the .ics file via the native share sheet.
+  const { start, end } = meetingDates();
+  const p = new URLSearchParams({
+    title: meetingTitle(), start, end,
+    uid: (currentAttendee.id || 'evt') + '@crowdnotes',
+    notes: meetingNotes(),
+  });
+  await appendMeetingNote();    // log before we navigate away
+  window.location.href = HOSTED_EVENT_URL + '?' + p.toString();
+}
+
+// .ics via the native share sheet (iOS) or a file download (desktop).
+async function scheduleICSFile() {
   const ics  = buildMeetingICS();
   const name = icsFileName();
   try {
     const file = new File([ics], name, { type: 'text/calendar' });
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      // share() must run inside the click gesture — don't await anything first.
       await navigator.share({ files: [file], title: meetingTitle() });
+      await appendMeetingNote();
       closeScheduleMeeting();
       return;
     }
   } catch (e) {
-    if (e && e.name === 'AbortError') return; // user cancelled the sheet
+    if (e && e.name === 'AbortError') { closeScheduleMeeting(); return; }
   }
-  // Last resort: open the .ics blob so Safari offers to add it.
-  const url = URL.createObjectURL(new Blob([ics], { type: 'text/calendar' }));
-  window.location.href = url;
-  setTimeout(() => URL.revokeObjectURL(url), 10000);
-  closeScheduleMeeting();
-}
-
-function scheduleDownloadICS() {
-  const blob = new Blob([buildMeetingICS()], { type: 'text/calendar;charset=utf-8' });
-  const url  = URL.createObjectURL(blob);
-  const a    = document.createElement('a');
+  // Desktop / no Web Share: download the file.
+  const url = URL.createObjectURL(new Blob([ics], { type: 'text/calendar;charset=utf-8' }));
+  const a = document.createElement('a');
   a.href = url;
-  a.download = icsFileName();
+  a.download = name;
   document.body.appendChild(a);
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
-  showToast('.ics file downloaded');
+  await appendMeetingNote();
+  showToast('.ics file ready');
   closeScheduleMeeting();
 }
 
@@ -676,6 +676,70 @@ function meetingNotes() {
   if (a.linkedInURL) lines.push('LinkedIn: ' + a.linkedInURL);
   if (activeEvent && activeEvent.name) lines.push('Event: ' + activeEvent.name);
   return lines.join('\n');
+}
+
+// Logs a meeting note to the attendee's CloudKit record, matching saveNote()'s
+// format and re-query/merge/modify pattern. Best-effort: failures only toast.
+async function appendMeetingNote() {
+  try {
+    const a = currentAttendee;
+    const stored = a && a._ckRecord;
+    if (!stored || !ckWebAuthToken) return;
+    const now = new Date();
+    const ts  = now.toLocaleDateString('en-US', { month: 'numeric', day: 'numeric', year: '2-digit' })
+              + ', ' + now.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    const entry = `[${ts} - ${recruiterName}] ${meetingNoteText()}`;
+    const zid = { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.ownerName };
+    const freshResp = await activeEvent.database.performQuery({
+      recordType: 'Attendee',
+      filterBy: [{ fieldName: 'name', comparator: 'NOT_EQUALS', fieldValue: { value: '' } }]
+    }, { zoneID: zid });
+    const freshRec = (freshResp.records || []).find(r => r.recordName === stored.recordName);
+    if (!freshRec) return;
+    const serverNotes = freshRec.fields.notes?.value || '';
+    const mergedNotes = serverNotes ? serverNotes + '|' + entry : entry;
+    const dbName = activeEvent.dbName || (activeEvent.isOrganizer ? 'private' : 'shared');
+    const ckParams = new URLSearchParams({
+      ckjsBuildVersion: '2420ProjectDev22', ckjsVersion: '2.6.4',
+      ckAPIToken: API_TOKEN, ckWebAuthToken
+    }).toString();
+    const moResp = await fetch(
+      `https://api.apple-cloudkit.com/database/1/${CONTAINER}/${ENV}/${dbName}/records/modify?${ckParams}`,
+      { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          zoneID: { zoneName: activeEvent.zoneName, ownerRecordName: activeEvent.organizerID || activeEvent.ownerName },
+          operations: [{ operationType: 'update', record: {
+            recordName: freshRec.recordName,
+            recordChangeTag: freshRec.recordChangeTag,
+            fields: { notes: { value: mergedNotes } }
+          }}]
+        })
+      }
+    );
+    const moData = await moResp.json();
+    const savedRec = (moData.records || [])[0];
+    if (!moResp.ok || !savedRec || savedRec.serverErrorCode) throw new Error(savedRec?.reason || moData.reason || 'Save failed');
+    a.notes = mergedNotes;
+    const idx = allAttendees.findIndex(x => x.id === a.id);
+    if (idx !== -1) allAttendees[idx].notes = mergedNotes;
+    renderDetail();
+  } catch (e) {
+    showToast('Meeting note not saved: ' + e.message);
+  }
+}
+
+function meetingNoteText() {
+  const val  = document.getElementById('sched-datetime').value;
+  const mins = parseInt(document.getElementById('sched-duration').value, 10) || 30;
+  const d    = val ? new Date(val) : new Date();
+  const when = d.toLocaleString('en-US', {
+    month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: '2-digit'
+  });
+  return `📅 Meeting scheduled for ${when} (${durationLabelWeb(mins)})`;
+}
+
+function durationLabelWeb(m) {
+  return m < 60 ? `${m} min` : m === 60 ? '1 hr' : `1 hr ${m - 60} min`;
 }
 
 // Returns UTC strings in iCal basic format (YYYYMMDDTHHMMSSZ) for start/end.
