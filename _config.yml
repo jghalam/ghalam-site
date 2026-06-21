@@ -1,0 +1,3 @@
+# Publish dotfolders that Jekyll excludes by default (needed for Universal Links)
+include:
+  - ".well-known"
