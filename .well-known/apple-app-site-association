@@ -14,6 +14,16 @@
             "comment": "CrowdNotes web app root"
           }
         ]
+      },
+      {
+        "appIDs": ["TRY27PHH3P.com.joe.ghalam.ghalamphotos.GhalamRadio"],
+        "components": [
+          {
+            "/": "/ghalamradio/share/index.html",
+            "?": { "d": "*" },
+            "comment": "GhalamRadio station share link"
+          }
+        ]
       }
     ]
   }
