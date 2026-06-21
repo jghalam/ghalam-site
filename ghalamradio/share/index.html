@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Open in GhalamRadio</title>
+
+  <!-- Rich preview in Messages / social. Replace og:image with a real asset. -->
+  <meta property="og:title" content="Radio stations shared with you" />
+  <meta property="og:description" content="Open in GhalamRadio to add these stations." />
+  <meta property="og:image" content="https://ghalam.net/assets/ghalamradio-share.png" />
+  <meta name="apple-itunes-app" content="app-id=REPLACE_WITH_GHALAMRADIO_APPSTORE_ID" />
+
+  <style>
+    :root { color-scheme: dark; }
+    body {
+      margin: 0; min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      background: #0b0b0d; color: #f2f2f5;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      padding: 24px; box-sizing: border-box;
+    }
+    .card { max-width: 420px; width: 100%; text-align: center; }
+    h1 { font-size: 1.5rem; margin: 0 0 8px; }
+    p  { color: #a8a8b0; margin: 0 0 24px; line-height: 1.5; }
+    ul { text-align: left; padding-left: 1.1rem; margin: 0 0 24px; color: #d6d6db; }
+    li { margin: 4px 0; }
+    .btn {
+      display: inline-block; width: 100%; box-sizing: border-box;
+      padding: 14px 18px; border-radius: 14px; font-weight: 600; font-size: 1rem;
+      text-decoration: none; margin-bottom: 12px;
+    }
+    .primary { background: #0a84ff; color: #fff; }
+    .secondary { background: #1c1c1f; color: #f2f2f5; border: 1px solid #2c2c30; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1 id="title">Radio stations shared with you</h1>
+    <p id="subtitle">Open in GhalamRadio to add them to your list.</p>
+    <ul id="stationList" hidden></ul>
+
+    <!-- If the app is installed, iOS opens it before this page loads.
+         This button lets a freshly-installed user retry the deep link. -->
+    <a class="btn secondary" id="openApp" href="#">Open in GhalamRadio</a>
+
+    <!-- Replace with your real App Store URL -->
+    <a class="btn primary"
+       href="https://apps.apple.com/app/idREPLACE_WITH_GHALAMRADIO_APPSTORE_ID">
+      Get GhalamRadio on the App Store
+    </a>
+  </div>
+
+  <script>
+    // The deep link is this same page; tapping "Open in GhalamRadio" re-triggers it.
+    document.getElementById('openApp').href = window.location.href;
+
+    // Decode the payload just to show the user what they're importing.
+    function base64UrlDecode(s) {
+      s = s.replace(/-/g, '+').replace(/_/g, '/');
+      while (s.length % 4) s += '=';
+      return decodeURIComponent(escape(atob(s)));
+    }
+
+    try {
+      const d = new URLSearchParams(window.location.search).get('d');
+      if (d) {
+        const csv = base64UrlDecode(d);
+        // Rows are newline-separated; first row is the header. Field delimiter is ^%^.
+        const rows = csv.split('\n').slice(1).filter(r => r.trim().length);
+        const names = rows
+          .map(r => r.split('^%^')[0].trim())
+          .filter(Boolean);
+        if (names.length) {
+          document.getElementById('subtitle').textContent =
+            names.length === 1
+              ? 'Open in GhalamRadio to add this station.'
+              : `Open in GhalamRadio to add these ${names.length} stations.`;
+          const ul = document.getElementById('stationList');
+          ul.hidden = false;
+          names.forEach(n => {
+            const li = document.createElement('li');
+            li.textContent = n;
+            ul.appendChild(li);
+          });
+        }
+      }
+    } catch (e) {
+      /* If decoding fails, the default copy still makes sense. */
+    }
+  </script>
+</body>
+</html>
