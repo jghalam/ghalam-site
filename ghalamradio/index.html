@@ -3,44 +3,24 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" type="image/png" href="../images/ghalamradio-og.png">
-<link rel="apple-touch-icon" href="../images/ghalamradio-og.png">
-<title>GhalamRadio – Stations Shared With You</title>
-
-<!-- Rich link preview (iMessage, Mail, social). Absolute URLs required. -->
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://ghalam.net/ghalamradio/share/index.html">
-<meta property="og:title" content="GhalamRadio — stations shared with you">
-<meta property="og:description" content="Open in GhalamRadio to add these stations.">
-<meta property="og:image" content="https://ghalam.net/ghalamradio/images/ghalamradio-og.png">
-<meta property="og:image:width" content="512">
-<meta property="og:image:height" content="512">
-<meta property="og:image:type" content="image/png">
-<meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="GhalamRadio — stations shared with you">
-<meta name="twitter:description" content="Open in GhalamRadio to add these stations.">
-<meta name="twitter:image" content="https://ghalam.net/ghalamradio/images/ghalamradio-og.png">
-
-<!-- Smart App Banner. Replace the id with GhalamRadio's App Store ID. -->
-<meta name="apple-itunes-app" content="app-id=REPLACE_WITH_GHALAMRADIO_APPSTORE_ID">
-
+<link rel="icon" type="image/png" href="images/ghalamradio.png">
+<link rel="apple-touch-icon" href="images/ghalamradio.png">
+<title>GhalamRadio – Online Radio for iOS</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg:        #0d0f14;
-    --surface:   #161820;
-    --border:    #2a2d3a;
-    --text:      #e8eaf0;
-    --muted:     #8b8fa8;
-    --accent:    #c8a96e;
-    --accent2:   #7eb8d4;
-    --radius:    14px;
+    --bg:      #0d0f14;
+    --surface: #161820;
+    --border:  #2a2d3a;
+    --text:    #e8eaf0;
+    --muted:   #8b8fa8;
+    --accent:  #7eb8d4;
+    --accent2: #c8a96e;
+    --radius:  14px;
   }
-
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
   body {
     background: var(--bg);
     color: var(--text);
@@ -48,11 +28,7 @@
     font-weight: 300;
     line-height: 1.7;
     min-height: 100vh;
-    display: flex;
-    flex-direction: column;
   }
-
-  /* ── NAV ── */
   nav {
     display: flex;
     align-items: center;
@@ -82,15 +58,14 @@
     transition: color 0.2s;
   }
   nav .nav-links a:hover { color: var(--text); }
+  nav .nav-links a.active { color: var(--accent); }
 
-  /* ── HERO ── */
   .hero {
-    flex: 1;
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
-    padding: 4.5rem 2rem 4rem;
+    padding: 5rem 2rem 4rem;
     position: relative;
     overflow: hidden;
   }
@@ -98,8 +73,8 @@
     content: '';
     position: absolute;
     width: 600px; height: 600px;
-    background: radial-gradient(circle, rgba(200,169,110,0.08) 0%, transparent 70%);
-    top: -120px; left: 50%; transform: translateX(-50%);
+    background: radial-gradient(circle, rgba(126,184,212,0.07) 0%, transparent 70%);
+    top: -100px; left: 50%; transform: translateX(-50%);
     pointer-events: none;
   }
   .app-icon {
@@ -111,65 +86,79 @@
   }
   .hero h1 {
     font-family: 'DM Serif Display', serif;
-    font-size: clamp(2rem, 5vw, 3rem);
+    font-size: clamp(2.2rem, 5vw, 3.2rem);
     font-weight: 400;
     line-height: 1.15;
-    margin-bottom: 0.9rem;
-    color: var(--text);
+    margin-bottom: 1rem;
   }
   .hero h1 span { color: var(--accent); font-style: italic; }
   .hero .tagline {
-    font-size: 1.08rem;
+    font-size: 1.1rem;
     color: var(--muted);
-    max-width: 460px;
-    margin-bottom: 2.25rem;
+    max-width: 480px;
+    margin-bottom: 2.5rem;
   }
+  .badge-link img { height: 44px; }
+  .badge-link { display: inline-block; }
 
-  /* ── STATION LIST ── */
-  .station-card {
+  section {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 3rem 2rem;
+  }
+  section + section { border-top: 1px solid var(--border); }
+
+  h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.75rem;
+    font-weight: 400;
+    margin-bottom: 1.25rem;
+    color: var(--text);
+  }
+  h2 .dot { color: var(--accent); }
+  p { color: var(--muted); margin-bottom: 1rem; }
+  p:last-child { margin-bottom: 0; }
+
+  .features {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  .feature-card {
     background: var(--surface);
     border: 1px solid var(--border);
     border-radius: var(--radius);
-    padding: 0.5rem 0;
-    width: 100%;
-    max-width: 420px;
-    margin-bottom: 2.5rem;
-    text-align: left;
-    overflow: hidden;
+    padding: 1.25rem 1.5rem;
+    transition: border-color 0.2s, transform 0.2s;
   }
-  .station-card .station {
-    display: flex;
-    align-items: center;
-    gap: 0.85rem;
-    padding: 0.7rem 1.25rem;
-  }
-  .station-card .station + .station { border-top: 1px solid var(--border); }
-  .station-card .dot {
-    width: 7px; height: 7px; border-radius: 50%;
-    background: var(--accent2); flex-shrink: 0;
-  }
-  .station-card .name {
-    font-size: 0.95rem; font-weight: 400; color: var(--text);
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-  }
+  .feature-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .feature-card .icon { font-size: 1.5rem; margin-bottom: 0.6rem; display: block; }
+  .feature-card h3 { font-size: 0.95rem; font-weight: 500; color: var(--text); margin-bottom: 0.35rem; }
+  .feature-card p { font-size: 0.85rem; margin-bottom: 0; }
 
-  /* ── BUTTONS ── */
-  .badge-link { display: inline-block; }
-  .badge-link img { height: 50px; }
-  .open-app {
+  .contact-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+    text-align: center;
+  }
+  .contact-card p { margin-bottom: 1rem; }
+  .contact-card a {
     display: inline-block;
-    margin-top: 1.25rem;
-    color: var(--muted);
+    background: var(--accent);
+    color: #0d0f14;
+    font-weight: 500;
     font-size: 0.9rem;
-    font-weight: 400;
+    padding: 0.6rem 1.6rem;
+    border-radius: 100px;
     text-decoration: none;
     letter-spacing: 0.03em;
-    border-bottom: 1px solid transparent;
-    transition: color 0.2s, border-color 0.2s;
+    transition: opacity 0.2s;
   }
-  .open-app:hover { color: var(--accent); border-color: var(--accent); }
+  .contact-card a:hover { opacity: 0.85; }
 
-  /* ── FOOTER ── */
   footer {
     text-align: center;
     padding: 2rem;
@@ -184,85 +173,83 @@
     nav { padding: 1rem; }
     nav .nav-links { gap: 1.25rem; }
     .hero { padding: 3.5rem 1.25rem 3rem; }
+    section { padding: 2.5rem 1.25rem; }
   }
 </style>
 </head>
 <body>
 
 <nav>
-  <a href="../index.html" class="brand">GhalamRadio</a>
+  <a href="index.html" class="brand">GhalamRadio</a>
   <ul class="nav-links">
-    <li><a href="../index.html">Home</a></li>
+    <li><a href="index.html" class="active">Home</a></li>
+    <li><a href="privacy.html">Privacy</a></li>
     <li><a href="https://ghalam.net/" target="_blank">Ghalam.net</a></li>
   </ul>
 </nav>
 
 <div class="hero">
-  <img src="../images/ghalamradio-og.png" alt="GhalamRadio App Icon" class="app-icon">
-  <h1>Stations <span>shared with you</span></h1>
-  <p class="tagline" id="subtitle">Open in GhalamRadio to add them to your list.</p>
-
-  <div class="station-card" id="stationCard" hidden></div>
-
-  <a href="https://apps.apple.com/app/idREPLACE_WITH_GHALAMRADIO_APPSTORE_ID" class="badge-link" target="_blank">
+  <img src="images/ghalamradio.png" alt="GhalamRadio App Icon" class="app-icon">
+  <h1>The world's radio,<br><span>in your pocket</span></h1>
+  <p class="tagline">GhalamRadio lets you search, sample, and save online radio stations from around the globe — all in one clean iOS app.</p>
+  <a href="https://apps.apple.com/us/app/ghalamradio/id6739823739" class="badge-link" target="_blank">
     <img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="Download on the App Store">
   </a>
-
-  <!-- If GhalamRadio is installed, iOS opens it before this page loads.
-       This lets a freshly-installed user re-trigger the import. -->
-  <a href="#" class="open-app" id="openApp">Already have the app? Open in GhalamRadio</a>
 </div>
 
+<section>
+  <h2>About GhalamRadio<span class="dot">.</span></h2>
+  <p>GhalamRadio is an iOS app that connects you to thousands of online radio stations worldwide. Search by name, call letters, frequency, or geographic proximity — then save your favorites for instant access.</p>
+  <p>The app does not collect or store any personal information. No accounts are required. Your saved stations are stored locally on your device.</p>
+</section>
+
+<section>
+  <h2>Features<span class="dot">.</span></h2>
+  <div class="features">
+    <div class="feature-card">
+      <span class="icon">🔍</span>
+      <h3>Flexible Search</h3>
+      <p>Find stations by name, call letters, or broadcast frequency.</p>
+    </div>
+    <div class="feature-card">
+      <span class="icon">📍</span>
+      <h3>Nearby Stations</h3>
+      <p>Discover local stations by specifying a search radius around your location.</p>
+    </div>
+    <div class="feature-card">
+      <span class="icon">▶️</span>
+      <h3>Quick Sample</h3>
+      <p>Preview any station before adding it to your favorites list.</p>
+    </div>
+    <div class="feature-card">
+      <span class="icon">⭐</span>
+      <h3>Saved Stations</h3>
+      <p>Save your favorite stations to the main window for one-tap access.</p>
+    </div>
+    <div class="feature-card">
+      <span class="icon">🌐</span>
+      <h3>Global Coverage</h3>
+      <p>Access radio stations from countries and regions around the world.</p>
+    </div>
+    <div class="feature-card">
+      <span class="icon">🔒</span>
+      <h3>Private by Design</h3>
+      <p>No accounts, no sign-in, no data collection. Just radio.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>Get in Touch<span class="dot">.</span></h2>
+  <div class="contact-card">
+    <p>Questions, feedback, or support? Reach out directly.</p>
+    <a href="mailto:joe.ghalam@gmail.com">Contact Joe</a>
+  </div>
+</section>
+
 <footer>
-  <p>© 2026 GhalamRadio &nbsp;·&nbsp; <a href="https://ghalam.net/">Ghalam.net</a></p>
+  <p>© 2026 GhalamRadio &nbsp;·&nbsp; <a href="privacy.html">Privacy Policy</a> &nbsp;·&nbsp; <a href="https://ghalam.net/">Ghalam.net</a></p>
 </footer>
-
-<script>
-  // Re-trigger the deep link (same URL) for users who just installed the app.
-  document.getElementById('openApp').href = window.location.href;
-
-  function base64UrlDecode(s) {
-    s = s.replace(/-/g, '+').replace(/_/g, '/');
-    while (s.length % 4) s += '=';
-    return decodeURIComponent(escape(atob(s)));
-  }
-
-  try {
-    const d = new URLSearchParams(window.location.search).get('d');
-    if (d) {
-      const csv = base64UrlDecode(d);
-      // Rows are newline-separated; first row is the header. Field delimiter is ^%^.
-      const names = csv.split('\n').slice(1)
-        .filter(r => r.trim().length)
-        .map(r => r.split('^%^')[0].trim())
-        .filter(Boolean);
-
-      if (names.length) {
-        document.getElementById('subtitle').textContent =
-          names.length === 1
-            ? 'Someone shared a station with you. Open in GhalamRadio to add it.'
-            : `Someone shared ${names.length} stations with you. Open in GhalamRadio to add them.`;
-
-        const card = document.getElementById('stationCard');
-        card.hidden = false;
-        names.forEach(n => {
-          const row = document.createElement('div');
-          row.className = 'station';
-          const dot = document.createElement('span');
-          dot.className = 'dot';
-          const name = document.createElement('span');
-          name.className = 'name';
-          name.textContent = n;
-          row.appendChild(dot);
-          row.appendChild(name);
-          card.appendChild(row);
-        });
-      }
-    }
-  } catch (e) {
-    /* Fall back to the default copy if decoding fails. */
-  }
-</script>
 
 </body>
 </html>
