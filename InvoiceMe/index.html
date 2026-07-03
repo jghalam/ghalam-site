@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>InvoiceMe — Construction Invoice Builder</title>
+<link rel="icon" type="image/svg+xml" href="assets/icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ============ LEFT CONTROL RAIL ============ -->
+  <aside class="rail">
+    <div class="rail-brand">
+      <div class="rail-brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 64 64" width="40" height="40">
+          <rect width="64" height="64" rx="12" fill="var(--ink-2)"/>
+          <path d="M16 12 H38 L48 22 V50 A2 2 0 0 1 46 52 H16 A2 2 0 0 1 14 50 V14 A2 2 0 0 1 16 12 Z"
+                fill="none" stroke="var(--text-on-ink)" stroke-width="2.5" stroke-linejoin="round"/>
+          <path d="M38 12 V22 H48" fill="none" stroke="var(--text-on-ink)" stroke-width="2.5" stroke-linejoin="round"/>
+          <line x1="20" y1="30" x2="40" y2="30" stroke="var(--text-on-ink)" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="20" y1="37" x2="40" y2="37" stroke="var(--text-on-ink)" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="20" y1="44" x2="33" y2="44" stroke="var(--text-on-ink)" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="45" cy="46" r="12" fill="var(--accent)" stroke="var(--ink)" stroke-width="2"/>
+          <path d="M39.5 46 L43.5 50 L51 40.5" fill="none" stroke="var(--ink)" stroke-width="3"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <div class="rail-brand-text">
+        <div class="rail-brand-title">InvoiceMe</div>
+        <div class="rail-brand-sub">Construction Invoicing</div>
+      </div>
+    </div>
+
+    <div class="rail-actions">
+      <button class="btn btn-ghost" id="btnNew" title="Clear everything and start a new invoice">New</button>
+      <label class="btn btn-ghost" title="Load a previously saved .json data file">
+        Load Data
+        <input type="file" id="fileLoadData" accept="application/json" hidden>
+      </label>
+      <button class="btn btn-ghost" id="btnSaveData" title="Download this invoice's data as a .json file">Save Data</button>
+      <button class="btn btn-accent" id="btnGeneratePdf" title="Generate the final invoice PDF">Generate PDF</button>
+    </div>
+
+    <div class="rail-status" id="railStatus" aria-live="polite"></div>
+
+    <div class="rail-scroll">
+
+      <details class="field-group" open>
+        <summary>Letterhead</summary>
+        <label class="lbl">Logo / title image</label>
+        <div class="logo-drop" id="logoDrop">
+          <img id="logoPreview" class="logo-preview" hidden>
+          <span id="logoPlaceholder" class="logo-placeholder">Click or drop an image</span>
+          <input type="file" id="fileLogo" accept="image/*" hidden>
+        </div>
+        <button class="btn btn-tiny btn-ghost" id="btnRemoveLogo" hidden>Remove logo</button>
+      </details>
+
+      <details class="field-group" open>
+        <summary>Company</summary>
+        <label class="lbl">Company name</label>
+        <input class="inp" id="companyName" placeholder="e.g. Well Conception">
+        <label class="lbl">Address</label>
+        <textarea class="inp" id="companyAddress" rows="2" placeholder="16 Sq Pt de Sèvres&#10;92100 Boulogne Billancourt"></textarea>
+        <label class="lbl">Contact line</label>
+        <textarea class="inp" id="companyContact" rows="2" placeholder="T: 01 45 51 50 49 – company.fr – email@company.fr"></textarea>
+      </details>
+
+      <details class="field-group" open>
+        <summary>Bill To</summary>
+        <label class="lbl">Client name</label>
+        <input class="inp" id="clientName" placeholder="e.g. Mme ARFA">
+        <label class="lbl">Client address</label>
+        <textarea class="inp" id="clientAddress" rows="2" placeholder="5, Rue du 29 juillet&#10;75001 PARIS"></textarea>
+      </details>
+
+      <details class="field-group" open>
+        <summary>Invoice details</summary>
+        <label class="lbl">Invoice number</label>
+        <input class="inp" id="invoiceNumber" placeholder="280126">
+        <label class="lbl">Date</label>
+        <input class="inp" id="invoiceDate" type="date">
+        <label class="lbl">Title / description</label>
+        <textarea class="inp" id="invoiceTitle" rows="2" placeholder="correspondant aux travaux d'un appartement &amp; un studio"></textarea>
+      </details>
+
+      <details class="field-group" open>
+        <summary>Number &amp; currency format</summary>
+        <label class="lbl">Currency symbol / code</label>
+        <input class="inp" id="currencySymbol" maxlength="6" placeholder="€">
+        <label class="lbl">Symbol position</label>
+        <select class="inp" id="currencyPosition">
+          <option value="after">After amount — 1 234,56 €</option>
+          <option value="before">Before amount — €1,234.56</option>
+        </select>
+        <label class="lbl">Number format</label>
+        <select class="inp" id="numberFormatPreset">
+          <option value="space-comma">1 234,56 — space · comma</option>
+          <option value="comma-period">1,234.56 — comma · period</option>
+          <option value="period-comma">1.234,56 — period · comma</option>
+          <option value="apostrophe-period">1'234.56 — apostrophe · period</option>
+          <option value="none-period">1234.56 — none · period</option>
+          <option value="custom">Custom…</option>
+        </select>
+        <div id="customFormatFields" hidden>
+          <label class="lbl">Thousands separator</label>
+          <select class="inp" id="customThousandsSep">
+            <option value=" ">Space</option>
+            <option value=",">Comma</option>
+            <option value=".">Period</option>
+            <option value="'">Apostrophe</option>
+            <option value="">None</option>
+          </select>
+          <label class="lbl">Decimal separator</label>
+          <select class="inp" id="customDecimalSep">
+            <option value=",">Comma</option>
+            <option value=".">Period</option>
+          </select>
+        </div>
+        <label class="lbl">Decimal places</label>
+        <input class="inp" id="decimalPlaces" type="number" min="0" max="4" value="2">
+      </details>
+
+      <details class="field-group" open>
+        <summary>Taxes</summary>
+        <div id="taxList" class="tax-list"></div>
+        <button class="btn btn-tiny btn-ghost" id="btnAddTax">+ Add tax line</button>
+      </details>
+
+      <details class="field-group">
+        <summary>Footer notes</summary>
+        <label class="lbl">Bank / legal / payment info</label>
+        <textarea class="inp" id="footerNotes" rows="5" placeholder="IBAN, BIC, SIREN, payment terms, etc."></textarea>
+      </details>
+
+      <details class="field-group">
+        <summary>Attached terms PDF</summary>
+        <p class="hint">Optional. Its pages are appended after the invoice — for legal language, T&amp;Cs, or a signature page.</p>
+        <label class="btn btn-tiny btn-ghost">
+          Choose PDF
+          <input type="file" id="fileTerms" accept="application/pdf" hidden>
+        </label>
+        <div id="termsFileName" class="hint mono"></div>
+        <button class="btn btn-tiny btn-ghost" id="btnRemoveTerms" hidden>Remove attached PDF</button>
+      </details>
+
+    </div>
+  </aside>
+
+  <!-- ============ RIGHT: DRAFTING TABLE / CANVAS ============ -->
+  <main class="canvas-wrap">
+    <div class="canvas-toolbar">
+      <button class="btn btn-accent btn-sm" id="btnAddSection">+ Add Section</button>
+      <span class="canvas-toolbar-hint">Sections become tables on the PDF, in this order.</span>
+    </div>
+
+    <div class="sheet" id="sheet">
+      <div class="sheet-head">
+        <div class="sheet-head-logo" id="sheetLogoWrap">
+          <img id="sheetLogo" hidden>
+        </div>
+        <div class="sheet-head-company">
+          <div class="sheet-company-name" id="sheetCompanyName">Company Name</div>
+          <div class="sheet-company-address" id="sheetCompanyAddress"></div>
+          <div class="sheet-company-contact" id="sheetCompanyContact"></div>
+        </div>
+        <div class="sheet-head-client" id="sheetClientBox">
+          <div class="sheet-client-name" id="sheetClientName">Client</div>
+          <div class="sheet-client-address" id="sheetClientAddress"></div>
+        </div>
+      </div>
+
+      <div class="sheet-title" id="sheetInvoiceTitle">Devis Numéro — du —</div>
+
+      <div id="sectionsMount"></div>
+
+      <div class="sheet-summary">
+        <div class="sheet-summary-head">Récapitulatif</div>
+        <table class="summary-table" id="summaryTable"></table>
+      </div>
+
+      <div class="sheet-footer" id="sheetFooterNotes"></div>
+
+      <div class="title-block" id="titleBlock">
+        <div class="tb-row"><span>NO.</span><span id="tbNumber">—</span></div>
+        <div class="tb-row"><span>DATE</span><span id="tbDate">—</span></div>
+        <div class="tb-row"><span>REV</span><span>A</span></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Section template (cloned by JS) -->
+<template id="tplSection">
+  <section class="section-card">
+    <div class="section-card-bar">
+      <span class="drag-hint">⠿</span>
+      <input class="section-title-input" placeholder="Section title (e.g. Plomberie)">
+      <div class="section-card-actions">
+        <button class="icon-btn btn-move-up" title="Move up">↑</button>
+        <button class="icon-btn btn-move-down" title="Move down">↓</button>
+        <button class="icon-btn btn-remove-section" title="Remove section">✕</button>
+      </div>
+    </div>
+    <textarea class="section-desc-input" rows="1" placeholder="Optional section description / notes"></textarea>
+    <table class="items-table">
+      <thead>
+        <tr>
+          <th class="col-desc">Intitulé</th>
+          <th class="col-qty">Qté</th>
+          <th class="col-unit">Unité</th>
+          <th class="col-price">Prix U.</th>
+          <th class="col-total">Montant</th>
+          <th class="col-del"></th>
+        </tr>
+      </thead>
+      <tbody class="items-body"></tbody>
+    </table>
+    <button class="btn btn-tiny btn-ghost btn-add-item">+ Add line item</button>
+    <div class="section-total-row">Section total: <span class="section-total-value mono">0,00 €</span></div>
+  </section>
+</template>
+
+<!-- Line item template -->
+<template id="tplItem">
+  <tr>
+    <td><textarea class="item-desc" rows="1" placeholder="Description"></textarea></td>
+    <td><input class="item-qty" type="number" step="any" value="1"></td>
+    <td><input class="item-unit" type="text" placeholder="U"></td>
+    <td><input class="item-price" type="number" step="any" value="0"></td>
+    <td class="item-line-total mono">0,00 €</td>
+    <td><button class="icon-btn btn-remove-item" title="Remove line">✕</button></td>
+  </tr>
+</template>
+
+<!-- Tax line template -->
+<template id="tplTax">
+  <div class="tax-row">
+    <input class="tax-label" type="text" placeholder="TVA">
+    <input class="tax-rate" type="number" step="any" placeholder="10">
+    <span class="tax-pct">%</span>
+    <button class="icon-btn btn-remove-tax" title="Remove tax">✕</button>
+  </div>
+</template>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
