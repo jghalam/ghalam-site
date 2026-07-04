@@ -16,25 +16,26 @@
   Link-preview images (Open Graph / Twitter Card) point at the live ghalam.net/InvoiceMe/
   deployment below. If you ever move the app to a different URL, update og:url / og:image /
   twitter:image to match — Slack, iMessage, etc. read these directly from the HTML (they
-  don't run JavaScript) and need an absolute URL.
+  don't run JavaScript) and need an absolute URL. Title/description are bilingual (FR / EN)
+  since these tags are static — a crawler reads them once and can't switch per viewer.
 -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="InvoiceMe">
-<meta property="og:title" content="InvoiceMe — Construction Invoice Builder">
-<meta property="og:description" content="Build branded construction invoices in the browser: custom sections and line items, PDF export, bilingual FR/EN, no backend required.">
+<meta property="og:title" content="InvoiceMe — Facturation BTP / Construction Invoicing">
+<meta property="og:description" content="Devis BTP et PDF pros en quelques clics, gratuit et bilingue FR/EN. / Build branded construction invoices and export polished PDFs — free, bilingual FR/EN.">
 <meta property="og:url" content="https://ghalam.net/InvoiceMe/">
 <meta property="og:image" content="https://ghalam.net/InvoiceMe/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="InvoiceMe — Construction Invoice Builder">
-<meta name="twitter:description" content="Build branded construction invoices in the browser: custom sections and line items, PDF export, bilingual FR/EN, no backend required.">
+<meta name="twitter:title" content="InvoiceMe — Facturation BTP / Construction Invoicing">
+<meta name="twitter:description" content="Devis BTP et PDF pros en quelques clics, gratuit et bilingue FR/EN. / Build branded construction invoices and export polished PDFs — free, bilingual FR/EN.">
 <meta name="twitter:image" content="https://ghalam.net/InvoiceMe/og-image.png">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=10">
+<link rel="stylesheet" href="style.css?v=11">
 </head>
 <body>
 
@@ -57,7 +58,7 @@
     </div>
     <div class="topbar-brand-text">
       <div class="topbar-brand-title">InvoiceMe</div>
-      <div class="topbar-brand-sub" data-i18n="topbar_tagline">Facturation BTP</div>
+      <div class="topbar-brand-sub">Facturation BTP / Construction Invoicing</div>
     </div>
   </div>
   <div class="topbar-lang">
@@ -308,6 +309,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
-<script src="app.js?v=10"></script>
+<script src="app.js?v=11"></script>
 </body>
 </html>

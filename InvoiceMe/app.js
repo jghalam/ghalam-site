@@ -78,7 +78,6 @@
   // ============================================================
   const I18N = {
     fr: {
-      topbar_tagline: 'Facturation BTP',
       lang_label: 'Langue',
       btn_new: 'Nouveau',
       btn_new_title: 'Effacer tout et commencer un nouveau devis',
@@ -190,7 +189,6 @@
       page_title: 'InvoiceMe — Facturation BTP',
     },
     en: {
-      topbar_tagline: 'Construction Invoicing',
       lang_label: 'Language',
       btn_new: 'New',
       btn_new_title: 'Clear everything and start a new invoice',
