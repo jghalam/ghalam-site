@@ -171,17 +171,19 @@
 
     <div class="sheet" id="sheet">
       <div class="sheet-head">
-        <div class="sheet-head-logo" id="sheetLogoWrap">
+        <div class="sheet-head-logo" id="sheetLogoWrap" hidden>
           <img id="sheetLogo" hidden>
         </div>
-        <div class="sheet-head-company">
-          <div class="sheet-company-name" id="sheetCompanyName" data-i18n="sheet_company_placeholder">Nom de l'entreprise</div>
-          <div class="sheet-company-address" id="sheetCompanyAddress"></div>
-          <div class="sheet-company-contact" id="sheetCompanyContact"></div>
-        </div>
-        <div class="sheet-head-client" id="sheetClientBox">
-          <div class="sheet-client-name" id="sheetClientName" data-i18n="sheet_client_placeholder">Client</div>
-          <div class="sheet-client-address" id="sheetClientAddress"></div>
+        <div class="sheet-head-row">
+          <div class="sheet-head-company">
+            <div class="sheet-company-name" id="sheetCompanyName" data-i18n="sheet_company_placeholder">Nom de l'entreprise</div>
+            <div class="sheet-company-address" id="sheetCompanyAddress"></div>
+            <div class="sheet-company-contact" id="sheetCompanyContact"></div>
+          </div>
+          <div class="sheet-head-client" id="sheetClientBox">
+            <div class="sheet-client-name" id="sheetClientName" data-i18n="sheet_client_placeholder">Client</div>
+            <div class="sheet-client-address" id="sheetClientAddress"></div>
+          </div>
         </div>
       </div>
 
@@ -217,7 +219,7 @@
         <button class="icon-btn btn-remove-section" data-i18n-title="tooltip_remove_section" title="Supprimer la section">✕</button>
       </div>
     </div>
-    <textarea class="section-desc-input" rows="1" data-i18n-placeholder="section_desc_placeholder" placeholder="Description / notes de section (facultatif)"></textarea>
+    <textarea class="section-desc-input" rows="2" data-i18n-placeholder="section_desc_placeholder" placeholder="Description / notes de section (facultatif)"></textarea>
     <table class="items-table">
       <thead>
         <tr>
@@ -242,7 +244,7 @@
     <td><textarea class="item-desc" rows="1" data-i18n-placeholder="item_desc_placeholder" placeholder="Description"></textarea></td>
     <td><input class="item-qty" type="number" step="any" value="1"></td>
     <td><input class="item-unit" type="text" placeholder="U"></td>
-    <td><input class="item-price" type="number" step="any" value="0"></td>
+    <td><div class="price-cell"><span class="price-currency mono"></span><input class="item-price" type="number" step="any" value="0"></div></td>
     <td class="item-line-total mono">0,00 €</td>
     <td><button class="icon-btn btn-remove-item" data-i18n-title="tooltip_remove_item" title="Supprimer la ligne">✕</button></td>
   </tr>

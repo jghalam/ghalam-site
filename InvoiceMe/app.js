@@ -31,7 +31,9 @@
   const decimalPlacesEl = $('decimalPlaces');
 
   // ---------- sheet (live document) ----------
+  const sheetEl = $('sheet');
   const sectionsMount = $('sectionsMount');
+  const sheetLogoWrap = $('sheetLogoWrap');
   const sheetLogo = $('sheetLogo');
   const sheetCompanyName = $('sheetCompanyName');
   const sheetCompanyAddress = $('sheetCompanyAddress');
@@ -329,6 +331,13 @@
       numFmt.decimalSep = p.decimalSep;
     }
     customFormatFields.hidden = preset !== 'custom';
+    refreshPriceCurrencyLabels();
+  }
+
+  function refreshPriceCurrencyLabels() {
+    document.querySelectorAll('.price-currency').forEach((el) => { el.textContent = numFmt.currency; });
+    sheetEl.classList.toggle('curr-after', numFmt.position === 'after');
+    sheetEl.classList.toggle('curr-before', numFmt.position !== 'after');
   }
 
   function applySettingsToUI(settings = {}) {
@@ -414,14 +423,22 @@
   // ============================================================
   // Section / item / tax row builders
   // ============================================================
+  function autoGrow(el) {
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
+  }
+
   function createItemRow(data = {}) {
     const tr = $('tplItem').content.firstElementChild.cloneNode(true);
     localize(tr);
-    tr.querySelector('.item-desc').value = data.desc || '';
+    const descEl = tr.querySelector('.item-desc');
+    descEl.value = data.desc || '';
     tr.querySelector('.item-qty').value = data.qty ?? 1;
     tr.querySelector('.item-unit').value = data.unit || '';
     tr.querySelector('.item-price').value = data.price ?? 0;
+    tr.querySelector('.price-currency').textContent = numFmt.currency;
     updateItemTotal(tr);
+    requestAnimationFrame(() => autoGrow(descEl));
     return tr;
   }
 
@@ -429,11 +446,13 @@
     const card = $('tplSection').content.firstElementChild.cloneNode(true);
     localize(card);
     card.querySelector('.section-title-input').value = data.title || '';
-    card.querySelector('.section-desc-input').value = data.description || '';
+    const descEl = card.querySelector('.section-desc-input');
+    descEl.value = data.description || '';
     const body = card.querySelector('.items-body');
     const items = (data.items && data.items.length) ? data.items : [{}];
     items.forEach((it) => body.appendChild(createItemRow(it)));
     updateSectionTotal(card);
+    requestAnimationFrame(() => autoGrow(descEl));
     return card;
   }
 
@@ -519,6 +538,7 @@
       btnRemoveLogo.hidden = false;
       sheetLogo.src = logoDataUrl;
       sheetLogo.hidden = false;
+      sheetLogoWrap.hidden = false;
     } else {
       logoPreview.hidden = true;
       logoPreview.src = '';
@@ -526,6 +546,7 @@
       btnRemoveLogo.hidden = true;
       sheetLogo.hidden = true;
       sheetLogo.src = '';
+      sheetLogoWrap.hidden = true;
     }
   }
 
@@ -644,36 +665,40 @@
     const marginL = 40, marginR = 40;
     let y = 44;
 
-    // ---- letterhead logo ----
+    // ---- letterhead logo: full-width, centered, as large as possible ----
+    const contentW = pageW - marginL - marginR;
     if (state.company.logo) {
       try {
         const fmt = state.company.logo.includes('image/png') ? 'PNG' : 'JPEG';
         const dims = await getImageDims(state.company.logo);
-        const maxW = 160, maxH = 60;
-        const scale = Math.min(maxW / dims.w, maxH / dims.h, 1);
-        doc.addImage(state.company.logo, fmt, marginL, y, dims.w * scale, dims.h * scale);
+        const maxW = contentW, maxH = 130;
+        const scale = Math.min(maxW / dims.w, maxH / dims.h);
+        const w = dims.w * scale, h = dims.h * scale;
+        const x = marginL + (contentW - w) / 2;
+        doc.addImage(state.company.logo, fmt, x, y, w, h);
+        y += h + 20;
       } catch (e) { /* ignore image errors, continue */ }
     }
 
-    // ---- company block (right aligned) ----
+    // ---- company block (left) ----
+    const rowTop = y;
     doc.setFont('helvetica', 'bold'); doc.setFontSize(14);
-    doc.text(state.company.name || '', pageW - marginR, y + 10, { align: 'right' });
+    doc.text(state.company.name || '', marginL, y + 10);
     doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
-    let hy = y + 24;
+    let hy = y + 26;
     (state.company.address || '').split('\n').filter(Boolean).forEach((line) => {
-      doc.text(line, pageW - marginR, hy, { align: 'right' }); hy += 11;
+      doc.text(line, marginL, hy); hy += 11;
     });
     (state.company.contact || '').split('\n').filter(Boolean).forEach((line) => {
-      doc.text(line, pageW - marginR, hy, { align: 'right' }); hy += 11;
+      doc.text(line, marginL, hy); hy += 11;
     });
-    y = Math.max(y + 74, hy + 14);
 
-    // ---- client box ----
+    // ---- client box (right, same row as company) ----
     doc.setDrawColor(30, 45, 60); doc.setLineWidth(1);
     const boxW = 220;
     const clientLines = (state.client.address || '').split('\n').filter(Boolean);
     const boxH = 30 + clientLines.length * 12;
-    const boxX = pageW - marginR - boxW, boxY = y;
+    const boxX = pageW - marginR - boxW, boxY = rowTop;
     doc.rect(boxX, boxY, boxW, boxH);
     doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
     doc.text(state.client.name || '', boxX + 10, boxY + 17);
@@ -681,7 +706,7 @@
     let cy = boxY + 31;
     clientLines.forEach((l) => { doc.text(l, boxX + 10, cy); cy += 12; });
 
-    y = boxY + boxH + 28;
+    y = Math.max(hy + 14, boxY + boxH + 28);
 
     // ---- title ----
     doc.setFont('helvetica', 'bolditalic'); doc.setFontSize(11);
@@ -722,10 +747,10 @@
         headStyles: { fillColor: [22, 48, 79], textColor: 255, fontStyle: 'bold' },
         footStyles: { fillColor: [239, 233, 217], textColor: 20, fontStyle: 'bold' },
         columnStyles: {
-          1: { halign: 'right', cellWidth: 40 },
-          2: { cellWidth: 50 },
-          3: { halign: 'right', cellWidth: 70 },
-          4: { halign: 'right', cellWidth: 85 },
+          1: { halign: 'right', cellWidth: 36 },
+          2: { cellWidth: 48 },
+          3: { halign: 'right', cellWidth: 90, overflow: 'visible' },
+          4: { halign: 'right', cellWidth: 100, overflow: 'visible' },
         },
       });
       y = doc.lastAutoTable.finalY + 20;
@@ -827,6 +852,9 @@
       const tr = e.target.closest('tr');
       updateItemTotal(tr);
       updateSectionTotal(tr.closest('.section-card'));
+    }
+    if (e.target.matches('.section-desc-input, .item-desc')) {
+      autoGrow(e.target);
     }
     updateSummary();
     setStatus(t('status_unsaved'));
