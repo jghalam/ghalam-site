@@ -7,7 +7,7 @@
 <link rel="icon" type="image/svg+xml" href="assets/icon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=3">
+<link rel="stylesheet" href="style.css?v=5">
 </head>
 <body>
 
@@ -79,6 +79,9 @@
         <textarea class="inp" id="companyAddress" rows="2" placeholder="16 Sq Pt de Sèvres&#10;92100 Boulogne Billancourt"></textarea>
         <label class="lbl" data-i18n="lbl_contact_line">Ligne de contact</label>
         <textarea class="inp" id="companyContact" rows="2" placeholder="T: 01 45 51 50 49 – company.fr – email@company.fr"></textarea>
+        <label class="lbl" data-i18n="lbl_company_website">Site web de l'entreprise</label>
+        <input class="inp" id="companyWebsite" type="url" data-i18n-placeholder="ph_company_website" placeholder="https://www.monentreprise.fr">
+        <p class="hint" data-i18n="company_website_hint">Un QR code s'affichera automatiquement à côté du nom de l'entreprise.</p>
       </details>
 
       <details class="field-group" open>
@@ -175,10 +178,16 @@
           <img id="sheetLogo" hidden>
         </div>
         <div class="sheet-head-row">
-          <div class="sheet-head-company">
-            <div class="sheet-company-name" id="sheetCompanyName" data-i18n="sheet_company_placeholder">Nom de l'entreprise</div>
-            <div class="sheet-company-address" id="sheetCompanyAddress"></div>
-            <div class="sheet-company-contact" id="sheetCompanyContact"></div>
+          <div class="sheet-head-company-wrap">
+            <div class="sheet-head-company">
+              <div class="sheet-company-name" id="sheetCompanyName" data-i18n="sheet_company_placeholder">Nom de l'entreprise</div>
+              <div class="sheet-company-address" id="sheetCompanyAddress"></div>
+              <div class="sheet-company-contact" id="sheetCompanyContact"></div>
+            </div>
+            <div class="sheet-head-qr" id="sheetQrWrap" hidden>
+              <img id="sheetQr" alt="QR code">
+              <div class="sheet-qr-caption" id="sheetQrCaption"></div>
+            </div>
           </div>
           <div class="sheet-head-client" id="sheetClientBox">
             <div class="sheet-client-name" id="sheetClientName" data-i18n="sheet_client_placeholder">Client</div>
@@ -244,7 +253,7 @@
     <td><textarea class="item-desc" rows="1" data-i18n-placeholder="item_desc_placeholder" placeholder="Description"></textarea></td>
     <td><input class="item-qty" type="number" step="any" value="1"></td>
     <td><input class="item-unit" type="text" placeholder="U"></td>
-    <td><div class="price-cell"><span class="price-currency mono"></span><input class="item-price" type="number" step="any" value="0"></div></td>
+    <td><div class="price-cell"><span class="price-currency mono"></span><input class="item-price" type="text" inputmode="decimal" value="0"></div></td>
     <td class="item-line-total mono">0,00 €</td>
     <td><button class="icon-btn btn-remove-item" data-i18n-title="tooltip_remove_item" title="Supprimer la ligne">✕</button></td>
   </tr>
@@ -260,9 +269,10 @@
   </div>
 </template>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
-<script src="app.js?v=3"></script>
+<script src="app.js?v=5"></script>
 </body>
 </html>

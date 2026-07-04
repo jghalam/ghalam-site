@@ -265,9 +265,37 @@ body{
   grid-template-columns:1fr 1fr;
   gap:16px;
 }
-.sheet-head-company{ align-self:start; }
+.sheet-head-company-wrap{
+  display:flex;
+  align-items:flex-start;
+  gap:14px;
+  min-width:0;
+}
+.sheet-head-company{ align-self:start; min-width:0; flex:1; }
 .sheet-company-name{ font-family:var(--f-display); font-weight:700; font-size:19px; letter-spacing:.01em; }
 .sheet-company-address, .sheet-company-contact{ font-size:11.5px; color:#4B5A6B; white-space:pre-line; margin-top:2px; }
+
+.sheet-head-qr{
+  flex:none;
+  width:64px;
+  text-align:center;
+}
+.sheet-head-qr img{
+  width:64px;
+  height:64px;
+  display:block;
+  image-rendering:pixelated;
+  border:1px solid #2B3A4A;
+  padding:3px;
+  background:#fff;
+}
+.sheet-qr-caption{
+  font-size:8px;
+  color:#5A6779;
+  margin-top:3px;
+  word-break:break-all;
+  line-height:1.3;
+}
 
 .sheet-head-client{
   border:1px solid #2B3A4A;

@@ -13,6 +13,7 @@
   const companyName = $('companyName');
   const companyAddress = $('companyAddress');
   const companyContact = $('companyContact');
+  const companyWebsite = $('companyWebsite');
   const clientName = $('clientName');
   const clientAddress = $('clientAddress');
   const invoiceNumber = $('invoiceNumber');
@@ -38,6 +39,9 @@
   const sheetCompanyName = $('sheetCompanyName');
   const sheetCompanyAddress = $('sheetCompanyAddress');
   const sheetCompanyContact = $('sheetCompanyContact');
+  const sheetQrWrap = $('sheetQrWrap');
+  const sheetQr = $('sheetQr');
+  const sheetQrCaption = $('sheetQrCaption');
   const sheetClientName = $('sheetClientName');
   const sheetClientAddress = $('sheetClientAddress');
   const sheetInvoiceTitle = $('sheetInvoiceTitle');
@@ -64,6 +68,8 @@
   let logoDataUrl = null;
   let termsDataUrl = null;
   let termsFileName = '';
+  let qrDataUrl = null;
+  const qrScratch = document.createElement('div'); // detached render target for QRCode.js
 
   // ============================================================
   // i18n — French by default, English optional
@@ -89,6 +95,9 @@
       ph_company_name: 'ex. Well Conception',
       lbl_address: 'Adresse',
       lbl_contact_line: 'Ligne de contact',
+      lbl_company_website: "Site web de l'entreprise",
+      ph_company_website: 'https://www.monentreprise.fr',
+      company_website_hint: "Un QR code s'affichera automatiquement à côté du nom de l'entreprise.",
       grp_billto: 'Facturer à',
       lbl_client_name: 'Nom du client',
       ph_client_name: 'ex. Mme ARFA',
@@ -189,6 +198,9 @@
       ph_company_name: 'e.g. Well Conception',
       lbl_address: 'Address',
       lbl_contact_line: 'Contact line',
+      lbl_company_website: 'Company website',
+      ph_company_website: 'https://www.mycompany.com',
+      company_website_hint: "A QR code will show automatically next to the company name.",
       grp_billto: 'Bill To',
       lbl_client_name: 'Client name',
       ph_client_name: 'e.g. Mme ARFA',
@@ -280,11 +292,22 @@
     root.querySelectorAll('[data-i18n-title]').forEach((el) => { el.title = t(el.dataset.i18nTitle); });
   }
 
+  const LANG_FORMAT_DEFAULTS = {
+    fr: { numberFormatPreset: 'space-comma', currencyPosition: 'after' },
+    en: { numberFormatPreset: 'comma-period', currencyPosition: 'before' },
+  };
+
   function setLanguage(lang) {
     currentLang = (lang === 'en') ? 'en' : 'fr';
     document.documentElement.lang = currentLang;
     document.title = t('page_title');
     langSelect.value = currentLang;
+
+    const fd = LANG_FORMAT_DEFAULTS[currentLang];
+    numberFormatPresetEl.value = fd.numberFormatPreset;
+    currencyPositionEl.value = fd.currencyPosition;
+    readFormatSettingsFromUI();
+
     localize(document);
     try { localStorage.setItem('invoiceme-lang', currentLang); } catch (e) { /* storage unavailable, ignore */ }
     syncHeader();
@@ -341,6 +364,10 @@
     document.querySelectorAll('.price-currency').forEach((el) => { el.textContent = numFmt.currency; });
     sheetEl.classList.toggle('curr-after', numFmt.position === 'after');
     sheetEl.classList.toggle('curr-before', numFmt.position !== 'after');
+    document.querySelectorAll('.item-price').forEach((el) => {
+      if (document.activeElement === el) return; // don't fight the user while they're typing
+      el.value = formatNumberPlain(parsePriceInput(el.value));
+    });
   }
 
   function applySettingsToUI(settings = {}) {
@@ -354,7 +381,8 @@
     readFormatSettingsFromUI();
   }
 
-  function formatMoney(n) {
+  // Plain formatted number, no currency symbol (used for the editable price field).
+  function formatNumberPlain(n) {
     const num = Number(n) || 0;
     const neg = num < 0;
     const fixed = Math.abs(num).toFixed(numFmt.decimals);
@@ -364,8 +392,32 @@
     }
     let numStr = numFmt.decimals > 0 ? `${intPart}${numFmt.decimalSep}${decPart}` : intPart;
     if (neg) numStr = '-' + numStr;
+    return numStr;
+  }
+
+  function formatMoney(n) {
+    const numStr = formatNumberPlain(n);
     if (!numFmt.currency) return numStr;
     return numFmt.position === 'before' ? `${numFmt.currency}${numStr}` : `${numStr} ${numFmt.currency}`;
+  }
+
+  // Tolerantly parses a price field's displayed text (formatted or mid-edit) back to a number.
+  function parsePriceInput(raw) {
+    if (raw == null) return 0;
+    let s = String(raw).trim();
+    if (!s) return 0;
+    if (numFmt.thousandsSep) s = s.split(numFmt.thousandsSep).join('');
+    if (numFmt.decimalSep && numFmt.decimalSep !== '.') s = s.split(numFmt.decimalSep).join('.');
+    s = s.replace(/[^\d.\-]/g, '');
+    const n = parseFloat(s);
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  // Plain, unrounded-looking string shown while the field has focus (no thousands grouping).
+  function toEditablePriceString(n) {
+    const num = Number(n) || 0;
+    const fixed = num.toFixed(numFmt.decimals);
+    return numFmt.decimalSep !== '.' ? fixed.replace('.', numFmt.decimalSep) : fixed;
   }
 
   const formatDate = (isoStr) => {
@@ -450,7 +502,7 @@
     descEl.value = data.desc || '';
     tr.querySelector('.item-qty').value = data.qty ?? 1;
     tr.querySelector('.item-unit').value = data.unit || '';
-    tr.querySelector('.item-price').value = data.price ?? 0;
+    tr.querySelector('.item-price').value = formatNumberPlain(data.price ?? 0);
     tr.querySelector('.price-currency').textContent = numFmt.currency;
     updateItemTotal(tr);
     requestAnimationFrame(() => autoGrow(descEl));
@@ -481,7 +533,7 @@
 
   function updateItemTotal(tr) {
     const qty = parseNum(tr.querySelector('.item-qty').value);
-    const price = parseNum(tr.querySelector('.item-price').value);
+    const price = parsePriceInput(tr.querySelector('.item-price').value);
     const total = qty * price;
     tr.querySelector('.item-line-total').textContent = formatMoney(total);
     return total;
@@ -545,6 +597,45 @@
     tbDate.textContent = formatDate(invoiceDate.value);
   }
 
+  // Generates (or clears) the company-website QR code. Synchronous — QRCode.js
+  // draws straight into a canvas, so the data URL is ready immediately after.
+  function regenerateQr() {
+    const url = companyWebsite.value.trim();
+    if (!url) {
+      qrDataUrl = null;
+      refreshQrUI();
+      return;
+    }
+    try {
+      qrScratch.innerHTML = '';
+      new QRCode(qrScratch, {
+        text: url,
+        width: 160,
+        height: 160,
+        colorDark: '#0F2038',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M,
+      });
+      const canvas = qrScratch.querySelector('canvas');
+      qrDataUrl = canvas ? canvas.toDataURL('image/png') : null;
+    } catch (e) {
+      qrDataUrl = null;
+    }
+    refreshQrUI();
+  }
+
+  function refreshQrUI() {
+    if (qrDataUrl) {
+      sheetQr.src = qrDataUrl;
+      sheetQrCaption.textContent = companyWebsite.value.trim();
+      sheetQrWrap.hidden = false;
+    } else {
+      sheetQr.src = '';
+      sheetQrCaption.textContent = '';
+      sheetQrWrap.hidden = true;
+    }
+  }
+
   function refreshLogoUI() {
     if (logoDataUrl) {
       logoPreview.src = logoDataUrl;
@@ -586,7 +677,7 @@
         desc: tr.querySelector('.item-desc').value,
         qty: parseNum(tr.querySelector('.item-qty').value),
         unit: tr.querySelector('.item-unit').value,
-        price: parseNum(tr.querySelector('.item-price').value),
+        price: parsePriceInput(tr.querySelector('.item-price').value),
       })),
     }));
 
@@ -598,7 +689,7 @@
     return {
       _format: 'site-sheet-invoice',
       _version: 1,
-      company: { name: companyName.value, address: companyAddress.value, contact: companyContact.value, logo: logoDataUrl || null },
+      company: { name: companyName.value, address: companyAddress.value, contact: companyContact.value, website: companyWebsite.value, logo: logoDataUrl || null },
       client: { name: clientName.value, address: clientAddress.value },
       invoice: { number: invoiceNumber.value, date: invoiceDate.value, title: invoiceTitle.value },
       sections,
@@ -622,6 +713,8 @@
     companyName.value = state.company?.name || '';
     companyAddress.value = state.company?.address || '';
     companyContact.value = state.company?.contact || '';
+    companyWebsite.value = state.company?.website || '';
+    regenerateQr();
     logoDataUrl = state.company?.logo || null;
     refreshLogoUI();
 
@@ -673,6 +766,7 @@
   }
 
   async function generatePdf() {
+    regenerateQr();
     const state = collectState();
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF({ unit: 'pt', format: 'a4' });
@@ -696,10 +790,13 @@
       } catch (e) { /* ignore image errors, continue */ }
     }
 
-    // ---- company block (left) ----
+    // ---- company block (left) + optional website QR ----
     const rowTop = y;
+    const boxW = 220; // reused below for the client box; declared early so the QR can stay clear of it
     doc.setFont('helvetica', 'bold'); doc.setFontSize(14);
     doc.text(state.company.name || '', marginL, y + 10);
+    const nameWidth = doc.getTextWidth(state.company.name || '');
+
     doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
     let hy = y + 26;
     (state.company.address || '').split('\n').filter(Boolean).forEach((line) => {
@@ -709,9 +806,26 @@
       doc.text(line, marginL, hy); hy += 11;
     });
 
+    let qrBottom = y;
+    if (qrDataUrl && state.company.website) {
+      const qrSize = 42;
+      const boxX = pageW - marginR - boxW;
+      let qrX = marginL + nameWidth + 16;
+      qrX = Math.min(qrX, boxX - qrSize - 16);
+      qrX = Math.max(qrX, marginL + 50);
+      const qrY = y - 4;
+      try {
+        doc.addImage(qrDataUrl, 'PNG', qrX, qrY, qrSize, qrSize);
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5);
+        doc.setTextColor(90, 103, 121);
+        doc.text(state.company.website, qrX + qrSize / 2, qrY + qrSize + 8, { align: 'center', maxWidth: qrSize + 24 });
+        doc.setTextColor(0, 0, 0);
+        qrBottom = qrY + qrSize + 14;
+      } catch (e) { /* ignore image errors, continue */ }
+    }
+
     // ---- client box (right, same row as company) ----
     doc.setDrawColor(30, 45, 60); doc.setLineWidth(1);
-    const boxW = 220;
     const clientLines = (state.client.address || '').split('\n').filter(Boolean);
     const boxH = 30 + clientLines.length * 12;
     const boxX = pageW - marginR - boxW, boxY = rowTop;
@@ -722,7 +836,7 @@
     let cy = boxY + 31;
     clientLines.forEach((l) => { doc.text(l, boxX + 10, cy); cy += 12; });
 
-    y = Math.max(hy + 14, boxY + boxH + 28);
+    y = Math.max(hy + 14, qrBottom + 8, boxY + boxH + 28);
 
     // ---- title ----
     doc.setFont('helvetica', 'bolditalic'); doc.setFontSize(11);
@@ -852,6 +966,8 @@
     el.addEventListener('input', () => { syncHeader(); markDirty(); });
   });
 
+  companyWebsite.addEventListener('input', () => { regenerateQr(); markDirty(); });
+
   // number / currency format
   [currencySymbolEl, currencyPositionEl, numberFormatPresetEl, customThousandsSepEl,
     customDecimalSepEl, decimalPlacesEl].forEach((el) => {
@@ -874,6 +990,21 @@
     }
     updateSummary();
     markDirty();
+  });
+
+  // Show a plain, easy-to-edit number while focused; reformat with
+  // thousands separators and currency-style decimals once the user leaves the field.
+  sectionsMount.addEventListener('focusin', (e) => {
+    if (!e.target.matches('.item-price')) return;
+    e.target.value = toEditablePriceString(parsePriceInput(e.target.value));
+  });
+  sectionsMount.addEventListener('focusout', (e) => {
+    if (!e.target.matches('.item-price')) return;
+    const tr = e.target.closest('tr');
+    e.target.value = formatNumberPlain(parsePriceInput(e.target.value));
+    updateItemTotal(tr);
+    updateSectionTotal(tr.closest('.section-card'));
+    updateSummary();
   });
 
   sectionsMount.addEventListener('click', (e) => {
@@ -1022,6 +1153,6 @@
     const saved = localStorage.getItem('invoiceme-lang');
     if (saved === 'en' || saved === 'fr') initialLang = saved;
   } catch (e) { /* storage unavailable, default to French */ }
-  setLanguage(initialLang);
   populateFromState({ invoice: { date: todayISO() } });
+  setLanguage(initialLang);
 })();
