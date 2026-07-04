@@ -35,12 +35,24 @@ plain GitHub Pages site.
 
 1. Create a new GitHub repo (or use an existing one) and add these files to the repo
    root, keeping the folder structure: `index.html`, `style.css`, `app.js`, and the
-   `assets/icon.svg` file (used as the browser tab icon).
+   whole `assets/` folder (icon.svg, favicon-16.png, favicon-32.png, apple-touch-icon.png,
+   icon-512.png, og-image.png — these cover the browser tab icon, phone bookmark icon,
+   and link-preview image).
 2. Push to GitHub.
 3. In the repo, go to **Settings → Pages**, set **Source** to your default branch and
    root folder (`/`), and save.
 4. GitHub will give you a URL like `https://yourusername.github.io/your-repo/` — that's
    your invoice tool. No build step, no server, no database.
+5. **Fix the link-preview URLs.** Open `index.html`, search for `REPLACE-WITH-YOUR-URL`
+   (it appears twice, in `og:url`/`og:image` and `twitter:image`), and replace it with
+   your actual GitHub Pages URL from step 4. This step is required for logos/previews
+   to show up when the link is pasted into Slack, iMessage, Twitter/X, etc. — those
+   services read the raw HTML and need an absolute URL; they can't run JavaScript to
+   figure it out themselves. Commit and push again after editing.
+
+If the browser tab still doesn't show the icon after deploying, do a hard refresh
+(Ctrl+Shift+R / Cmd+Shift+R) — favicons are cached aggressively by browsers, so a normal
+reload sometimes keeps showing the old (missing) one from before the icon existed.
 
 You can also just open `index.html` directly in a browser (double-click it) — it works
 fully offline except for the three CDN script tags (jsPDF, jsPDF-AutoTable, pdf-lib) and
