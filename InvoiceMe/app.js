@@ -167,6 +167,7 @@
       alert_pdf_error: 'Une erreur est survenue lors de la génération du PDF. Consultez la console pour plus de détails.',
       devis_word: 'Devis Numéro',
       devis_connector: 'du',
+      page_title: 'InvoiceMe — Facturation BTP',
     },
     en: {
       topbar_tagline: 'Construction Invoicing',
@@ -266,6 +267,7 @@
       alert_pdf_error: 'Something went wrong generating the PDF. Check the console for details.',
       devis_word: 'Invoice No.',
       devis_connector: 'dated',
+      page_title: 'InvoiceMe — Construction Invoice Builder',
     },
   };
 
@@ -281,6 +283,7 @@
   function setLanguage(lang) {
     currentLang = (lang === 'en') ? 'en' : 'fr';
     document.documentElement.lang = currentLang;
+    document.title = t('page_title');
     langSelect.value = currentLang;
     localize(document);
     try { localStorage.setItem('invoiceme-lang', currentLang); } catch (e) { /* storage unavailable, ignore */ }
@@ -393,6 +396,18 @@
     clearTimeout(statusTimer);
     if (ttl) statusTimer = setTimeout(() => { railStatus.textContent = ''; }, ttl);
   };
+
+  let isDirty = false;
+  const markDirty = () => {
+    isDirty = true;
+    setStatus(t('status_unsaved'));
+  };
+
+  window.addEventListener('beforeunload', (e) => {
+    if (!isDirty) return;
+    e.preventDefault();
+    e.returnValue = '';
+  });
 
   const triggerDownload = (blob, filename) => {
     const url = URL.createObjectURL(blob);
@@ -635,6 +650,7 @@
 
     syncHeader();
     updateSummary();
+    localize(document);
   }
 
   // ============================================================
@@ -833,7 +849,7 @@
   // header fields -> live sheet sync
   [companyName, companyAddress, companyContact, clientName, clientAddress,
     invoiceNumber, invoiceDate, invoiceTitle, footerNotes].forEach((el) => {
-    el.addEventListener('input', () => { syncHeader(); setStatus(t('status_unsaved')); });
+    el.addEventListener('input', () => { syncHeader(); markDirty(); });
   });
 
   // number / currency format
@@ -842,7 +858,7 @@
     el.addEventListener('input', () => {
       readFormatSettingsFromUI();
       updateSummary();
-      setStatus(t('status_unsaved'));
+      markDirty();
     });
   });
 
@@ -857,7 +873,7 @@
       autoGrow(e.target);
     }
     updateSummary();
-    setStatus(t('status_unsaved'));
+    markDirty();
   });
 
   sectionsMount.addEventListener('click', (e) => {
@@ -881,22 +897,22 @@
       const next = card.nextElementSibling;
       if (next) sectionsMount.insertBefore(next, card);
     }
-    setStatus(t('status_unsaved'));
+    markDirty();
   });
 
   $('btnAddSection').addEventListener('click', () => {
     sectionsMount.appendChild(createSection({}));
     updateSummary();
-    setStatus(t('status_unsaved'));
+    markDirty();
   });
 
   // taxes
-  taxList.addEventListener('input', () => { updateSummary(); setStatus(t('status_unsaved')); });
+  taxList.addEventListener('input', () => { updateSummary(); markDirty(); });
   taxList.addEventListener('click', (e) => {
     if (e.target.classList.contains('btn-remove-tax')) {
       e.target.closest('.tax-row').remove();
       updateSummary();
-      setStatus(t('status_unsaved'));
+      markDirty();
     }
   });
   $('btnAddTax').addEventListener('click', () => {
@@ -927,7 +943,7 @@
     logoDataUrl = null;
     fileLogo.value = '';
     refreshLogoUI();
-    setStatus(t('status_unsaved'));
+    markDirty();
   });
 
   // terms pdf
@@ -948,13 +964,14 @@
     termsFileName = '';
     fileTerms.value = '';
     refreshTermsUI();
-    setStatus(t('status_unsaved'));
+    markDirty();
   });
 
   // top-level actions
   $('btnNew').addEventListener('click', () => {
     if (confirm(t('confirm_new'))) {
       populateFromState({ invoice: { date: todayISO() } });
+      isDirty = false;
       setStatus(t('status_new_ready'));
     }
   });
@@ -963,6 +980,7 @@
     const state = collectState();
     const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
     triggerDownload(blob, `InvoiceMe-data-${state.invoice.number || 'draft'}.json`);
+    isDirty = false;
     setStatus(t('status_data_saved'));
   });
 
@@ -974,6 +992,7 @@
       try {
         const state = JSON.parse(reader.result);
         populateFromState(state);
+        isDirty = false;
         setStatus(t('status_data_loaded'));
       } catch (err) {
         alert(t('alert_bad_json'));
