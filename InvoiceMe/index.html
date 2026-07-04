@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,39 +11,49 @@
 </head>
 <body>
 
+<!-- ============ TOP BAR ============ -->
+<header class="topbar">
+  <div class="topbar-brand">
+    <div class="topbar-brand-mark" aria-hidden="true">
+      <svg viewBox="0 0 64 64" width="32" height="32">
+        <rect width="64" height="64" rx="12" fill="var(--ink-2)"/>
+        <path d="M16 12 H38 L48 22 V50 A2 2 0 0 1 46 52 H16 A2 2 0 0 1 14 50 V14 A2 2 0 0 1 16 12 Z"
+              fill="none" stroke="var(--text-on-ink)" stroke-width="2.5" stroke-linejoin="round"/>
+        <path d="M38 12 V22 H48" fill="none" stroke="var(--text-on-ink)" stroke-width="2.5" stroke-linejoin="round"/>
+        <line x1="20" y1="30" x2="40" y2="30" stroke="var(--text-on-ink)" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="20" y1="37" x2="40" y2="37" stroke="var(--text-on-ink)" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="20" y1="44" x2="33" y2="44" stroke="var(--text-on-ink)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="46" r="12" fill="var(--accent)" stroke="var(--ink)" stroke-width="2"/>
+        <path d="M39.5 46 L43.5 50 L51 40.5" fill="none" stroke="var(--ink)" stroke-width="3"
+              stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="topbar-brand-text">
+      <div class="topbar-brand-title">InvoiceMe</div>
+      <div class="topbar-brand-sub" data-i18n="topbar_tagline">Facturation BTP</div>
+    </div>
+  </div>
+  <div class="topbar-lang">
+    <label for="langSelect" class="visually-hidden" data-i18n="lang_label">Langue</label>
+    <select id="langSelect">
+      <option value="fr">Français</option>
+      <option value="en">English</option>
+    </select>
+  </div>
+</header>
+
 <div class="app">
 
   <!-- ============ LEFT CONTROL RAIL ============ -->
   <aside class="rail">
-    <div class="rail-brand">
-      <div class="rail-brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 64 64" width="40" height="40">
-          <rect width="64" height="64" rx="12" fill="var(--ink-2)"/>
-          <path d="M16 12 H38 L48 22 V50 A2 2 0 0 1 46 52 H16 A2 2 0 0 1 14 50 V14 A2 2 0 0 1 16 12 Z"
-                fill="none" stroke="var(--text-on-ink)" stroke-width="2.5" stroke-linejoin="round"/>
-          <path d="M38 12 V22 H48" fill="none" stroke="var(--text-on-ink)" stroke-width="2.5" stroke-linejoin="round"/>
-          <line x1="20" y1="30" x2="40" y2="30" stroke="var(--text-on-ink)" stroke-width="2.5" stroke-linecap="round"/>
-          <line x1="20" y1="37" x2="40" y2="37" stroke="var(--text-on-ink)" stroke-width="2.5" stroke-linecap="round"/>
-          <line x1="20" y1="44" x2="33" y2="44" stroke="var(--text-on-ink)" stroke-width="2.5" stroke-linecap="round"/>
-          <circle cx="45" cy="46" r="12" fill="var(--accent)" stroke="var(--ink)" stroke-width="2"/>
-          <path d="M39.5 46 L43.5 50 L51 40.5" fill="none" stroke="var(--ink)" stroke-width="3"
-                stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </div>
-      <div class="rail-brand-text">
-        <div class="rail-brand-title">InvoiceMe</div>
-        <div class="rail-brand-sub">Construction Invoicing</div>
-      </div>
-    </div>
-
     <div class="rail-actions">
-      <button class="btn btn-ghost" id="btnNew" title="Clear everything and start a new invoice">New</button>
-      <label class="btn btn-ghost" title="Load a previously saved .json data file">
-        Load Data
+      <button class="btn btn-ghost" id="btnNew" data-i18n="btn_new" data-i18n-title="btn_new_title" title="">Nouveau</button>
+      <label class="btn btn-ghost" data-i18n-title="btn_load_title" title="">
+        <span data-i18n="btn_load">Charger des données</span>
         <input type="file" id="fileLoadData" accept="application/json" hidden>
       </label>
-      <button class="btn btn-ghost" id="btnSaveData" title="Download this invoice's data as a .json file">Save Data</button>
-      <button class="btn btn-accent" id="btnGeneratePdf" title="Generate the final invoice PDF">Generate PDF</button>
+      <button class="btn btn-ghost" id="btnSaveData" data-i18n="btn_save" data-i18n-title="btn_save_title" title="">Enregistrer</button>
+      <button class="btn btn-accent" id="btnGeneratePdf" data-i18n="btn_generate" data-i18n-title="btn_generate_title" title="">Générer le PDF</button>
     </div>
 
     <div class="rail-status" id="railStatus" aria-live="polite"></div>
@@ -51,102 +61,102 @@
     <div class="rail-scroll">
 
       <details class="field-group" open>
-        <summary>Letterhead</summary>
-        <label class="lbl">Logo / title image</label>
+        <summary data-i18n="grp_letterhead">En-tête</summary>
+        <label class="lbl" data-i18n="lbl_logo">Logo / image d'en-tête</label>
         <div class="logo-drop" id="logoDrop">
           <img id="logoPreview" class="logo-preview" hidden>
-          <span id="logoPlaceholder" class="logo-placeholder">Click or drop an image</span>
+          <span id="logoPlaceholder" class="logo-placeholder" data-i18n="logo_drop_hint">Cliquez ou déposez une image</span>
           <input type="file" id="fileLogo" accept="image/*" hidden>
         </div>
-        <button class="btn btn-tiny btn-ghost" id="btnRemoveLogo" hidden>Remove logo</button>
+        <button class="btn btn-tiny btn-ghost" id="btnRemoveLogo" data-i18n="btn_remove_logo" hidden>Supprimer le logo</button>
       </details>
 
       <details class="field-group" open>
-        <summary>Company</summary>
-        <label class="lbl">Company name</label>
-        <input class="inp" id="companyName" placeholder="e.g. Well Conception">
-        <label class="lbl">Address</label>
+        <summary data-i18n="grp_company">Entreprise</summary>
+        <label class="lbl" data-i18n="lbl_company_name">Nom de l'entreprise</label>
+        <input class="inp" id="companyName" data-i18n-placeholder="ph_company_name" placeholder="ex. Well Conception">
+        <label class="lbl" data-i18n="lbl_address">Adresse</label>
         <textarea class="inp" id="companyAddress" rows="2" placeholder="16 Sq Pt de Sèvres&#10;92100 Boulogne Billancourt"></textarea>
-        <label class="lbl">Contact line</label>
+        <label class="lbl" data-i18n="lbl_contact_line">Ligne de contact</label>
         <textarea class="inp" id="companyContact" rows="2" placeholder="T: 01 45 51 50 49 – company.fr – email@company.fr"></textarea>
       </details>
 
       <details class="field-group" open>
-        <summary>Bill To</summary>
-        <label class="lbl">Client name</label>
-        <input class="inp" id="clientName" placeholder="e.g. Mme ARFA">
-        <label class="lbl">Client address</label>
+        <summary data-i18n="grp_billto">Facturer à</summary>
+        <label class="lbl" data-i18n="lbl_client_name">Nom du client</label>
+        <input class="inp" id="clientName" data-i18n-placeholder="ph_client_name" placeholder="ex. Mme ARFA">
+        <label class="lbl" data-i18n="lbl_client_address">Adresse du client</label>
         <textarea class="inp" id="clientAddress" rows="2" placeholder="5, Rue du 29 juillet&#10;75001 PARIS"></textarea>
       </details>
 
       <details class="field-group" open>
-        <summary>Invoice details</summary>
-        <label class="lbl">Invoice number</label>
+        <summary data-i18n="grp_invoice">Détails du devis</summary>
+        <label class="lbl" data-i18n="lbl_invoice_number">Numéro de devis</label>
         <input class="inp" id="invoiceNumber" placeholder="280126">
-        <label class="lbl">Date</label>
+        <label class="lbl" data-i18n="lbl_date">Date</label>
         <input class="inp" id="invoiceDate" type="date">
-        <label class="lbl">Title / description</label>
-        <textarea class="inp" id="invoiceTitle" rows="2" placeholder="correspondant aux travaux d'un appartement &amp; un studio"></textarea>
+        <label class="lbl" data-i18n="lbl_invoice_title">Titre / description</label>
+        <textarea class="inp" id="invoiceTitle" rows="2" data-i18n-placeholder="ph_invoice_title" placeholder="correspondant aux travaux d'un appartement &amp; un studio"></textarea>
       </details>
 
       <details class="field-group" open>
-        <summary>Number &amp; currency format</summary>
-        <label class="lbl">Currency symbol / code</label>
+        <summary data-i18n="grp_format">Format des nombres &amp; devise</summary>
+        <label class="lbl" data-i18n="lbl_currency">Symbole / code de la devise</label>
         <input class="inp" id="currencySymbol" maxlength="6" placeholder="€">
-        <label class="lbl">Symbol position</label>
+        <label class="lbl" data-i18n="lbl_currency_position">Position du symbole</label>
         <select class="inp" id="currencyPosition">
-          <option value="after">After amount — 1 234,56 €</option>
-          <option value="before">Before amount — €1,234.56</option>
+          <option value="after" data-i18n="opt_after">Après le montant — 1 234,56 €</option>
+          <option value="before" data-i18n="opt_before">Avant le montant — €1,234.56</option>
         </select>
-        <label class="lbl">Number format</label>
+        <label class="lbl" data-i18n="lbl_number_format">Format des nombres</label>
         <select class="inp" id="numberFormatPreset">
-          <option value="space-comma">1 234,56 — space · comma</option>
-          <option value="comma-period">1,234.56 — comma · period</option>
-          <option value="period-comma">1.234,56 — period · comma</option>
-          <option value="apostrophe-period">1'234.56 — apostrophe · period</option>
-          <option value="none-period">1234.56 — none · period</option>
-          <option value="custom">Custom…</option>
+          <option value="space-comma" data-i18n="opt_space_comma">1 234,56 — espace · virgule</option>
+          <option value="comma-period" data-i18n="opt_comma_period">1,234.56 — virgule · point</option>
+          <option value="period-comma" data-i18n="opt_period_comma">1.234,56 — point · virgule</option>
+          <option value="apostrophe-period" data-i18n="opt_apostrophe_period">1'234.56 — apostrophe · point</option>
+          <option value="none-period" data-i18n="opt_none_period">1234.56 — aucun · point</option>
+          <option value="custom" data-i18n="opt_custom">Personnalisé…</option>
         </select>
         <div id="customFormatFields" hidden>
-          <label class="lbl">Thousands separator</label>
+          <label class="lbl" data-i18n="lbl_thousands_sep">Séparateur des milliers</label>
           <select class="inp" id="customThousandsSep">
-            <option value=" ">Space</option>
-            <option value=",">Comma</option>
-            <option value=".">Period</option>
-            <option value="'">Apostrophe</option>
-            <option value="">None</option>
+            <option value=" " data-i18n="opt_sep_space">Espace</option>
+            <option value="," data-i18n="opt_sep_comma">Virgule</option>
+            <option value="." data-i18n="opt_sep_period">Point</option>
+            <option value="'" data-i18n="opt_sep_apostrophe">Apostrophe</option>
+            <option value="" data-i18n="opt_sep_none">Aucun</option>
           </select>
-          <label class="lbl">Decimal separator</label>
+          <label class="lbl" data-i18n="lbl_decimal_sep">Séparateur décimal</label>
           <select class="inp" id="customDecimalSep">
-            <option value=",">Comma</option>
-            <option value=".">Period</option>
+            <option value="," data-i18n="opt_sep_comma">Virgule</option>
+            <option value="." data-i18n="opt_sep_period">Point</option>
           </select>
         </div>
-        <label class="lbl">Decimal places</label>
+        <label class="lbl" data-i18n="lbl_decimals">Nombre de décimales</label>
         <input class="inp" id="decimalPlaces" type="number" min="0" max="4" value="2">
       </details>
 
       <details class="field-group" open>
-        <summary>Taxes</summary>
+        <summary data-i18n="grp_taxes">Taxes</summary>
         <div id="taxList" class="tax-list"></div>
-        <button class="btn btn-tiny btn-ghost" id="btnAddTax">+ Add tax line</button>
+        <button class="btn btn-tiny btn-ghost" id="btnAddTax" data-i18n="btn_add_tax">+ Ajouter une taxe</button>
       </details>
 
       <details class="field-group">
-        <summary>Footer notes</summary>
-        <label class="lbl">Bank / legal / payment info</label>
-        <textarea class="inp" id="footerNotes" rows="5" placeholder="IBAN, BIC, SIREN, payment terms, etc."></textarea>
+        <summary data-i18n="grp_footer">Notes de bas de page</summary>
+        <label class="lbl" data-i18n="lbl_footer_notes">Infos bancaires / légales / paiement</label>
+        <textarea class="inp" id="footerNotes" rows="5" data-i18n-placeholder="ph_footer_notes" placeholder="IBAN, BIC, SIREN, conditions de paiement, etc."></textarea>
       </details>
 
       <details class="field-group">
-        <summary>Attached terms PDF</summary>
-        <p class="hint">Optional. Its pages are appended after the invoice — for legal language, T&amp;Cs, or a signature page.</p>
+        <summary data-i18n="grp_terms">PDF de conditions joint</summary>
+        <p class="hint" data-i18n="terms_hint">Optionnel. Ses pages seront ajoutées après le devis — pour les mentions légales, CGV, ou une page de signature.</p>
         <label class="btn btn-tiny btn-ghost">
-          Choose PDF
+          <span data-i18n="btn_choose_pdf">Choisir un PDF</span>
           <input type="file" id="fileTerms" accept="application/pdf" hidden>
         </label>
         <div id="termsFileName" class="hint mono"></div>
-        <button class="btn btn-tiny btn-ghost" id="btnRemoveTerms" hidden>Remove attached PDF</button>
+        <button class="btn btn-tiny btn-ghost" id="btnRemoveTerms" data-i18n="btn_remove_terms" hidden>Supprimer le PDF joint</button>
       </details>
 
     </div>
@@ -155,8 +165,8 @@
   <!-- ============ RIGHT: DRAFTING TABLE / CANVAS ============ -->
   <main class="canvas-wrap">
     <div class="canvas-toolbar">
-      <button class="btn btn-accent btn-sm" id="btnAddSection">+ Add Section</button>
-      <span class="canvas-toolbar-hint">Sections become tables on the PDF, in this order.</span>
+      <button class="btn btn-accent btn-sm" id="btnAddSection" data-i18n="btn_add_section">+ Ajouter une section</button>
+      <span class="canvas-toolbar-hint" data-i18n="toolbar_hint">Les sections deviennent des tableaux dans le PDF, dans cet ordre.</span>
     </div>
 
     <div class="sheet" id="sheet">
@@ -165,12 +175,12 @@
           <img id="sheetLogo" hidden>
         </div>
         <div class="sheet-head-company">
-          <div class="sheet-company-name" id="sheetCompanyName">Company Name</div>
+          <div class="sheet-company-name" id="sheetCompanyName" data-i18n="sheet_company_placeholder">Nom de l'entreprise</div>
           <div class="sheet-company-address" id="sheetCompanyAddress"></div>
           <div class="sheet-company-contact" id="sheetCompanyContact"></div>
         </div>
         <div class="sheet-head-client" id="sheetClientBox">
-          <div class="sheet-client-name" id="sheetClientName">Client</div>
+          <div class="sheet-client-name" id="sheetClientName" data-i18n="sheet_client_placeholder">Client</div>
           <div class="sheet-client-address" id="sheetClientAddress"></div>
         </div>
       </div>
@@ -180,16 +190,16 @@
       <div id="sectionsMount"></div>
 
       <div class="sheet-summary">
-        <div class="sheet-summary-head">Récapitulatif</div>
+        <div class="sheet-summary-head" data-i18n="recap_label">Récapitulatif</div>
         <table class="summary-table" id="summaryTable"></table>
       </div>
 
       <div class="sheet-footer" id="sheetFooterNotes"></div>
 
       <div class="title-block" id="titleBlock">
-        <div class="tb-row"><span>NO.</span><span id="tbNumber">—</span></div>
-        <div class="tb-row"><span>DATE</span><span id="tbDate">—</span></div>
-        <div class="tb-row"><span>REV</span><span>A</span></div>
+        <div class="tb-row"><span data-i18n="tb_no">N°</span><span id="tbNumber">—</span></div>
+        <div class="tb-row"><span data-i18n="tb_date">DATE</span><span id="tbDate">—</span></div>
+        <div class="tb-row"><span data-i18n="tb_rev">RÉV</span><span>A</span></div>
       </div>
     </div>
   </main>
@@ -200,41 +210,41 @@
   <section class="section-card">
     <div class="section-card-bar">
       <span class="drag-hint">⠿</span>
-      <input class="section-title-input" placeholder="Section title (e.g. Plomberie)">
+      <input class="section-title-input" data-i18n-placeholder="section_title_placeholder" placeholder="Titre de la section (ex. Plomberie)">
       <div class="section-card-actions">
-        <button class="icon-btn btn-move-up" title="Move up">↑</button>
-        <button class="icon-btn btn-move-down" title="Move down">↓</button>
-        <button class="icon-btn btn-remove-section" title="Remove section">✕</button>
+        <button class="icon-btn btn-move-up" data-i18n-title="tooltip_move_up" title="Déplacer vers le haut">↑</button>
+        <button class="icon-btn btn-move-down" data-i18n-title="tooltip_move_down" title="Déplacer vers le bas">↓</button>
+        <button class="icon-btn btn-remove-section" data-i18n-title="tooltip_remove_section" title="Supprimer la section">✕</button>
       </div>
     </div>
-    <textarea class="section-desc-input" rows="1" placeholder="Optional section description / notes"></textarea>
+    <textarea class="section-desc-input" rows="1" data-i18n-placeholder="section_desc_placeholder" placeholder="Description / notes de section (facultatif)"></textarea>
     <table class="items-table">
       <thead>
         <tr>
-          <th class="col-desc">Intitulé</th>
-          <th class="col-qty">Qté</th>
-          <th class="col-unit">Unité</th>
-          <th class="col-price">Prix U.</th>
-          <th class="col-total">Montant</th>
+          <th class="col-desc" data-i18n="col_desc">Intitulé</th>
+          <th class="col-qty" data-i18n="col_qty">Qté</th>
+          <th class="col-unit" data-i18n="col_unit">Unité</th>
+          <th class="col-price" data-i18n="col_price">Prix U.</th>
+          <th class="col-total" data-i18n="col_amount_ht">Montant HT</th>
           <th class="col-del"></th>
         </tr>
       </thead>
       <tbody class="items-body"></tbody>
     </table>
-    <button class="btn btn-tiny btn-ghost btn-add-item">+ Add line item</button>
-    <div class="section-total-row">Section total: <span class="section-total-value mono">0,00 €</span></div>
+    <button class="btn btn-tiny btn-ghost btn-add-item" data-i18n="btn_add_item">+ Ajouter une ligne</button>
+    <div class="section-total-row"><span data-i18n="section_total_label">Total de la section :</span> <span class="section-total-value mono">0,00 €</span></div>
   </section>
 </template>
 
 <!-- Line item template -->
 <template id="tplItem">
   <tr>
-    <td><textarea class="item-desc" rows="1" placeholder="Description"></textarea></td>
+    <td><textarea class="item-desc" rows="1" data-i18n-placeholder="item_desc_placeholder" placeholder="Description"></textarea></td>
     <td><input class="item-qty" type="number" step="any" value="1"></td>
     <td><input class="item-unit" type="text" placeholder="U"></td>
     <td><input class="item-price" type="number" step="any" value="0"></td>
     <td class="item-line-total mono">0,00 €</td>
-    <td><button class="icon-btn btn-remove-item" title="Remove line">✕</button></td>
+    <td><button class="icon-btn btn-remove-item" data-i18n-title="tooltip_remove_item" title="Supprimer la ligne">✕</button></td>
   </tr>
 </template>
 
@@ -244,7 +254,7 @@
     <input class="tax-label" type="text" placeholder="TVA">
     <input class="tax-rate" type="number" step="any" placeholder="10">
     <span class="tax-pct">%</span>
-    <button class="icon-btn btn-remove-tax" title="Remove tax">✕</button>
+    <button class="icon-btn btn-remove-tax" data-i18n-title="tooltip_remove_tax" title="Supprimer la taxe">✕</button>
   </div>
 </template>
 

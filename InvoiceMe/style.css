@@ -28,10 +28,41 @@ body{
 }
 .mono{ font-family:var(--f-mono); }
 
+.visually-hidden{
+  position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+  overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+}
+
+/* ============ TOP BAR ============ */
+.topbar{
+  height:56px; box-sizing:border-box;
+  display:flex; align-items:center; justify-content:space-between;
+  gap:12px;
+  padding:0 20px;
+  background:var(--ink);
+  border-bottom:1px solid var(--line-dim);
+}
+.topbar-brand{ display:flex; align-items:center; gap:10px; min-width:0; }
+.topbar-brand-mark{ width:32px; height:32px; flex:none; display:flex; }
+.topbar-brand-mark svg{ display:block; }
+.topbar-brand-title{ font-family:var(--f-display); font-weight:700; font-size:16px; letter-spacing:.01em; }
+.topbar-brand-sub{ font-size:10.5px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.08em; }
+.topbar-lang select{
+  background:var(--ink-2);
+  color:var(--text-on-ink);
+  border:1px solid var(--line-dim);
+  border-radius:2px;
+  padding:7px 10px;
+  font-family:var(--f-body);
+  font-size:12.5px;
+  cursor:pointer;
+}
+.topbar-lang select:focus{ outline:none; border-color:var(--accent); }
+
 .app{
   display:grid;
   grid-template-columns:340px 1fr;
-  height:100vh;
+  height:calc(100vh - 56px);
 }
 
 /* ============ RAIL ============ */
@@ -42,18 +73,6 @@ body{
   flex-direction:column;
   min-height:0;
 }
-.rail-brand{
-  display:flex; align-items:center; gap:12px;
-  padding:20px 20px 16px;
-  border-bottom:1px solid var(--line-dim);
-}
-.rail-brand-mark{
-  width:40px; height:40px; flex:none;
-  display:flex; align-items:center; justify-content:center;
-}
-.rail-brand-mark svg{ display:block; }
-.rail-brand-title{ font-family:var(--f-display); font-weight:700; font-size:17px; letter-spacing:.02em; }
-.rail-brand-sub{ font-size:11px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.08em; }
 
 .rail-actions{
   display:grid; grid-template-columns:1fr 1fr; gap:8px;
@@ -395,8 +414,9 @@ body{
 
 /* Phone: tighten chrome, enlarge touch targets, single-column rail actions */
 @media (max-width: 520px){
-  .rail-brand{ padding:16px; }
-  .rail-brand-title{ font-size:16px; }
+  .topbar{ padding:0 14px; }
+  .topbar-brand-title{ font-size:15px; }
+  .topbar-brand-sub{ display:none; }
   .rail-scroll{ padding:6px 14px 28px; }
   .rail-actions{ padding:12px 14px; gap:8px; }
 

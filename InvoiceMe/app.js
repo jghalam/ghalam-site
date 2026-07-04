@@ -56,11 +56,238 @@
   const btnRemoveTerms = $('btnRemoveTerms');
 
   const railStatus = $('railStatus');
+  const langSelect = $('langSelect');
 
   // ---------- transient (non-form) state ----------
   let logoDataUrl = null;
   let termsDataUrl = null;
   let termsFileName = '';
+
+  // ============================================================
+  // i18n — French by default, English optional
+  // ============================================================
+  const I18N = {
+    fr: {
+      topbar_tagline: 'Facturation BTP',
+      lang_label: 'Langue',
+      btn_new: 'Nouveau',
+      btn_new_title: 'Effacer tout et commencer un nouveau devis',
+      btn_load: 'Charger des données',
+      btn_load_title: 'Charger un fichier de données .json précédemment enregistré',
+      btn_save: 'Enregistrer',
+      btn_save_title: "Télécharger les données de ce devis au format .json",
+      btn_generate: 'Générer le PDF',
+      btn_generate_title: 'Générer le PDF final du devis',
+      grp_letterhead: 'En-tête',
+      lbl_logo: "Logo / image d'en-tête",
+      logo_drop_hint: 'Cliquez ou déposez une image',
+      btn_remove_logo: 'Supprimer le logo',
+      grp_company: 'Entreprise',
+      lbl_company_name: "Nom de l'entreprise",
+      ph_company_name: 'ex. Well Conception',
+      lbl_address: 'Adresse',
+      lbl_contact_line: 'Ligne de contact',
+      grp_billto: 'Facturer à',
+      lbl_client_name: 'Nom du client',
+      ph_client_name: 'ex. Mme ARFA',
+      lbl_client_address: 'Adresse du client',
+      grp_invoice: 'Détails du devis',
+      lbl_invoice_number: 'Numéro de devis',
+      lbl_date: 'Date',
+      lbl_invoice_title: 'Titre / description',
+      ph_invoice_title: "correspondant aux travaux d'un appartement & un studio",
+      grp_format: 'Format des nombres & devise',
+      lbl_currency: 'Symbole / code de la devise',
+      lbl_currency_position: 'Position du symbole',
+      opt_after: 'Après le montant — 1 234,56 €',
+      opt_before: 'Avant le montant — €1,234.56',
+      lbl_number_format: 'Format des nombres',
+      opt_space_comma: '1 234,56 — espace · virgule',
+      opt_comma_period: '1,234.56 — virgule · point',
+      opt_period_comma: '1.234,56 — point · virgule',
+      opt_apostrophe_period: "1'234.56 — apostrophe · point",
+      opt_none_period: '1234.56 — aucun · point',
+      opt_custom: 'Personnalisé…',
+      lbl_thousands_sep: 'Séparateur des milliers',
+      opt_sep_space: 'Espace',
+      opt_sep_comma: 'Virgule',
+      opt_sep_period: 'Point',
+      opt_sep_apostrophe: 'Apostrophe',
+      opt_sep_none: 'Aucun',
+      lbl_decimal_sep: 'Séparateur décimal',
+      lbl_decimals: 'Nombre de décimales',
+      grp_taxes: 'Taxes',
+      btn_add_tax: '+ Ajouter une taxe',
+      grp_footer: 'Notes de bas de page',
+      lbl_footer_notes: 'Infos bancaires / légales / paiement',
+      ph_footer_notes: 'IBAN, BIC, SIREN, conditions de paiement, etc.',
+      grp_terms: 'PDF de conditions joint',
+      terms_hint: 'Optionnel. Ses pages seront ajoutées après le devis — pour les mentions légales, CGV, ou une page de signature.',
+      btn_choose_pdf: 'Choisir un PDF',
+      btn_remove_terms: 'Supprimer le PDF joint',
+      terms_attached_prefix: 'Joint : ',
+      btn_add_section: '+ Ajouter une section',
+      toolbar_hint: 'Les sections deviennent des tableaux dans le PDF, dans cet ordre.',
+      sheet_company_placeholder: "Nom de l'entreprise",
+      sheet_client_placeholder: 'Client',
+      recap_label: 'Récapitulatif',
+      tb_no: 'N°',
+      tb_date: 'DATE',
+      tb_rev: 'RÉV',
+      section_title_placeholder: 'Titre de la section (ex. Plomberie)',
+      section_desc_placeholder: 'Description / notes de section (facultatif)',
+      tooltip_move_up: 'Déplacer vers le haut',
+      tooltip_move_down: 'Déplacer vers le bas',
+      tooltip_remove_section: 'Supprimer la section',
+      tooltip_remove_item: 'Supprimer la ligne',
+      tooltip_remove_tax: 'Supprimer la taxe',
+      col_desc: 'Intitulé',
+      col_qty: 'Qté',
+      col_unit: 'Unité',
+      col_price: 'Prix U.',
+      col_amount_ht: 'Montant HT',
+      btn_add_item: '+ Ajouter une ligne',
+      section_total_label: 'Total de la section :',
+      item_desc_placeholder: 'Description',
+      untitled_section: 'Section sans titre',
+      total_ht: 'TOTAL HT',
+      total_ttc: 'TOTAL TTC',
+      status_unsaved: 'Modifications non enregistrées',
+      status_logo_added: 'Logo ajouté',
+      status_terms_attached: 'PDF de conditions joint',
+      status_data_saved: 'Données enregistrées ✓',
+      status_data_loaded: 'Données chargées ✓',
+      status_new_ready: 'Nouveau devis prêt',
+      status_generating: 'Génération du PDF…',
+      status_pdf_generated: 'PDF généré ✓',
+      confirm_new: 'Commencer un nouveau devis ? Les modifications non enregistrées seront perdues.',
+      alert_bad_json: "Ce fichier n'a pas pu être lu comme données de devis (JSON invalide).",
+      alert_pdf_error: 'Une erreur est survenue lors de la génération du PDF. Consultez la console pour plus de détails.',
+      devis_word: 'Devis Numéro',
+      devis_connector: 'du',
+    },
+    en: {
+      topbar_tagline: 'Construction Invoicing',
+      lang_label: 'Language',
+      btn_new: 'New',
+      btn_new_title: 'Clear everything and start a new invoice',
+      btn_load: 'Load Data',
+      btn_load_title: 'Load a previously saved .json data file',
+      btn_save: 'Save Data',
+      btn_save_title: "Download this invoice's data as a .json file",
+      btn_generate: 'Generate PDF',
+      btn_generate_title: 'Generate the final invoice PDF',
+      grp_letterhead: 'Letterhead',
+      lbl_logo: 'Logo / title image',
+      logo_drop_hint: 'Click or drop an image',
+      btn_remove_logo: 'Remove logo',
+      grp_company: 'Company',
+      lbl_company_name: 'Company name',
+      ph_company_name: 'e.g. Well Conception',
+      lbl_address: 'Address',
+      lbl_contact_line: 'Contact line',
+      grp_billto: 'Bill To',
+      lbl_client_name: 'Client name',
+      ph_client_name: 'e.g. Mme ARFA',
+      lbl_client_address: 'Client address',
+      grp_invoice: 'Invoice details',
+      lbl_invoice_number: 'Invoice number',
+      lbl_date: 'Date',
+      lbl_invoice_title: 'Title / description',
+      ph_invoice_title: 'for the renovation of an apartment & a studio',
+      grp_format: 'Number & currency format',
+      lbl_currency: 'Currency symbol / code',
+      lbl_currency_position: 'Symbol position',
+      opt_after: 'After amount — 1 234,56 €',
+      opt_before: 'Before amount — €1,234.56',
+      lbl_number_format: 'Number format',
+      opt_space_comma: '1 234,56 — space · comma',
+      opt_comma_period: '1,234.56 — comma · period',
+      opt_period_comma: '1.234,56 — period · comma',
+      opt_apostrophe_period: "1'234.56 — apostrophe · period",
+      opt_none_period: '1234.56 — none · period',
+      opt_custom: 'Custom…',
+      lbl_thousands_sep: 'Thousands separator',
+      opt_sep_space: 'Space',
+      opt_sep_comma: 'Comma',
+      opt_sep_period: 'Period',
+      opt_sep_apostrophe: 'Apostrophe',
+      opt_sep_none: 'None',
+      lbl_decimal_sep: 'Decimal separator',
+      lbl_decimals: 'Decimal places',
+      grp_taxes: 'Taxes',
+      btn_add_tax: '+ Add tax line',
+      grp_footer: 'Footer notes',
+      lbl_footer_notes: 'Bank / legal / payment info',
+      ph_footer_notes: 'IBAN, BIC, SIREN, payment terms, etc.',
+      grp_terms: 'Attached terms PDF',
+      terms_hint: 'Optional. Its pages are appended after the invoice — for legal language, T&Cs, or a signature page.',
+      btn_choose_pdf: 'Choose PDF',
+      btn_remove_terms: 'Remove attached PDF',
+      terms_attached_prefix: 'Attached: ',
+      btn_add_section: '+ Add Section',
+      toolbar_hint: 'Sections become tables on the PDF, in this order.',
+      sheet_company_placeholder: 'Company Name',
+      sheet_client_placeholder: 'Client',
+      recap_label: 'Summary',
+      tb_no: 'NO.',
+      tb_date: 'DATE',
+      tb_rev: 'REV',
+      section_title_placeholder: 'Section title (e.g. Plumbing)',
+      section_desc_placeholder: 'Optional section description / notes',
+      tooltip_move_up: 'Move up',
+      tooltip_move_down: 'Move down',
+      tooltip_remove_section: 'Remove section',
+      tooltip_remove_item: 'Remove line',
+      tooltip_remove_tax: 'Remove tax',
+      col_desc: 'Description',
+      col_qty: 'Qty',
+      col_unit: 'Unit',
+      col_price: 'Unit price',
+      col_amount_ht: 'Amount (excl. tax)',
+      btn_add_item: '+ Add line item',
+      section_total_label: 'Section total:',
+      item_desc_placeholder: 'Description',
+      untitled_section: 'Untitled section',
+      total_ht: 'SUBTOTAL (excl. tax)',
+      total_ttc: 'TOTAL (incl. tax)',
+      status_unsaved: 'Unsaved changes',
+      status_logo_added: 'Logo added',
+      status_terms_attached: 'Terms PDF attached',
+      status_data_saved: 'Data saved ✓',
+      status_data_loaded: 'Data loaded ✓',
+      status_new_ready: 'New invoice ready',
+      status_generating: 'Generating PDF…',
+      status_pdf_generated: 'PDF generated ✓',
+      confirm_new: 'Start a new invoice? Unsaved changes will be lost.',
+      alert_bad_json: 'That file could not be read as invoice data (invalid JSON).',
+      alert_pdf_error: 'Something went wrong generating the PDF. Check the console for details.',
+      devis_word: 'Invoice No.',
+      devis_connector: 'dated',
+    },
+  };
+
+  let currentLang = 'fr';
+  const t = (key) => (I18N[currentLang] && I18N[currentLang][key]) ?? I18N.fr[key] ?? key;
+
+  function localize(root = document) {
+    root.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = t(el.dataset.i18n); });
+    root.querySelectorAll('[data-i18n-placeholder]').forEach((el) => { el.placeholder = t(el.dataset.i18nPlaceholder); });
+    root.querySelectorAll('[data-i18n-title]').forEach((el) => { el.title = t(el.dataset.i18nTitle); });
+  }
+
+  function setLanguage(lang) {
+    currentLang = (lang === 'en') ? 'en' : 'fr';
+    document.documentElement.lang = currentLang;
+    langSelect.value = currentLang;
+    localize(document);
+    try { localStorage.setItem('invoiceme-lang', currentLang); } catch (e) { /* storage unavailable, ignore */ }
+    syncHeader();
+    updateSummary();
+    refreshTermsUI();
+  }
+
+  langSelect.addEventListener('change', (e) => setLanguage(e.target.value));
 
   // ============================================================
   // Utilities
@@ -129,12 +356,27 @@
     return numFmt.position === 'before' ? `${numFmt.currency}${numStr}` : `${numStr} ${numFmt.currency}`;
   }
 
-  const formatDateFr = (isoStr) => {
+  const formatDate = (isoStr) => {
     if (!isoStr) return '—';
     const d = new Date(isoStr + 'T00:00:00');
     if (isNaN(d.getTime())) return isoStr;
-    return d.toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' });
+    const locale = currentLang === 'fr' ? 'fr-FR' : 'en-GB';
+    return d.toLocaleDateString(locale, { day: '2-digit', month: 'long', year: 'numeric' });
   };
+
+  function invoiceHeadingText(number, date, title) {
+    const num = number || '—';
+    const d = formatDate(date);
+    return `${t('devis_word')} ${num} ${t('devis_connector')} ${d}` + (title ? ` — ${title}` : '');
+  }
+
+  function titleBlockLine(number, date) {
+    const num = number || '—';
+    const d = formatDate(date);
+    return currentLang === 'fr'
+      ? `N° ${num}   •   ${d}   •   RÉV. A`
+      : `No. ${num}   •   ${d}   •   REV. A`;
+  }
 
   let statusTimer = null;
   const setStatus = (msg, ttl = 2500) => {
@@ -174,6 +416,7 @@
   // ============================================================
   function createItemRow(data = {}) {
     const tr = $('tplItem').content.firstElementChild.cloneNode(true);
+    localize(tr);
     tr.querySelector('.item-desc').value = data.desc || '';
     tr.querySelector('.item-qty').value = data.qty ?? 1;
     tr.querySelector('.item-unit').value = data.unit || '';
@@ -184,6 +427,7 @@
 
   function createSection(data = {}) {
     const card = $('tplSection').content.firstElementChild.cloneNode(true);
+    localize(card);
     card.querySelector('.section-title-input').value = data.title || '';
     card.querySelector('.section-desc-input').value = data.description || '';
     const body = card.querySelector('.items-body');
@@ -195,6 +439,7 @@
 
   function createTaxRow(data = {}) {
     const row = $('tplTax').content.firstElementChild.cloneNode(true);
+    localize(row);
     row.querySelector('.tax-label').value = data.label || '';
     row.querySelector('.tax-rate').value = data.rate ?? 0;
     return row;
@@ -222,14 +467,14 @@
     let totalHT = 0;
     const sectionRows = [];
     sectionsMount.querySelectorAll('.section-card').forEach((card) => {
-      const title = card.querySelector('.section-title-input').value || 'Untitled section';
+      const title = card.querySelector('.section-title-input').value || t('untitled_section');
       const total = updateSectionTotal(card);
       totalHT += total;
       sectionRows.push({ title, total });
     });
 
     const taxRows = Array.from(taxList.querySelectorAll('.tax-row')).map((row) => ({
-      label: row.querySelector('.tax-label').value || 'Taxe',
+      label: row.querySelector('.tax-label').value || 'Tax',
       rate: parseNum(row.querySelector('.tax-rate').value),
     }));
 
@@ -238,13 +483,13 @@
     sectionRows.forEach((s) => {
       html += `<tr><td>${escapeHtml(s.title)}</td><td>${formatMoney(s.total)}</td></tr>`;
     });
-    html += `<tr class="total-ht"><td>TOTAL HT</td><td>${formatMoney(totalHT)}</td></tr>`;
-    taxRows.forEach((t) => {
-      const amt = totalHT * (t.rate / 100);
+    html += `<tr class="total-ht"><td>${t('total_ht')}</td><td>${formatMoney(totalHT)}</td></tr>`;
+    taxRows.forEach((t2) => {
+      const amt = totalHT * (t2.rate / 100);
       ttc += amt;
-      html += `<tr><td>${escapeHtml(t.label)} ${t.rate}%</td><td>${formatMoney(amt)}</td></tr>`;
+      html += `<tr><td>${escapeHtml(t2.label)} ${t2.rate}%</td><td>${formatMoney(amt)}</td></tr>`;
     });
-    html += `<tr class="total-ttc"><td>TOTAL TTC</td><td>${formatMoney(ttc)}</td></tr>`;
+    html += `<tr class="total-ttc"><td>${t('total_ttc')}</td><td>${formatMoney(ttc)}</td></tr>`;
     summaryTable.innerHTML = html;
   }
 
@@ -255,17 +500,15 @@
   }
 
   function syncHeader() {
-    sheetCompanyName.textContent = companyName.value || 'Company Name';
+    sheetCompanyName.textContent = companyName.value || t('sheet_company_placeholder');
     sheetCompanyAddress.textContent = companyAddress.value;
     sheetCompanyContact.textContent = companyContact.value;
-    sheetClientName.textContent = clientName.value || 'Client';
+    sheetClientName.textContent = clientName.value || t('sheet_client_placeholder');
     sheetClientAddress.textContent = clientAddress.value;
-    sheetInvoiceTitle.textContent =
-      `Devis Numéro ${invoiceNumber.value || '—'} du ${formatDateFr(invoiceDate.value)}` +
-      (invoiceTitle.value ? ` — ${invoiceTitle.value}` : '');
+    sheetInvoiceTitle.textContent = invoiceHeadingText(invoiceNumber.value, invoiceDate.value, invoiceTitle.value);
     sheetFooterNotes.textContent = footerNotes.value;
     tbNumber.textContent = invoiceNumber.value || '—';
-    tbDate.textContent = formatDateFr(invoiceDate.value);
+    tbDate.textContent = formatDate(invoiceDate.value);
   }
 
   function refreshLogoUI() {
@@ -288,7 +531,7 @@
 
   function refreshTermsUI() {
     if (termsFileName) {
-      termsFileNameEl.textContent = `Attached: ${termsFileName}`;
+      termsFileNameEl.textContent = `${t('terms_attached_prefix')}${termsFileName}`;
       btnRemoveTerms.hidden = false;
     } else {
       termsFileNameEl.textContent = '';
@@ -359,8 +602,8 @@
     });
 
     taxList.innerHTML = '';
-    (state.taxes && state.taxes.length ? state.taxes : [{ label: 'TVA', rate: 10 }]).forEach((t) => {
-      taxList.appendChild(createTaxRow(t));
+    (state.taxes && state.taxes.length ? state.taxes : [{ label: 'TVA', rate: 10 }]).forEach((tx) => {
+      taxList.appendChild(createTaxRow(tx));
     });
 
     footerNotes.value = state.footerNotes || '';
@@ -442,8 +685,7 @@
 
     // ---- title ----
     doc.setFont('helvetica', 'bolditalic'); doc.setFontSize(11);
-    const titleText = `Devis Numéro ${state.invoice.number || ''} du ${formatDateFr(state.invoice.date)}` +
-      (state.invoice.title ? ` ${state.invoice.title}` : '');
+    const titleText = invoiceHeadingText(state.invoice.number, state.invoice.date, state.invoice.title);
     const titleLines = doc.splitTextToSize(titleText, pageW - marginL - marginR - 80);
     titleLines.forEach((line) => { doc.text(line, pageW / 2, y, { align: 'center' }); y += 14; });
     y += 8;
@@ -453,7 +695,7 @@
     state.sections.forEach((sec) => {
       y = ensureSpace(doc, y, 70, pageH);
       doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
-      doc.text(`${sec.title || 'Section'}:`, marginL, y);
+      doc.text(`${sec.title || t('untitled_section')}:`, marginL, y);
       y += 4;
 
       if (sec.description) {
@@ -464,18 +706,18 @@
 
       let total = 0;
       const body = sec.items.map((it) => {
-        const t = (parseNum(it.qty)) * (parseNum(it.price));
-        total += t;
-        return [it.desc || '', String(it.qty ?? 0), it.unit || '', formatMoney(it.price), formatMoney(t)];
+        const t3 = (parseNum(it.qty)) * (parseNum(it.price));
+        total += t3;
+        return [it.desc || '', String(it.qty ?? 0), it.unit || '', formatMoney(it.price), formatMoney(t3)];
       });
-      sectionTotals.push({ title: sec.title || 'Section', total });
+      sectionTotals.push({ title: sec.title || t('untitled_section'), total });
 
       doc.autoTable({
         startY: y + 8,
         margin: { left: marginL, right: marginR },
-        head: [['Intitulé', 'Qté', 'Unité', 'Prix U.', 'Montant HT']],
+        head: [[t('col_desc'), t('col_qty'), t('col_unit'), t('col_price'), t('col_amount_ht')]],
         body,
-        foot: [['', '', '', 'TOTAL HT', formatMoney(total)]],
+        foot: [['', '', '', t('total_ht'), formatMoney(total)]],
         styles: { font: 'helvetica', fontSize: 9, cellPadding: 5, lineColor: [30, 45, 60], lineWidth: 0.5, valign: 'top' },
         headStyles: { fillColor: [22, 48, 79], textColor: 255, fontStyle: 'bold' },
         footStyles: { fillColor: [239, 233, 217], textColor: 20, fontStyle: 'bold' },
@@ -492,19 +734,21 @@
     // ---- summary ----
     y = ensureSpace(doc, y, 100, pageH);
     doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
-    doc.text('Récapitulatif', marginL, y);
+    doc.text(t('recap_label'), marginL, y);
     y += 8;
 
     const totalHT = sectionTotals.reduce((s, x) => s + x.total, 0);
     let ttc = totalHT;
     const summaryBody = sectionTotals.map((s) => [s.title, formatMoney(s.total)]);
-    summaryBody.push(['TOTAL HT', formatMoney(totalHT)]);
-    state.taxes.forEach((t) => {
-      const amt = totalHT * (parseNum(t.rate) / 100);
+    const totalHtLabel = t('total_ht');
+    const totalTtcLabel = t('total_ttc');
+    summaryBody.push([totalHtLabel, formatMoney(totalHT)]);
+    state.taxes.forEach((tx) => {
+      const amt = totalHT * (parseNum(tx.rate) / 100);
       ttc += amt;
-      summaryBody.push([`${t.label || 'Taxe'} ${t.rate || 0}%`, formatMoney(amt)]);
+      summaryBody.push([`${tx.label || 'Tax'} ${tx.rate || 0}%`, formatMoney(amt)]);
     });
-    summaryBody.push(['TOTAL TTC', formatMoney(ttc)]);
+    summaryBody.push([totalTtcLabel, formatMoney(ttc)]);
 
     doc.autoTable({
       startY: y + 6,
@@ -514,11 +758,11 @@
       columnStyles: { 0: { cellWidth: 'auto' }, 1: { halign: 'right', cellWidth: 120 } },
       didParseCell: (data) => {
         const label = data.row.raw[0];
-        if (label === 'TOTAL HT') {
+        if (label === totalHtLabel) {
           data.cell.styles.fillColor = [239, 233, 217];
           data.cell.styles.fontStyle = 'bold';
         }
-        if (label === 'TOTAL TTC') {
+        if (label === totalTtcLabel) {
           data.cell.styles.fillColor = [225, 89, 12];
           data.cell.styles.textColor = 255;
           data.cell.styles.fontStyle = 'bold';
@@ -546,8 +790,7 @@
     // ---- title block ----
     y = ensureSpace(doc, y, 24, pageH);
     doc.setFont('courier', 'normal'); doc.setFontSize(8);
-    doc.text(`N° ${state.invoice.number || '—'}   •   ${formatDateFr(state.invoice.date)}   •   RÉV. A`,
-      pageW - marginR, y, { align: 'right' });
+    doc.text(titleBlockLine(state.invoice.number, state.invoice.date), pageW - marginR, y, { align: 'right' });
 
     let bytes = doc.output('arraybuffer');
 
@@ -565,7 +808,7 @@
   // header fields -> live sheet sync
   [companyName, companyAddress, companyContact, clientName, clientAddress,
     invoiceNumber, invoiceDate, invoiceTitle, footerNotes].forEach((el) => {
-    el.addEventListener('input', () => { syncHeader(); setStatus('Unsaved changes'); });
+    el.addEventListener('input', () => { syncHeader(); setStatus(t('status_unsaved')); });
   });
 
   // number / currency format
@@ -574,7 +817,7 @@
     el.addEventListener('input', () => {
       readFormatSettingsFromUI();
       updateSummary();
-      setStatus('Unsaved changes');
+      setStatus(t('status_unsaved'));
     });
   });
 
@@ -586,7 +829,7 @@
       updateSectionTotal(tr.closest('.section-card'));
     }
     updateSummary();
-    setStatus('Unsaved changes');
+    setStatus(t('status_unsaved'));
   });
 
   sectionsMount.addEventListener('click', (e) => {
@@ -610,22 +853,22 @@
       const next = card.nextElementSibling;
       if (next) sectionsMount.insertBefore(next, card);
     }
-    setStatus('Unsaved changes');
+    setStatus(t('status_unsaved'));
   });
 
   $('btnAddSection').addEventListener('click', () => {
     sectionsMount.appendChild(createSection({}));
     updateSummary();
-    setStatus('Unsaved changes');
+    setStatus(t('status_unsaved'));
   });
 
   // taxes
-  taxList.addEventListener('input', () => { updateSummary(); setStatus('Unsaved changes'); });
+  taxList.addEventListener('input', () => { updateSummary(); setStatus(t('status_unsaved')); });
   taxList.addEventListener('click', (e) => {
     if (e.target.classList.contains('btn-remove-tax')) {
       e.target.closest('.tax-row').remove();
       updateSummary();
-      setStatus('Unsaved changes');
+      setStatus(t('status_unsaved'));
     }
   });
   $('btnAddTax').addEventListener('click', () => {
@@ -640,7 +883,7 @@
     reader.onload = () => {
       logoDataUrl = reader.result;
       refreshLogoUI();
-      setStatus('Logo added');
+      setStatus(t('status_logo_added'));
     };
     reader.readAsDataURL(file);
   }
@@ -656,7 +899,7 @@
     logoDataUrl = null;
     fileLogo.value = '';
     refreshLogoUI();
-    setStatus('Unsaved changes');
+    setStatus(t('status_unsaved'));
   });
 
   // terms pdf
@@ -668,7 +911,7 @@
       termsDataUrl = reader.result;
       termsFileName = file.name;
       refreshTermsUI();
-      setStatus('Terms PDF attached');
+      setStatus(t('status_terms_attached'));
     };
     reader.readAsDataURL(file);
   });
@@ -677,14 +920,14 @@
     termsFileName = '';
     fileTerms.value = '';
     refreshTermsUI();
-    setStatus('Unsaved changes');
+    setStatus(t('status_unsaved'));
   });
 
   // top-level actions
   $('btnNew').addEventListener('click', () => {
-    if (confirm('Start a new invoice? Unsaved changes will be lost.')) {
+    if (confirm(t('confirm_new'))) {
       populateFromState({ invoice: { date: todayISO() } });
-      setStatus('New invoice ready');
+      setStatus(t('status_new_ready'));
     }
   });
 
@@ -692,7 +935,7 @@
     const state = collectState();
     const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
     triggerDownload(blob, `InvoiceMe-data-${state.invoice.number || 'draft'}.json`);
-    setStatus('Data saved ✓');
+    setStatus(t('status_data_saved'));
   });
 
   $('fileLoadData').addEventListener('change', (e) => {
@@ -703,9 +946,9 @@
       try {
         const state = JSON.parse(reader.result);
         populateFromState(state);
-        setStatus('Data loaded ✓');
+        setStatus(t('status_data_loaded'));
       } catch (err) {
-        alert('That file could not be read as invoice data (invalid JSON).');
+        alert(t('alert_bad_json'));
       }
     };
     reader.readAsText(file);
@@ -713,19 +956,25 @@
   });
 
   $('btnGeneratePdf').addEventListener('click', async () => {
-    setStatus('Generating PDF…', 0);
+    setStatus(t('status_generating'), 0);
     try {
       await generatePdf();
-      setStatus('PDF generated ✓');
+      setStatus(t('status_pdf_generated'));
     } catch (err) {
       console.error(err);
       setStatus('');
-      alert('Something went wrong generating the PDF. Check the console for details.');
+      alert(t('alert_pdf_error'));
     }
   });
 
   // ============================================================
   // Init
   // ============================================================
+  let initialLang = 'fr';
+  try {
+    const saved = localStorage.getItem('invoiceme-lang');
+    if (saved === 'en' || saved === 'fr') initialLang = saved;
+  } catch (e) { /* storage unavailable, default to French */ }
+  setLanguage(initialLang);
   populateFromState({ invoice: { date: todayISO() } });
 })();

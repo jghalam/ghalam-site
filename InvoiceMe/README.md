@@ -14,6 +14,11 @@ plain GitHub Pages site.
   unit, unit price → line total is calculated automatically).
 - **Summary** — auto-totals every section, plus any number of customizable tax lines
   (e.g. "TVA 10%"), down to a final TOTAL TTC.
+- **Bilingual (French / English)** — a language switcher in the top bar; French is the
+  default. It translates every label, button, tooltip, and status message, and also
+  switches the invoice document's own built-in wording (column headers, "Récapitulatif" /
+  "Summary", "TOTAL HT" / "SUBTOTAL", date formatting, etc.) in both the live sheet and the
+  generated PDF. Your choice is remembered in the browser for next time.
 - **Configurable currency & number format** — set the currency symbol/code and whether it
   goes before or after the amount, pick a separator preset (`1 234,56`, `1,234.56`,
   `1.234,56`, `1'234.56`, `1234.56`) or define a fully custom thousands/decimal separator
