@@ -26,10 +26,16 @@ plain GitHub Pages site.
 - **Attached terms PDF** — optionally attach an existing PDF (T&Cs, legal boilerplate,
   signature page). Its pages are appended after the generated invoice pages in the final PDF.
 - **Two outputs, one click each:**
-  1. **Generate PDF** — the finished invoice (+ appended terms pages if provided).
+  1. **Generate PDF** — opens the finished invoice (+ appended terms pages if provided)
+     in a new browser tab, using the browser's built-in PDF viewer (which has its own
+     save/print/download controls).
   2. **Save Data** — a `.json` file with everything you entered (including the logo and the
      attached terms PDF, base64-encoded inside the file). Use **Load Data** later to reopen
-     it and make edits, instead of starting from scratch.
+     it and make edits, instead of starting from scratch. In Chrome/Edge this opens a
+     native **Save As** dialog so you can rename the file and choose where it goes; it
+     defaults to the same auto-generated name and your Downloads folder if you don't
+     change anything. Safari and Firefox don't support that dialog yet, so on those
+     browsers it saves straight to Downloads like a normal download, same as before.
 - **Import from PDF (best effort)** — pulls text out of an existing invoice PDF and tries
   to pre-fill the form: company/client info, invoice number and date, section titles and
   line items (description/qty/unit/price), tax lines, and footer notes (IBAN/SIRET/etc.).

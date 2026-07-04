@@ -510,6 +510,30 @@
     setTimeout(() => URL.revokeObjectURL(url), 2000);
   };
 
+  // Uses the native "Save As" dialog (Chrome/Edge) so the user can rename the file and
+  // pick a folder, defaulting to Downloads like a normal save. Falls back to a plain
+  // download on browsers without File System Access API support (Safari, Firefox).
+  // Returns false only if the user actively cancelled the dialog.
+  async function saveFileWithPicker(blob, suggestedName, description, mimeType, extensions) {
+    if (window.showSaveFilePicker) {
+      try {
+        const handle = await window.showSaveFilePicker({
+          suggestedName,
+          types: [{ description, accept: { [mimeType]: extensions } }],
+        });
+        const writable = await handle.createWritable();
+        await writable.write(blob);
+        await writable.close();
+        return true;
+      } catch (err) {
+        if (err && err.name === 'AbortError') return false; // user cancelled — do nothing further
+        // any other error: fall through to the plain download below
+      }
+    }
+    triggerDownload(blob, suggestedName);
+    return true;
+  }
+
   const getImageDims = (dataUrl) => new Promise((resolve, reject) => {
     const img = new Image();
     img.onload = () => resolve({ w: img.naturalWidth, h: img.naturalHeight });
@@ -1469,12 +1493,15 @@
     }
   });
 
-  $('btnSaveData').addEventListener('click', () => {
+  $('btnSaveData').addEventListener('click', async () => {
     const state = collectState();
     const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
-    triggerDownload(blob, `InvoiceMe-${safeInvoiceNumber(state.invoice.number)}-${fileTimestamp()}.json`);
-    isDirty = false;
-    setStatus(t('status_data_saved'));
+    const filename = `InvoiceMe-${safeInvoiceNumber(state.invoice.number)}-${fileTimestamp()}.json`;
+    const saved = await saveFileWithPicker(blob, filename, 'InvoiceMe data (JSON)', 'application/json', ['.json']);
+    if (saved) {
+      isDirty = false;
+      setStatus(t('status_data_saved'));
+    }
   });
 
   $('fileLoadData').addEventListener('change', (e) => {
