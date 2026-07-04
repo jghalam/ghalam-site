@@ -89,11 +89,10 @@
       btn_generate_title: 'Générer le PDF final du devis',
       btn_import_pdf: 'Importer un PDF',
       btn_import_pdf_title: "Extraire les données d'un PDF existant pour préremplir ce devis (meilleur effort)",
-      import_pdf_hint: "Meilleur effort : extrait le texte d'un PDF existant pour préremplir le formulaire. Fonctionne mieux avec des PDF texte ; les PDF scannés (images) ne peuvent pas être lus.",
       confirm_import_overwrite: 'Importer ce PDF remplacera les sections, taxes et coordonnées actuelles par les données extraites. Continuer ?',
       status_importing_pdf: 'Lecture du PDF…',
       status_import_scanned: "Aucune donnée exploitable trouvée — ce PDF semble être une image scannée sans texte. Merci de saisir les informations manuellement.",
-      status_import_done: 'Import terminé — vérifiez et corrigez les données ci-dessous.',
+      status_import_done: "Import terminé (meilleur effort) — vérifiez attentivement l'exactitude des données ci-dessous avant de générer ou d'enregistrer le devis.",
       alert_import_error: "Ce fichier n'a pas pu être lu comme PDF, ou une erreur est survenue pendant l'extraction.",
       grp_super_data: 'Données du devis',
       grp_super_config: 'Configuration du devis',
@@ -183,6 +182,7 @@
       status_new_ready: 'Nouveau devis prêt',
       status_generating: 'Génération du PDF…',
       status_pdf_generated: 'PDF généré ✓',
+      status_popup_blocked: 'Fenêtre popup bloquée — le PDF a été téléchargé à la place.',
       confirm_new: 'Commencer un nouveau devis ? Les modifications non enregistrées seront perdues.',
       alert_bad_json: "Ce fichier n'a pas pu être lu comme données de devis (JSON invalide).",
       alert_pdf_error: 'Une erreur est survenue lors de la génération du PDF. Consultez la console pour plus de détails.',
@@ -202,11 +202,10 @@
       btn_generate_title: 'Generate the final invoice PDF',
       btn_import_pdf: 'Import PDF',
       btn_import_pdf_title: 'Extract data from an existing PDF to pre-fill this invoice (best effort)',
-      import_pdf_hint: 'Best effort: extracts text from an existing PDF to pre-fill the form. Works best on text-based PDFs; scanned (image) PDFs can\u2019t be read.',
       confirm_import_overwrite: 'Importing this PDF will replace the current sections, taxes, and contact info with the extracted data. Continue?',
       status_importing_pdf: 'Reading PDF…',
       status_import_scanned: 'No matching data found — this PDF looks like a scanned image with no text layer. Please enter details manually.',
-      status_import_done: 'Import complete — review and correct the data below.',
+      status_import_done: 'Import complete (best effort) — please carefully check the data below for accuracy before generating or saving the invoice.',
       alert_import_error: 'That file could not be read as a PDF, or something went wrong during extraction.',
       grp_super_data: 'Invoice Data',
       grp_super_config: 'Invoice Configuration',
@@ -296,6 +295,7 @@
       status_new_ready: 'New invoice ready',
       status_generating: 'Generating PDF…',
       status_pdf_generated: 'PDF generated ✓',
+      status_popup_blocked: 'Popup window blocked — downloaded the PDF instead.',
       confirm_new: 'Start a new invoice? Unsaved changes will be lost.',
       alert_bad_json: 'That file could not be read as invoice data (invalid JSON).',
       alert_pdf_error: 'Something went wrong generating the PDF. Check the console for details.',
@@ -997,7 +997,10 @@
       bytes = await mergeWithTerms(bytes, dataUrlToBytes(state.terms.data));
     }
 
-    triggerDownload(new Blob([bytes], { type: 'application/pdf' }), `InvoiceMe-${state.invoice.number || 'draft'}.pdf`);
+    return {
+      blob: new Blob([bytes], { type: 'application/pdf' }),
+      filename: `InvoiceMe-${state.invoice.number || 'draft'}.pdf`,
+    };
   }
 
   // ============================================================
@@ -1502,7 +1505,8 @@
     try {
       const result = await importInvoiceFromPdf(file);
       if (result.scanned) {
-        setStatus(t('status_import_scanned'), 7000);
+        setStatus('');
+        alert(t('status_import_scanned'));
         return;
       }
       const p = result.parsed;
@@ -1518,7 +1522,8 @@
         settings: currentSettings,
       });
       isDirty = true;
-      setStatus(t('status_import_done'), 6000);
+      setStatus('');
+      alert(t('status_import_done'));
     } catch (err) {
       console.error(err);
       setStatus('');
@@ -1528,11 +1533,23 @@
 
   $('btnGeneratePdf').addEventListener('click', async () => {
     setStatus(t('status_generating'), 0);
+    // Open the tab synchronously, inside the click gesture, so popup blockers allow it —
+    // we fill in its location once the PDF is actually ready.
+    const previewWindow = window.open('', '_blank');
     try {
-      await generatePdf();
+      const { blob, filename } = await generatePdf();
+      const url = URL.createObjectURL(blob);
+      if (previewWindow) {
+        previewWindow.location.href = url;
+      } else {
+        triggerDownload(blob, filename);
+        setStatus(t('status_popup_blocked'), 5000);
+        return;
+      }
       setStatus(t('status_pdf_generated'));
     } catch (err) {
       console.error(err);
+      if (previewWindow) previewWindow.close();
       setStatus('');
       alert(t('alert_pdf_error'));
     }
