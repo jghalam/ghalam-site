@@ -138,6 +138,7 @@ body{
   padding:8px 10px;
   border-radius:2px;
   resize:vertical;
+  overflow:hidden;
 }
 .inp:focus{
   outline:none;

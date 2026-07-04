@@ -506,6 +506,7 @@
   // Section / item / tax row builders
   // ============================================================
   function autoGrow(el) {
+    if (el.offsetParent === null) return; // hidden (e.g. inside a collapsed <details>); resized when it opens instead
     el.style.height = 'auto';
     el.style.height = `${el.scrollHeight}px`;
   }
@@ -759,6 +760,7 @@
     syncHeader();
     updateSummary();
     localize(document);
+    autoGrowAllRailFields();
   }
 
   // ============================================================
@@ -976,12 +978,29 @@
   // ============================================================
 
   // header fields -> live sheet sync
+  const railTextareas = [companyAddress, companyContact, clientAddress, invoiceTitle, footerNotes];
+  const autoGrowAllRailFields = () => railTextareas.forEach(autoGrow);
+
   [companyName, companyAddress, companyContact, clientName, clientAddress,
     invoiceNumber, invoiceDate, invoiceTitle, footerNotes].forEach((el) => {
-    el.addEventListener('input', () => { syncHeader(); markDirty(); });
+    el.addEventListener('input', () => {
+      syncHeader();
+      if (el.tagName === 'TEXTAREA') autoGrow(el);
+      markDirty();
+    });
   });
 
   companyWebsite.addEventListener('input', () => { regenerateQr(); markDirty(); });
+
+  // Rail sections can start collapsed (e.g. Footer notes); textareas inside them
+  // can't be measured while hidden, so resize them properly once revealed.
+  document.querySelectorAll('.field-group').forEach((details) => {
+    details.addEventListener('toggle', () => {
+      if (details.open) {
+        details.querySelectorAll('textarea.inp').forEach(autoGrow);
+      }
+    });
+  });
 
   // number / currency format
   [currencySymbolEl, currencyPositionEl, numberFormatPresetEl, customThousandsSepEl,
