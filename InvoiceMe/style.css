@@ -77,9 +77,14 @@ body{
 .rail-actions{
   display:grid; grid-template-columns:1fr 1fr; gap:8px;
   padding:14px 16px;
-  border-bottom:1px solid var(--line-dim);
 }
 .rail-actions .btn-accent{ grid-column:1 / -1; }
+
+.rail-import-hint{
+  margin:0;
+  padding:0 16px 14px;
+  border-bottom:1px solid var(--line-dim);
+}
 
 .rail-status{
   min-height:18px;

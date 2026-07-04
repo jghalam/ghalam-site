@@ -30,6 +30,23 @@ plain GitHub Pages site.
   2. **Save Data** — a `.json` file with everything you entered (including the logo and the
      attached terms PDF, base64-encoded inside the file). Use **Load Data** later to reopen
      it and make edits, instead of starting from scratch.
+- **Import from PDF (best effort)** — pulls text out of an existing invoice PDF and tries
+  to pre-fill the form: company/client info, invoice number and date, section titles and
+  line items (description/qty/unit/price), tax lines, and footer notes (IBAN/SIRET/etc.).
+  **Read this before relying on it:**
+  - It only works on **text-based PDFs** — ones where you can select/copy the text in a
+    normal PDF viewer. A **scanned or photographed invoice has no text layer at all**, and
+    the tool will tell you plainly that no matching data was found rather than guess.
+  - Even on text PDFs, it's a **heuristic, not a real table parser** — PDFs don't store
+    "tables," just positioned text, so the importer reconstructs rows/columns by looking at
+    coordinates and column gaps. It works well on cleanly laid-out invoices (including ones
+    this tool itself generated) and gets shakier on unusual layouts, merged cells, or
+    multi-line descriptions that wrap unpredictably.
+  - **Always review the result before generating a PDF or saving.** Treat it as a
+    time-saving first draft, not a guaranteed-accurate import — it will occasionally split
+    a description wrong, miss a line item, or misread a number.
+  - Importing replaces the current sections, taxes, and contact info — if you've already
+    got unsaved work in progress, it'll ask for confirmation first.
 
 ## Deploying to GitHub Pages
 
@@ -43,12 +60,33 @@ plain GitHub Pages site.
    root folder (`/`), and save.
 4. GitHub will give you a URL like `https://yourusername.github.io/your-repo/` — that's
    your invoice tool. No build step, no server, no database.
-5. **Fix the link-preview URLs.** Open `index.html`, search for `REPLACE-WITH-YOUR-URL`
-   (it appears twice, in `og:url`/`og:image` and `twitter:image`), and replace it with
-   your actual GitHub Pages URL from step 4. This step is required for logos/previews
-   to show up when the link is pasted into Slack, iMessage, Twitter/X, etc. — those
-   services read the raw HTML and need an absolute URL; they can't run JavaScript to
-   figure it out themselves. Commit and push again after editing.
+
+`og:url` / `og:image` / `twitter:image` in `index.html` are currently hardcoded to
+`https://ghalam.net/InvoiceMe/`. If you ever move the app to a different URL, update
+those three tags to match — Slack, iMessage, Twitter/X, etc. read them straight from the
+HTML (they don't run JavaScript, so this can't be done automatically) and need an
+absolute URL.
+
+### If the tab icon or link preview still isn't showing
+
+1. **Confirm the asset files actually made it to the server.** Visit these two URLs
+   directly in a browser tab:
+   - `https://ghalam.net/InvoiceMe/assets/favicon-32.png`
+   - `https://ghalam.net/InvoiceMe/assets/og-image.png`
+
+   If either one 404s, the `assets/` folder wasn't deployed (or wasn't deployed to that
+   exact path) — re-check that it was committed and pushed alongside `index.html`, in an
+   `assets` subfolder right next to it.
+2. **Chrome's favicon cache is separate from its normal page cache.** A hard refresh
+   often isn't enough. Try closing every tab for the site, then reopening it fresh, or
+   open it in an Incognito window to confirm the icon loads with no cache involved.
+3. **iMessage/Slack/Twitter cache link previews per exact URL, very aggressively** —
+   sometimes for days. If you already sent/pasted the link once before the image
+   existed, the old (image-less) preview can stick around. Test with a slightly
+   different URL to force a fresh fetch, e.g. `https://ghalam.net/InvoiceMe/?v=2`.
+4. Each time you update files, bump the `?v=` numbers on the favicon `<link>` tags and
+   the `style.css` / `app.js` `<script>` tags in `index.html` — browsers cache those
+   aggressively by exact filename+query.
 
 If the browser tab still doesn't show the icon after deploying, do a hard refresh
 (Ctrl+Shift+R / Cmd+Shift+R) — favicons are cached aggressively by browsers, so a normal

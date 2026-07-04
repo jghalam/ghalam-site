@@ -88,6 +88,14 @@
       btn_save_title: "Télécharger les données de ce devis au format .json",
       btn_generate: 'Générer le PDF',
       btn_generate_title: 'Générer le PDF final du devis',
+      btn_import_pdf: 'Importer un PDF',
+      btn_import_pdf_title: "Extraire les données d'un PDF existant pour préremplir ce devis (meilleur effort)",
+      import_pdf_hint: "Meilleur effort : extrait le texte d'un PDF existant pour préremplir le formulaire. Fonctionne mieux avec des PDF texte ; les PDF scannés (images) ne peuvent pas être lus.",
+      confirm_import_overwrite: 'Importer ce PDF remplacera les sections, taxes et coordonnées actuelles par les données extraites. Continuer ?',
+      status_importing_pdf: 'Lecture du PDF…',
+      status_import_scanned: "Aucune donnée exploitable trouvée — ce PDF semble être une image scannée sans texte. Merci de saisir les informations manuellement.",
+      status_import_done: 'Import terminé — vérifiez et corrigez les données ci-dessous.',
+      alert_import_error: "Ce fichier n'a pas pu être lu comme PDF, ou une erreur est survenue pendant l'extraction.",
       grp_letterhead: 'En-tête',
       lbl_logo: "Logo / image d'en-tête",
       logo_drop_hint: 'Cliquez ou déposez une image',
@@ -192,6 +200,14 @@
       btn_save_title: "Download this invoice's data as a .json file",
       btn_generate: 'Generate PDF',
       btn_generate_title: 'Generate the final invoice PDF',
+      btn_import_pdf: 'Import PDF',
+      btn_import_pdf_title: 'Extract data from an existing PDF to pre-fill this invoice (best effort)',
+      import_pdf_hint: 'Best effort: extracts text from an existing PDF to pre-fill the form. Works best on text-based PDFs; scanned (image) PDFs can\u2019t be read.',
+      confirm_import_overwrite: 'Importing this PDF will replace the current sections, taxes, and contact info with the extracted data. Continue?',
+      status_importing_pdf: 'Reading PDF…',
+      status_import_scanned: 'No matching data found — this PDF looks like a scanned image with no text layer. Please enter details manually.',
+      status_import_done: 'Import complete — review and correct the data below.',
+      alert_import_error: 'That file could not be read as a PDF, or something went wrong during extraction.',
       grp_letterhead: 'Letterhead',
       lbl_logo: 'Logo / title image',
       logo_drop_hint: 'Click or drop an image',
@@ -983,6 +999,304 @@
   }
 
   // ============================================================
+  // PDF IMPORT (best effort)
+  // Extracts the text layer of an existing PDF and heuristically maps it
+  // onto the invoice form. Works on text-based PDFs only — scanned/image
+  // PDFs have no text layer to read, and are reported as such.
+  // ============================================================
+  if (window.pdfjsLib) {
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+      'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  }
+
+  const IMPORT_EMAIL_RE = /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i;
+  const IMPORT_WEBSITE_RE = /\b((https?:\/\/)?(www\.)?[a-z0-9-]+\.[a-z]{2,}(?:\/[^\s]*)?)\b/i;
+  const IMPORT_PHONE_RE = /(\+?\d[\d .\-()]{7,}\d)/;
+  const IMPORT_PERCENT_RE = /(\d{1,2}(?:[.,]\d+)?)\s?%/;
+  const IMPORT_DATE_NUM_RE = /\b(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})\b/;
+  const IMPORT_DATE_TEXT_RE = /\b(\d{1,2})\s+([A-Za-zÀ-ÿ]+)\s+(\d{4})\b/;
+  const IMPORT_INVOICE_NUM_RE = /(?:devis|facture|invoice)\s*(?:num[ée]ro|number|no\.?|n[°o])?\s*[:#]?\s*([A-Za-z0-9\-\/]{2,})/i;
+  const IMPORT_MONTHS = {
+    janvier: 1, février: 2, fevrier: 2, mars: 3, avril: 4, mai: 5, juin: 6, juillet: 7,
+    août: 8, aout: 8, septembre: 9, octobre: 10, novembre: 11, décembre: 12, decembre: 12,
+    january: 1, february: 2, march: 3, april: 4, may: 5, june: 6, july: 7,
+    august: 8, september: 9, october: 10, november: 11, december: 12,
+  };
+  const IMPORT_CLIENT_MARKERS = ['facturer à', 'facturer a', 'bill to', 'client', 'customer', "à l'attention de"];
+  const IMPORT_TOTAL_WORDS = ['total ht', 'total h.t', 'sous-total', 'subtotal', 'total ttc', 'grand total', 'récapitulatif', 'recapitulatif', 'summary'];
+  const IMPORT_TAX_WORDS = ['tva', 'vat', 'tax'];
+  const IMPORT_FOOTER_RE = /iban|bic|siren|siret|tva intracommunautaire|r[èe]glement|payment terms|conditions de paiement/i;
+
+  function isImportTableHeaderLine(text) {
+    const low = text.toLowerCase();
+    let hits = 0;
+    if (/(intitul|description|d[ée]signation|libell)/i.test(low)) hits++;
+    if (/(qt[ée]|qty|quantit)/i.test(low)) hits++;
+    if (/(unit[ée]|\bunit\b)/i.test(low)) hits++;
+    if (/(prix|price|tarif|rate)/i.test(low)) hits++;
+    if (/(montant|amount|total)/i.test(low)) hits++;
+    return hits >= 2;
+  }
+
+  function parseImportMoney(raw) {
+    if (!raw) return null;
+    let s = String(raw).replace(/[^\d,.\-]/g, '').trim();
+    if (!s || !/\d/.test(s)) return null;
+    const hasComma = s.includes(',');
+    const hasDot = s.includes('.');
+    if (hasComma && hasDot) {
+      s = s.lastIndexOf(',') > s.lastIndexOf('.')
+        ? s.replace(/\./g, '').replace(',', '.')
+        : s.replace(/,/g, '');
+    } else if (hasComma) {
+      const after = s.split(',').pop();
+      s = after.length === 2 ? s.replace(',', '.') : s.replace(/,/g, '');
+    }
+    const n = parseFloat(s);
+    return Number.isFinite(n) ? n : null;
+  }
+
+  function classifyImportRow(cells) {
+    const isNumericish = (s) => /^[\-+]?[\d\s.,]+[€$£]?$/.test(s.trim()) && /\d/.test(s);
+    const trimmed = cells.map((c) => c.trim()).filter(Boolean);
+    if (trimmed.length < 2) return null;
+
+    // Scan from the right collecting numeric-ish cells, allowing exactly one
+    // short non-numeric cell (a unit like "U", "m²", "Ens.") to be skipped
+    // over in the middle of the run (qty, unit, price, amount).
+    let idx = trimmed.length - 1;
+    const numIdx = [];
+    let unit = '';
+    let unitUsed = false;
+    while (idx >= 0) {
+      if (isNumericish(trimmed[idx])) {
+        numIdx.unshift(idx);
+        idx--;
+      } else if (!unitUsed && numIdx.length > 0 && trimmed[idx].length <= 6) {
+        unit = trimmed[idx];
+        unitUsed = true;
+        idx--;
+      } else {
+        break;
+      }
+    }
+    if (!numIdx.length) return null;
+    const desc = trimmed.slice(0, idx + 1).join(' ').trim();
+    if (!desc) return null;
+
+    const nums = numIdx.map((i) => trimmed[i]);
+    let qty = 1, price = 0;
+    if (nums.length >= 3) {
+      qty = parseImportMoney(nums[0]) ?? 1;
+      price = parseImportMoney(nums[1]) ?? 0;
+    } else if (nums.length === 2) {
+      const a = parseImportMoney(nums[0]);
+      const b = parseImportMoney(nums[1]);
+      qty = a ?? 1;
+      price = (a && b) ? b / a : (b ?? 0);
+    } else {
+      price = parseImportMoney(nums[0]) ?? 0;
+    }
+    return { desc, qty, unit, price };
+  }
+
+  async function extractPdfLines(pdfDoc) {
+    const allLines = [];
+    let pageWidth = 595;
+    for (let p = 1; p <= pdfDoc.numPages; p++) {
+      const page = await pdfDoc.getPage(p);
+      if (p === 1) pageWidth = page.getViewport({ scale: 1 }).width;
+      const content = await page.getTextContent();
+      const items = content.items
+        .filter((it) => it.str && it.str.trim())
+        .map((it) => ({
+          text: it.str,
+          x: it.transform[4],
+          y: it.transform[5],
+          w: it.width || it.str.length * (Math.abs(it.transform[0]) || 6) * 0.5,
+          fontSize: Math.abs(it.transform[0]) || Math.abs(it.transform[3]) || 9,
+        }));
+      items.sort((a, b) => b.y - a.y || a.x - b.x);
+      const rawLines = [];
+      items.forEach((it) => {
+        let line = rawLines.find((l) => Math.abs(l.y - it.y) <= 3);
+        if (!line) { line = { y: it.y, items: [] }; rawLines.push(line); }
+        line.items.push(it);
+      });
+      rawLines.sort((a, b) => b.y - a.y);
+      rawLines.forEach((line) => {
+        line.items.sort((a, b) => a.x - b.x);
+        const cells = [];
+        let current = null;
+        line.items.forEach((it) => {
+          if (current && (it.x - current.endX) < 8) {
+            current.text += (it.x - current.endX > 1.5 ? ' ' : '') + it.text;
+            current.endX = it.x + it.w;
+          } else {
+            if (current) cells.push(current);
+            current = { text: it.text, endX: it.x + it.w };
+          }
+        });
+        if (current) cells.push(current);
+        const cellTexts = cells.map((c) => c.text.trim()).filter(Boolean);
+        allLines.push({
+          page: p,
+          y: line.y,
+          cells: cellTexts,
+          text: cellTexts.join('  ').trim(),
+          maxFontSize: Math.max(...line.items.map((it) => it.fontSize)),
+          avgX: line.items.reduce((s, it) => s + it.x, 0) / line.items.length,
+        });
+      });
+    }
+    return { lines: allLines, pageWidth };
+  }
+
+  function parseInvoiceFromLines(allLines, pageWidth) {
+    const result = {
+      company: { name: '', address: '', contact: '', website: '' },
+      client: { name: '', address: '' },
+      invoice: { number: '', date: '', title: '' },
+      sections: [],
+      taxes: [],
+      footerNotes: '',
+    };
+    if (!allLines.length) return result;
+
+    const page1Lines = allLines.filter((l) => l.page === 1);
+    let metaEndIdx = page1Lines.findIndex((l) =>
+      isImportTableHeaderLine(l.text) ||
+      /\b(devis|invoice|facture)\b/i.test(l.text) ||
+      /r[ée]capitulatif|summary/i.test(l.text)
+    );
+    if (metaEndIdx === -1) metaEndIdx = Math.min(16, page1Lines.length);
+    const headerZone = page1Lines.slice(0, metaEndIdx);
+    const midX = pageWidth / 2;
+    const leftLines = [];
+    const rightLines = [];
+    headerZone.forEach((l) => (l.avgX < midX * 0.85 ? leftLines : rightLines).push(l));
+
+    let nameLine = null;
+    headerZone.forEach((l) => { if (!nameLine || l.maxFontSize > nameLine.maxFontSize) nameLine = l; });
+    if (nameLine) result.company.name = nameLine.text.trim();
+
+    const addressLines = [];
+    const contactLines = [];
+    leftLines.forEach((l) => {
+      if (l === nameLine) return;
+      const txt = l.text.trim();
+      if (!txt) return;
+      if (IMPORT_EMAIL_RE.test(txt) || IMPORT_WEBSITE_RE.test(txt) || IMPORT_PHONE_RE.test(txt) || /^t\s*[:.]/i.test(txt)) {
+        contactLines.push(txt);
+      } else {
+        addressLines.push(txt);
+      }
+    });
+    result.company.address = addressLines.join('\n');
+    result.company.contact = contactLines.join('\n');
+    const siteMatch = contactLines.join(' ').match(IMPORT_WEBSITE_RE);
+    if (siteMatch) {
+      let site = siteMatch[1];
+      if (!/^https?:\/\//i.test(site)) site = 'https://' + site;
+      result.company.website = site;
+    }
+
+    const clientTextLines = rightLines
+      .map((l) => l.text.trim())
+      .filter(Boolean)
+      .filter((txt) => !IMPORT_CLIENT_MARKERS.includes(txt.toLowerCase()));
+    if (clientTextLines.length) {
+      result.client.name = clientTextLines[0];
+      result.client.address = clientTextLines.slice(1).join('\n');
+    }
+
+    const headerText = page1Lines.slice(0, Math.min(metaEndIdx + 4, page1Lines.length)).map((l) => l.text).join('\n');
+    const numMatch = headerText.match(IMPORT_INVOICE_NUM_RE);
+    if (numMatch) result.invoice.number = numMatch[1];
+
+    const dateText = headerText.match(IMPORT_DATE_TEXT_RE);
+    const dateNum = headerText.match(IMPORT_DATE_NUM_RE);
+    if (dateText) {
+      const month = IMPORT_MONTHS[dateText[2].toLowerCase()];
+      if (month) {
+        result.invoice.date = `${dateText[3]}-${String(month).padStart(2, '0')}-${String(dateText[1]).padStart(2, '0')}`;
+      }
+    } else if (dateNum) {
+      let y = dateNum[3];
+      if (y.length === 2) y = '20' + y;
+      result.invoice.date = `${y}-${String(dateNum[2]).padStart(2, '0')}-${String(dateNum[1]).padStart(2, '0')}`;
+    }
+
+    const titleZone = page1Lines.slice(0, Math.min(metaEndIdx + 4, page1Lines.length));
+    const titleLine = titleZone.find((l) => /correspondant|concernant|for the|regarding/i.test(l.text));
+    if (titleLine) {
+      result.invoice.title = titleLine.text.replace(/^.*?(?:correspondant|concernant|for the|regarding)\s*/i, '').trim();
+    }
+
+    let i = 0;
+    while (i < allLines.length) {
+      const line = allLines[i];
+      if (isImportTableHeaderLine(line.text)) {
+        let title = '';
+        for (let b = 1; b <= 2; b++) {
+          const cand = allLines[i - b];
+          if (cand && cand.text.trim() && !isImportTableHeaderLine(cand.text) && cand.text.trim().length < 70) {
+            title = cand.text.trim().replace(/[:：]\s*$/, '');
+            break;
+          }
+        }
+        const items = [];
+        let j = i + 1;
+        let misses = 0;
+        while (j < allLines.length && misses < 2) {
+          const rowText = allLines[j].text.trim();
+          if (!rowText) { j++; continue; }
+          const low = rowText.toLowerCase();
+          if (isImportTableHeaderLine(rowText) || IMPORT_TOTAL_WORDS.some((w) => low.includes(w))) break;
+          const item = classifyImportRow(allLines[j].cells.length > 1 ? allLines[j].cells : rowText.split(/\s{2,}/));
+          if (item) { items.push(item); misses = 0; } else { misses++; }
+          j++;
+        }
+        if (items.length) result.sections.push({ title, description: '', items });
+        i = j;
+      } else {
+        i++;
+      }
+    }
+
+    const seenTax = new Set();
+    allLines.forEach((l) => {
+      const low = l.text.toLowerCase();
+      const kw = IMPORT_TAX_WORDS.find((w) => low.includes(w));
+      const pct = l.text.match(IMPORT_PERCENT_RE);
+      if (kw && pct) {
+        const key = `${kw}-${pct[1]}`;
+        if (!seenTax.has(key)) {
+          seenTax.add(key);
+          result.taxes.push({ label: kw.toUpperCase(), rate: parseFloat(pct[1].replace(',', '.')) });
+        }
+      }
+    });
+
+    result.footerNotes = allLines
+      .filter((l) => IMPORT_FOOTER_RE.test(l.text))
+      .map((l) => l.text.trim())
+      .join('\n');
+
+    return result;
+  }
+
+  async function importInvoiceFromPdf(file) {
+    if (!window.pdfjsLib) throw new Error('pdf.js not loaded');
+    const buf = await file.arrayBuffer();
+    const pdfDoc = await pdfjsLib.getDocument({ data: buf }).promise;
+    const { lines, pageWidth } = await extractPdfLines(pdfDoc);
+    const totalChars = lines.reduce((s, l) => s + l.text.length, 0);
+    if (totalChars < 15) return { scanned: true };
+    return { scanned: false, parsed: parseInvoiceFromLines(lines, pageWidth) };
+  }
+
+  // ============================================================
   // Event wiring
   // ============================================================
 
@@ -1174,6 +1488,40 @@
     };
     reader.readAsText(file);
     e.target.value = '';
+  });
+
+  $('fileImportPdf').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+    if (isDirty && !confirm(t('confirm_import_overwrite'))) return;
+
+    setStatus(t('status_importing_pdf'), 0);
+    try {
+      const result = await importInvoiceFromPdf(file);
+      if (result.scanned) {
+        setStatus(t('status_import_scanned'), 7000);
+        return;
+      }
+      const p = result.parsed;
+      const currentSettings = collectState().settings;
+      populateFromState({
+        company: p.company,
+        client: p.client,
+        invoice: { number: p.invoice.number, date: p.invoice.date || todayISO(), rev: 'A', title: p.invoice.title },
+        sections: p.sections,
+        taxes: p.taxes,
+        footerNotes: p.footerNotes,
+        terms: null,
+        settings: currentSettings,
+      });
+      isDirty = true;
+      setStatus(t('status_import_done'), 6000);
+    } catch (err) {
+      console.error(err);
+      setStatus('');
+      alert(t('alert_import_error'));
+    }
   });
 
   $('btnGeneratePdf').addEventListener('click', async () => {
