@@ -322,6 +322,21 @@
   // ============================================================
   const todayISO = () => new Date().toISOString().slice(0, 10);
 
+  // Local date+time stamp for filenames, e.g. "20260704-153045" (YYYYMMDD-HHMMSS).
+  const fileTimestamp = () => {
+    const d = new Date();
+    const pad = (n) => String(n).padStart(2, '0');
+    const date = `${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}`;
+    const time = `${pad(d.getHours())}${pad(d.getMinutes())}${pad(d.getSeconds())}`;
+    return `${date}-${time}`;
+  };
+
+  // Filesystem-safe invoice number for use in filenames.
+  const safeInvoiceNumber = (number) => {
+    const cleaned = (number || 'draft').trim().replace(/[^A-Za-z0-9_-]+/g, '-');
+    return cleaned || 'draft';
+  };
+
   const parseNum = (v) => {
     const n = parseFloat(v);
     return Number.isFinite(n) ? n : 0;
@@ -1110,7 +1125,7 @@
   $('btnSaveData').addEventListener('click', () => {
     const state = collectState();
     const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
-    triggerDownload(blob, `InvoiceMe-data-${state.invoice.number || 'draft'}.json`);
+    triggerDownload(blob, `InvoiceMe-${safeInvoiceNumber(state.invoice.number)}-${fileTimestamp()}.json`);
     isDirty = false;
     setStatus(t('status_data_saved'));
   });
