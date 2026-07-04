@@ -50,11 +50,11 @@ plain GitHub Pages site.
 
 ## Deploying to GitHub Pages
 
-1. Create a new GitHub repo (or use an existing one) and add these files to the repo
-   root, keeping the folder structure: `index.html`, `style.css`, `app.js`, and the
-   whole `assets/` folder (icon.svg, favicon-16.png, favicon-32.png, apple-touch-icon.png,
-   icon-512.png, og-image.png — these cover the browser tab icon, phone bookmark icon,
-   and link-preview image).
+1. Create a new GitHub repo (or use an existing one) and add these files to the repo,
+   all in the same folder (no subfolder needed): `index.html`, `style.css`, `app.js`,
+   `icon.svg`, `favicon-16.png`, `favicon-32.png`, `apple-touch-icon.png`, `icon-512.png`,
+   `og-image.png` — the image files cover the browser tab icon, phone bookmark icon, and
+   link-preview image.
 2. Push to GitHub.
 3. In the repo, go to **Settings → Pages**, set **Source** to your default branch and
    root folder (`/`), and save.
@@ -69,14 +69,13 @@ absolute URL.
 
 ### If the tab icon or link preview still isn't showing
 
-1. **Confirm the asset files actually made it to the server.** Visit these two URLs
-   directly in a browser tab:
-   - `https://ghalam.net/InvoiceMe/assets/favicon-32.png`
-   - `https://ghalam.net/InvoiceMe/assets/og-image.png`
+1. **Confirm the image files actually made it to the server, at the right path.** Visit
+   these two URLs directly in a browser tab:
+   - `https://ghalam.net/InvoiceMe/favicon-32.png`
+   - `https://ghalam.net/InvoiceMe/og-image.png`
 
-   If either one 404s, the `assets/` folder wasn't deployed (or wasn't deployed to that
-   exact path) — re-check that it was committed and pushed alongside `index.html`, in an
-   `assets` subfolder right next to it.
+   If either one 404s, that file wasn't committed, or it landed in a different folder
+   than `index.html` — they all need to sit right next to it, not in a subfolder.
 2. **Chrome's favicon cache is separate from its normal page cache.** A hard refresh
    often isn't enough. Try closing every tab for the site, then reopening it fresh, or
    open it in an Incognito window to confirm the icon loads with no cache involved.
