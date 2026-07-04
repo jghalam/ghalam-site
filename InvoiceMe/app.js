@@ -819,6 +819,7 @@
     (state.company.address || '').split('\n').filter(Boolean).forEach((line) => {
       doc.text(line, marginL, hy); hy += 11;
     });
+    hy += 6; // breathing room between address and contact info
     (state.company.contact || '').split('\n').filter(Boolean).forEach((line) => {
       doc.text(line, marginL, hy); hy += 11;
     });
@@ -827,15 +828,16 @@
     if (qrDataUrl && state.company.website) {
       const qrSize = 42;
       const boxX = pageW - marginR - boxW;
-      let qrX = marginL + nameWidth + 16;
+      let qrX = marginL + nameWidth + 34;
       qrX = Math.min(qrX, boxX - qrSize - 16);
-      qrX = Math.max(qrX, marginL + 50);
+      qrX = Math.max(qrX, marginL + 70);
       const qrY = y - 4;
       try {
         doc.addImage(qrDataUrl, 'PNG', qrX, qrY, qrSize, qrSize);
         doc.setFont('helvetica', 'normal'); doc.setFontSize(6.5);
         doc.setTextColor(90, 103, 121);
-        doc.text(state.company.website, qrX + qrSize / 2, qrY + qrSize + 8, { align: 'center', maxWidth: qrSize + 24 });
+        const urlWidth = doc.getTextWidth(state.company.website);
+        doc.text(state.company.website, qrX + qrSize / 2, qrY + qrSize + 8, { align: 'center', maxWidth: urlWidth + 6 });
         doc.setTextColor(0, 0, 0);
         qrBottom = qrY + qrSize + 14;
       } catch (e) { /* ignore image errors, continue */ }
