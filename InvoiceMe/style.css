@@ -100,6 +100,23 @@ body{
 }
 
 /* ============ FORM ELEMENTS ============ */
+.rail-supergroup-label{
+  font-family:var(--f-display);
+  font-weight:700;
+  font-size:11px;
+  text-transform:uppercase;
+  letter-spacing:.12em;
+  color:var(--accent);
+  padding:16px 0 6px;
+  margin-top:4px;
+  border-top:1px solid var(--line-dim);
+}
+.rail-supergroup-label:first-child{
+  margin-top:0;
+  border-top:none;
+  padding-top:2px;
+}
+
 .field-group{
   border-bottom:1px solid var(--line-dim);
   padding:12px 0;

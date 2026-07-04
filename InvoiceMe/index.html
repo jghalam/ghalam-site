@@ -35,7 +35,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=11">
+<link rel="stylesheet" href="style.css?v=12">
 </head>
 <body>
 
@@ -93,6 +93,8 @@
 
     <div class="rail-scroll">
 
+      <div class="rail-supergroup-label" data-i18n="grp_super_data">Données du devis</div>
+
       <details class="field-group" open>
         <summary data-i18n="grp_letterhead">En-tête</summary>
         <label class="lbl" data-i18n="lbl_logo">Logo / image d'en-tête</label>
@@ -137,6 +139,25 @@
         <textarea class="inp" id="invoiceTitle" rows="2" data-i18n-placeholder="ph_invoice_title" placeholder="correspondant aux travaux d'un appartement &amp; un studio"></textarea>
       </details>
 
+      <details class="field-group">
+        <summary data-i18n="grp_footer">Notes de bas de page</summary>
+        <label class="lbl" data-i18n="lbl_footer_notes">Infos bancaires / légales / paiement</label>
+        <textarea class="inp" id="footerNotes" rows="5" data-i18n-placeholder="ph_footer_notes" placeholder="IBAN, BIC, SIREN, conditions de paiement, etc."></textarea>
+      </details>
+
+      <details class="field-group">
+        <summary data-i18n="grp_terms">PDF de conditions joint</summary>
+        <p class="hint" data-i18n="terms_hint">Optionnel. Ses pages seront ajoutées après le devis — pour les mentions légales, CGV, ou une page de signature.</p>
+        <label class="btn btn-tiny btn-ghost">
+          <span data-i18n="btn_choose_pdf">Choisir un PDF</span>
+          <input type="file" id="fileTerms" accept="application/pdf" hidden>
+        </label>
+        <div id="termsFileName" class="hint mono"></div>
+        <button class="btn btn-tiny btn-ghost" id="btnRemoveTerms" data-i18n="btn_remove_terms" hidden>Supprimer le PDF joint</button>
+      </details>
+
+      <div class="rail-supergroup-label" data-i18n="grp_super_config">Configuration du devis</div>
+
       <details class="field-group" open>
         <summary data-i18n="grp_format">Format des nombres &amp; devise</summary>
         <label class="lbl" data-i18n="lbl_currency">Symbole / code de la devise</label>
@@ -178,23 +199,6 @@
         <summary data-i18n="grp_taxes">Taxes</summary>
         <div id="taxList" class="tax-list"></div>
         <button class="btn btn-tiny btn-ghost" id="btnAddTax" data-i18n="btn_add_tax">+ Ajouter une taxe</button>
-      </details>
-
-      <details class="field-group">
-        <summary data-i18n="grp_footer">Notes de bas de page</summary>
-        <label class="lbl" data-i18n="lbl_footer_notes">Infos bancaires / légales / paiement</label>
-        <textarea class="inp" id="footerNotes" rows="5" data-i18n-placeholder="ph_footer_notes" placeholder="IBAN, BIC, SIREN, conditions de paiement, etc."></textarea>
-      </details>
-
-      <details class="field-group">
-        <summary data-i18n="grp_terms">PDF de conditions joint</summary>
-        <p class="hint" data-i18n="terms_hint">Optionnel. Ses pages seront ajoutées après le devis — pour les mentions légales, CGV, ou une page de signature.</p>
-        <label class="btn btn-tiny btn-ghost">
-          <span data-i18n="btn_choose_pdf">Choisir un PDF</span>
-          <input type="file" id="fileTerms" accept="application/pdf" hidden>
-        </label>
-        <div id="termsFileName" class="hint mono"></div>
-        <button class="btn btn-tiny btn-ghost" id="btnRemoveTerms" data-i18n="btn_remove_terms" hidden>Supprimer le PDF joint</button>
       </details>
 
     </div>
@@ -309,6 +313,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
-<script src="app.js?v=11"></script>
+<script src="app.js?v=12"></script>
 </body>
 </html>
