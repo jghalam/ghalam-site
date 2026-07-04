@@ -35,7 +35,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=13">
+<link rel="stylesheet" href="style.css?v=15">
 </head>
 <body>
 
@@ -212,13 +212,14 @@
 
     <div class="sheet" id="sheet">
       <div class="sheet-head">
-        <div class="sheet-head-logo" id="sheetLogoWrap" hidden>
+        <div class="sheet-head-logo" id="sheetLogoWrap">
           <img id="sheetLogo" hidden>
+          <div class="sheet-title-fallback" id="sheetTitleFallback">Nom de l'entreprise</div>
         </div>
         <div class="sheet-head-row">
           <div class="sheet-head-company-wrap">
             <div class="sheet-head-company">
-              <div class="sheet-company-name" id="sheetCompanyName" data-i18n="sheet_company_placeholder">Nom de l'entreprise</div>
+              <div class="sheet-company-name" id="sheetCompanyName">Nom de l'entreprise</div>
               <div class="sheet-company-address" id="sheetCompanyAddress"></div>
               <div class="sheet-company-contact" id="sheetCompanyContact"></div>
             </div>
@@ -228,7 +229,7 @@
             </div>
           </div>
           <div class="sheet-head-client" id="sheetClientBox">
-            <div class="sheet-client-name" id="sheetClientName" data-i18n="sheet_client_placeholder">Client</div>
+            <div class="sheet-client-name" id="sheetClientName">Client</div>
             <div class="sheet-client-address" id="sheetClientAddress"></div>
           </div>
         </div>
@@ -245,10 +246,9 @@
 
       <div class="sheet-footer" id="sheetFooterNotes"></div>
 
-      <div class="title-block" id="titleBlock">
-        <div class="tb-row"><span data-i18n="tb_no">N°</span><span id="tbNumber">—</span></div>
-        <div class="tb-row"><span data-i18n="tb_date">DATE</span><span id="tbDate">—</span></div>
-        <div class="tb-row"><span data-i18n="tb_rev">RÉV</span><span id="tbRev">A</span></div>
+      <div class="page-footer" id="pageFooter">
+        <div class="page-footer-left" id="pageFooterLeft">N° 280126   •   28 janvier 2026   •   RÉV. A</div>
+        <div class="page-footer-right" id="pageFooterRight">Well Conception — 16 Sq Pt de Sèvres, 92100 Boulogne Billancourt</div>
       </div>
     </div>
   </main>
@@ -312,6 +312,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
-<script src="app.js?v=15"></script>
+<script src="app.js?v=17"></script>
 </body>
 </html>

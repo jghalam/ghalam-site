@@ -278,6 +278,19 @@ body{
   height:auto;
   object-fit:contain;
 }
+.sheet-title-fallback{
+  font-family:var(--f-display);
+  font-weight:700;
+  font-size:42px;
+  line-height:1.15;
+  letter-spacing:.01em;
+  text-align:center;
+  color:#1B2430;
+  text-shadow:0 1px 0 rgba(255,255,255,.5), 0 3px 5px rgba(27,36,48,.28);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
 .sheet-head-row{
   display:grid;
   grid-template-columns:1fr 1fr;
@@ -407,19 +420,20 @@ body{
   font-size:9.5px; color:#5A6779; white-space:pre-line; line-height:1.5;
 }
 
-.title-block{
-  margin-top:26px; margin-left:auto; width:230px;
-  border:1.5px solid #2B3A4A;
+.page-footer{
+  margin-top:26px;
+  padding-top:8px;
+  border-top:1px solid #2B3A4A;
+  display:flex;
+  justify-content:space-between;
+  align-items:baseline;
+  gap:16px;
   font-family:var(--f-mono);
-  font-size:10.5px;
+  font-size:8.5px;
+  color:#5A6779;
 }
-.tb-row{
-  display:flex; justify-content:space-between;
-  padding:4px 8px; border-top:1px solid #2B3A4A;
-}
-.tb-row:first-child{ border-top:none; }
-.tb-row span:first-child{ color:#5A6779; letter-spacing:.06em; }
-.tb-row span:last-child{ font-weight:600; }
+.page-footer-left{ white-space:nowrap; }
+.page-footer-right{ text-align:right; }
 
 /* ============ EDITABLE SECTION CARD (rail-driven, lives in canvas) ============ */
 .section-card{

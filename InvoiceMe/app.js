@@ -37,6 +37,7 @@
   const sectionsMount = $('sectionsMount');
   const sheetLogoWrap = $('sheetLogoWrap');
   const sheetLogo = $('sheetLogo');
+  const sheetTitleFallback = $('sheetTitleFallback');
   const sheetCompanyName = $('sheetCompanyName');
   const sheetCompanyAddress = $('sheetCompanyAddress');
   const sheetCompanyContact = $('sheetCompanyContact');
@@ -48,9 +49,8 @@
   const sheetInvoiceTitle = $('sheetInvoiceTitle');
   const sheetFooterNotes = $('sheetFooterNotes');
   const summaryTable = $('summaryTable');
-  const tbNumber = $('tbNumber');
-  const tbDate = $('tbDate');
-  const tbRev = $('tbRev');
+  const pageFooterLeft = $('pageFooterLeft');
+  const pageFooterRight = $('pageFooterRight');
 
   // ---------- logo / terms controls ----------
   const logoDrop = $('logoDrop');
@@ -153,9 +153,6 @@
       sheet_company_placeholder: "Nom de l'entreprise",
       sheet_client_placeholder: 'Client',
       recap_label: 'Récapitulatif',
-      tb_no: 'N°',
-      tb_date: 'DATE',
-      tb_rev: 'RÉV',
       section_title_placeholder: 'Titre de la section (ex. Plomberie)',
       section_desc_placeholder: 'Description / notes de section (facultatif)',
       tooltip_move_up: 'Déplacer vers le haut',
@@ -266,9 +263,6 @@
       sheet_company_placeholder: 'Company Name',
       sheet_client_placeholder: 'Client',
       recap_label: 'Summary',
-      tb_no: 'NO.',
-      tb_date: 'DATE',
-      tb_rev: 'REV',
       section_title_placeholder: 'Section title (e.g. Plumbing)',
       section_desc_placeholder: 'Optional section description / notes',
       tooltip_move_up: 'Move up',
@@ -335,6 +329,7 @@
     syncHeader();
     updateSummary();
     refreshTermsUI();
+    if (!logoDataUrl) updateTitleFallback();
   }
 
   langSelect.addEventListener('change', (e) => setLanguage(e.target.value));
@@ -653,6 +648,11 @@
     return d.innerHTML;
   }
 
+  function companyFooterLine() {
+    const addr = (companyAddress.value || '').split('\n').filter(Boolean).join(', ');
+    return [companyName.value, addr].filter(Boolean).join(' — ');
+  }
+
   function syncHeader() {
     sheetCompanyName.textContent = companyName.value || t('sheet_company_placeholder');
     sheetCompanyAddress.textContent = companyAddress.value;
@@ -661,9 +661,8 @@
     sheetClientAddress.textContent = clientAddress.value;
     sheetInvoiceTitle.textContent = invoiceHeadingText(invoiceNumber.value, invoiceDate.value, invoiceTitle.value);
     sheetFooterNotes.textContent = footerNotes.value;
-    tbNumber.textContent = invoiceNumber.value || '—';
-    tbDate.textContent = formatDate(invoiceDate.value);
-    tbRev.textContent = invoiceRev.value.trim() || 'A';
+    pageFooterLeft.textContent = titleBlockLine(invoiceNumber.value, invoiceDate.value, invoiceRev.value);
+    pageFooterRight.textContent = companyFooterLine();
   }
 
   // Generates (or clears) the company-website QR code. Synchronous — QRCode.js
@@ -705,6 +704,23 @@
     }
   }
 
+  function fitTitleFallback() {
+    const el = sheetTitleFallback;
+    if (el.hidden) return;
+    const maxWidth = (el.parentElement.clientWidth || 600) - 4;
+    let fontSize = 42;
+    el.style.fontSize = fontSize + 'px';
+    while (el.scrollWidth > maxWidth && fontSize > 16) {
+      fontSize -= 2;
+      el.style.fontSize = fontSize + 'px';
+    }
+  }
+
+  function updateTitleFallback() {
+    sheetTitleFallback.textContent = companyName.value || t('sheet_company_placeholder');
+    fitTitleFallback();
+  }
+
   function refreshLogoUI() {
     if (logoDataUrl) {
       logoPreview.src = logoDataUrl;
@@ -713,7 +729,7 @@
       btnRemoveLogo.hidden = false;
       sheetLogo.src = logoDataUrl;
       sheetLogo.hidden = false;
-      sheetLogoWrap.hidden = false;
+      sheetTitleFallback.hidden = true;
     } else {
       logoPreview.hidden = true;
       logoPreview.src = '';
@@ -721,8 +737,10 @@
       btnRemoveLogo.hidden = true;
       sheetLogo.hidden = true;
       sheetLogo.src = '';
-      sheetLogoWrap.hidden = true;
+      sheetTitleFallback.hidden = false;
+      updateTitleFallback();
     }
+    sheetLogoWrap.hidden = false;
   }
 
   function refreshTermsUI() {
@@ -859,6 +877,24 @@
         doc.addImage(state.company.logo, fmt, x, y, w, h);
         y += h + 20;
       } catch (e) { /* ignore image errors, continue */ }
+    } else if (state.company.name) {
+      // No logo: use the company name itself as a large letterhead title,
+      // shrunk to fit, with a soft drop-shadow for a more finished look.
+      const title = state.company.name;
+      let fontSize = 32;
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(fontSize);
+      while (doc.getTextWidth(title) > contentW - 20 && fontSize > 14) {
+        fontSize -= 1;
+        doc.setFontSize(fontSize);
+      }
+      const baselineY = y + fontSize * 0.8;
+      doc.setTextColor(185, 193, 204);
+      doc.text(title, pageW / 2 + 0.6, baselineY + 0.9, { align: 'center' });
+      doc.setTextColor(15, 32, 56);
+      doc.text(title, pageW / 2, baselineY, { align: 'center' });
+      doc.setTextColor(0, 0, 0);
+      y += fontSize * 1.1 + 18;
     }
 
     // ---- company block (left) + optional website QR ----
@@ -1015,10 +1051,25 @@
       });
     }
 
-    // ---- title block ----
-    y = ensureSpace(doc, y, 24, pageH);
-    doc.setFont('courier', 'normal'); doc.setFontSize(8);
-    doc.text(titleBlockLine(state.invoice.number, state.invoice.date, state.invoice.rev), pageW - marginR, y, { align: 'right' });
+    // ---- page footer: stamped on every page (thin rule + invoice info left / company info right) ----
+    const footerCompanyLine = [state.company.name, (state.company.address || '').split('\n').filter(Boolean).join(', ')]
+      .filter(Boolean).join(' — ');
+    const footerInvoiceLine = titleBlockLine(state.invoice.number, state.invoice.date, state.invoice.rev);
+    const footerY = pageH - 34;
+    const totalPages = doc.internal.getNumberOfPages();
+    for (let p = 1; p <= totalPages; p++) {
+      doc.setPage(p);
+      doc.setDrawColor(190, 180, 150);
+      doc.setLineWidth(0.5);
+      doc.line(marginL, footerY, pageW - marginR, footerY);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(7.5);
+      doc.setTextColor(90, 103, 121);
+      doc.text(footerInvoiceLine, marginL, footerY + 12);
+      if (footerCompanyLine) {
+        doc.text(footerCompanyLine, pageW - marginR, footerY + 12, { align: 'right', maxWidth: contentW * 0.65 });
+      }
+      doc.setTextColor(0, 0, 0);
+    }
 
     let bytes = doc.output('arraybuffer');
 
@@ -1342,6 +1393,7 @@
     invoiceNumber, invoiceDate, invoiceRev, invoiceTitle, footerNotes].forEach((el) => {
     el.addEventListener('input', () => {
       syncHeader();
+      if (el === companyName && !logoDataUrl) updateTitleFallback();
       if (el.tagName === 'TEXTAREA') autoGrow(el);
       markDirty();
     });
