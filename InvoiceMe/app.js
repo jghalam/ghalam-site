@@ -512,10 +512,15 @@
 
   // Uses the native "Save As" dialog (Chrome/Edge) so the user can rename the file and
   // pick a folder, defaulting to Downloads like a normal save. Falls back to a plain
-  // download on browsers without File System Access API support (Safari, Firefox).
+  // download on browsers without File System Access API support (Safari, Firefox), or
+  // when running from a file:// URL (Chrome disables the picker there).
   // Returns false only if the user actively cancelled the dialog.
   async function saveFileWithPicker(blob, suggestedName, description, mimeType, extensions) {
-    if (window.showSaveFilePicker) {
+    if (!window.showSaveFilePicker) {
+      console.info('InvoiceMe: showSaveFilePicker unavailable in this browser — using plain download instead.');
+    } else if (window.location.protocol === 'file:') {
+      console.info('InvoiceMe: showSaveFilePicker is disabled on file:// pages — serve this over http(s) to get the Save As dialog. Using plain download instead.');
+    } else {
       try {
         const handle = await window.showSaveFilePicker({
           suggestedName,
@@ -527,7 +532,7 @@
         return true;
       } catch (err) {
         if (err && err.name === 'AbortError') return false; // user cancelled — do nothing further
-        // any other error: fall through to the plain download below
+        console.warn('InvoiceMe: showSaveFilePicker failed, falling back to plain download.', err);
       }
     }
     triggerDownload(blob, suggestedName);
