@@ -18,6 +18,7 @@
   const clientAddress = $('clientAddress');
   const invoiceNumber = $('invoiceNumber');
   const invoiceDate = $('invoiceDate');
+  const invoiceRev = $('invoiceRev');
   const invoiceTitle = $('invoiceTitle');
   const footerNotes = $('footerNotes');
   const taxList = $('taxList');
@@ -49,6 +50,7 @@
   const summaryTable = $('summaryTable');
   const tbNumber = $('tbNumber');
   const tbDate = $('tbDate');
+  const tbRev = $('tbRev');
 
   // ---------- logo / terms controls ----------
   const logoDrop = $('logoDrop');
@@ -105,6 +107,7 @@
       grp_invoice: 'Détails du devis',
       lbl_invoice_number: 'Numéro de devis',
       lbl_date: 'Date',
+      lbl_revision: 'Révision',
       lbl_invoice_title: 'Titre / description',
       ph_invoice_title: "correspondant aux travaux d'un appartement & un studio",
       grp_format: 'Format des nombres & devise',
@@ -208,6 +211,7 @@
       grp_invoice: 'Invoice details',
       lbl_invoice_number: 'Invoice number',
       lbl_date: 'Date',
+      lbl_revision: 'Revision',
       lbl_invoice_title: 'Title / description',
       ph_invoice_title: 'for the renovation of an apartment & a studio',
       grp_format: 'Number & currency format',
@@ -449,12 +453,13 @@
     return `${t('devis_word')} ${num} ${t('devis_connector')} ${d}` + (title ? ` — ${title}` : '');
   }
 
-  function titleBlockLine(number, date) {
+  function titleBlockLine(number, date, rev) {
     const num = number || '—';
     const d = formatDate(date);
+    const r = (rev || 'A').trim() || 'A';
     return currentLang === 'fr'
-      ? `N° ${num}   •   ${d}   •   RÉV. A`
-      : `No. ${num}   •   ${d}   •   REV. A`;
+      ? `N° ${num}   •   ${d}   •   RÉV. ${r}`
+      : `No. ${num}   •   ${d}   •   REV. ${r}`;
   }
 
   let statusTimer = null;
@@ -611,6 +616,7 @@
     sheetFooterNotes.textContent = footerNotes.value;
     tbNumber.textContent = invoiceNumber.value || '—';
     tbDate.textContent = formatDate(invoiceDate.value);
+    tbRev.textContent = invoiceRev.value.trim() || 'A';
   }
 
   // Generates (or clears) the company-website QR code. Synchronous — QRCode.js
@@ -707,7 +713,7 @@
       _version: 1,
       company: { name: companyName.value, address: companyAddress.value, contact: companyContact.value, website: companyWebsite.value, logo: logoDataUrl || null },
       client: { name: clientName.value, address: clientAddress.value },
-      invoice: { number: invoiceNumber.value, date: invoiceDate.value, title: invoiceTitle.value },
+      invoice: { number: invoiceNumber.value, date: invoiceDate.value, rev: invoiceRev.value, title: invoiceTitle.value },
       sections,
       taxes,
       footerNotes: footerNotes.value,
@@ -739,6 +745,7 @@
 
     invoiceNumber.value = state.invoice?.number || '';
     invoiceDate.value = state.invoice?.date || todayISO();
+    invoiceRev.value = state.invoice?.rev || 'A';
     invoiceTitle.value = state.invoice?.title || '';
 
     sectionsMount.innerHTML = '';
@@ -964,7 +971,7 @@
     // ---- title block ----
     y = ensureSpace(doc, y, 24, pageH);
     doc.setFont('courier', 'normal'); doc.setFontSize(8);
-    doc.text(titleBlockLine(state.invoice.number, state.invoice.date), pageW - marginR, y, { align: 'right' });
+    doc.text(titleBlockLine(state.invoice.number, state.invoice.date, state.invoice.rev), pageW - marginR, y, { align: 'right' });
 
     let bytes = doc.output('arraybuffer');
 
@@ -984,7 +991,7 @@
   const autoGrowAllRailFields = () => railTextareas.forEach(autoGrow);
 
   [companyName, companyAddress, companyContact, clientName, clientAddress,
-    invoiceNumber, invoiceDate, invoiceTitle, footerNotes].forEach((el) => {
+    invoiceNumber, invoiceDate, invoiceRev, invoiceTitle, footerNotes].forEach((el) => {
     el.addEventListener('input', () => {
       syncHeader();
       if (el.tagName === 'TEXTAREA') autoGrow(el);

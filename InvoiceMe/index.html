@@ -7,10 +7,10 @@
 <meta name="description" content="Build branded construction invoices in the browser: custom sections and line items, PDF export, bilingual FR/EN, no backend required.">
 
 <!-- Favicon: SVG for modern browsers, PNG fallbacks for Safari / older browsers / bookmarks -->
-<link rel="icon" type="image/svg+xml" href="assets/icon.svg?v=4">
-<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png?v=4">
-<link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png?v=4">
-<link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png?v=4">
+<link rel="icon" type="image/svg+xml" href="assets/icon.svg?v=5">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon-32.png?v=5">
+<link rel="icon" type="image/png" sizes="16x16" href="assets/favicon-16.png?v=5">
+<link rel="apple-touch-icon" sizes="180x180" href="assets/apple-touch-icon.png?v=5">
 
 <!--
   Link-preview images (Open Graph / Twitter Card) point at the live ghalam.net/InvoiceMe/
@@ -34,7 +34,7 @@
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=8">
+<link rel="stylesheet" href="style.css?v=9">
 </head>
 <body>
 
@@ -125,6 +125,8 @@
         <input class="inp" id="invoiceNumber" placeholder="280126">
         <label class="lbl" data-i18n="lbl_date">Date</label>
         <input class="inp" id="invoiceDate" type="date">
+        <label class="lbl" data-i18n="lbl_revision">Révision</label>
+        <input class="inp" id="invoiceRev" maxlength="12" placeholder="A">
         <label class="lbl" data-i18n="lbl_invoice_title">Titre / description</label>
         <textarea class="inp" id="invoiceTitle" rows="2" data-i18n-placeholder="ph_invoice_title" placeholder="correspondant aux travaux d'un appartement &amp; un studio"></textarea>
       </details>
@@ -237,7 +239,7 @@
       <div class="title-block" id="titleBlock">
         <div class="tb-row"><span data-i18n="tb_no">N°</span><span id="tbNumber">—</span></div>
         <div class="tb-row"><span data-i18n="tb_date">DATE</span><span id="tbDate">—</span></div>
-        <div class="tb-row"><span data-i18n="tb_rev">RÉV</span><span>A</span></div>
+        <div class="tb-row"><span data-i18n="tb_rev">RÉV</span><span id="tbRev">A</span></div>
       </div>
     </div>
   </main>
@@ -300,6 +302,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
-<script src="app.js?v=8"></script>
+<script src="app.js?v=9"></script>
 </body>
 </html>

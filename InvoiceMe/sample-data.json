@@ -1,0 +1,126 @@
+{
+  "_format": "site-sheet-invoice",
+  "_version": 1,
+  "company": {
+    "name": "Well Conception",
+    "address": "16 Sq Pt de Sèvres\n92100 Boulogne Billancourt",
+    "contact": "T: 01 45 51 50 49 – wellconcept-paris.fr – meshkin777@yahoo.fr – P: 06 64 79 90 45",
+    "logo": null
+  },
+  "client": {
+    "name": "Mme ARFA",
+    "address": "5, Rue du 29 juillet\n75001 PARIS"
+  },
+  "invoice": {
+    "number": "280126",
+    "date": "2026-01-28",
+    "rev": "A",
+    "title": "correspondant aux travaux d'un appartement & un studio"
+  },
+  "sections": [
+    {
+      "title": "Mise en place & démolition",
+      "description": "",
+      "items": [
+        { "desc": "Installation de chantier comprenant la mise en place de protections étanches antidérapantes ainsi que le nettoyage quotidien en fin de journée.", "qty": 1, "unit": "U", "price": 500 },
+        { "desc": "Dépose des murs non porteurs convenus, les portes, des carrelages des salles de bain, WC et l'ensemble de la cuisine, des éléments sanitaires, radiateurs, chaudière et des tuyauteries existants. Les meubles de la cuisine, WC, salle de bain, placards. Dépose de l'ensemble de l'installation électrique & les 4 portes fenêtres.", "qty": 1, "unit": "Ens.", "price": 14600 },
+        { "desc": "Évacuation des gravats à la décharge & fournitures des matériaux par monte-meuble pour le chantier.", "qty": 11, "unit": "m3", "price": 700 }
+      ]
+    },
+    {
+      "title": "Maçonnerie et plâtrerie",
+      "description": "",
+      "items": [
+        { "desc": "Fourniture et pose d'une étanchéité sous carrelage, sur les sols des pièces d'eau ainsi que sur les murs, toute hauteur dans la zone douche, hauteur d'environ 50cm sur le reste des surfaces. Localisation: Salles de bain.", "qty": 38, "unit": "m²", "price": 35 },
+        { "desc": "Réalisation des raccords de maçonnerie suite à la démolition.", "qty": 13, "unit": "Ens.", "price": 200 },
+        { "desc": "Réalisation des coffrages doubles en BA13 & trappe d'accès pour les raccordements.", "qty": 6, "unit": "Ens.", "price": 100 },
+        { "desc": "Réalisation d'une chape de béton allégé dans la salle de douche & salle de bain suite à la dépose des carrelages.", "qty": 24, "unit": "m²", "price": 60 },
+        { "desc": "Réalisation des cloisons sèches en plaques de BA13 sur ossature métallique.", "qty": 32, "unit": "m²", "price": 110 },
+        { "desc": "Réalisation de faux plafond en plaques de BA13 hydrofuge suspendu sur ossature métallique. Localisation: Salle de douche & Salle de bain.", "qty": 12, "unit": "m²", "price": 110 },
+        { "desc": "Ragréage fibré dans les pièces d'eau. Localisation: Salle de douche & Salle de bain.", "qty": 12, "unit": "m²", "price": 65 }
+      ]
+    },
+    {
+      "title": "Électricité (selon les normes Consuel NFC 15-100 en vigueur)",
+      "description": "Pose des accessoires & éclairages comprise (raccordements électroménagers compris)",
+      "items": [
+        { "desc": "Fourniture et installation complète en pose encastrée, de platine pour compteur de l'appartement, tableau électrique équipé de disjoncteurs, tableau informatique, anti-fumage, boîtier fibre & raccordement terre.", "qty": 2, "unit": "U", "price": 2200 },
+        { "desc": "Installation de prise 16A+T", "qty": 14, "unit": "U", "price": 130 },
+        { "desc": "Installation de Prise RJ45", "qty": 13, "unit": "U", "price": 130 },
+        { "desc": "Installation de prise modulaire", "qty": 14, "unit": "U", "price": 130 },
+        { "desc": "Interrupteur simple", "qty": 38, "unit": "U", "price": 130 },
+        { "desc": "Interrupteur v/v simple", "qty": 2, "unit": "U", "price": 130 },
+        { "desc": "Alimentation pour spots", "qty": 4, "unit": "U", "price": 130 },
+        { "desc": "Alimentation et pose appliques", "qty": 2, "unit": "U", "price": 130 },
+        { "desc": "Alimentation de plafonniers", "qty": 8, "unit": "U", "price": 130 },
+        { "desc": "Alimentation pour liseuses", "qty": 2, "unit": "U", "price": 130 },
+        { "desc": "Alimentation pour sèche-serviette électrique", "qty": 2, "unit": "U", "price": 130 },
+        { "desc": "Alimentation pour sèche serviette", "qty": 2, "unit": "U", "price": 130 },
+        { "desc": "Alimentation pour extracteur d'air (SDD)", "qty": 2, "unit": "U", "price": 130 },
+        { "desc": "Alimentation pour les ballons d'eau chaude", "qty": 2, "unit": "U", "price": 130 },
+        { "desc": "Alimentation pour Ballon d'eau chaude", "qty": 2, "unit": "U", "price": 130 },
+        { "desc": "Alimentation VMC pour les pièces humide (qualité phonique optimale)", "qty": 4, "unit": "U", "price": 130 },
+        { "desc": "Alimentation pour électroménagers & PC de crédence", "qty": 8, "unit": "U", "price": 130 },
+        { "desc": "Raccordement à la terre de la tuyauterie et parties métalliques", "qty": 2, "unit": "U", "price": 130 },
+        { "desc": "Fourniture et pose du boîtier fibre & raccordement terre.", "qty": 2, "unit": "U", "price": 400 }
+      ]
+    },
+    {
+      "title": "Plomberie (pose des robinets & sanitaires comprise)",
+      "description": "",
+      "items": [
+        { "desc": "Fourniture & installation d'une alimentation EC et d'une évacuation pour Machine à laver & Lave vaisselles. Localisation: Buanderie & cuisine", "qty": 1, "unit": "U", "price": 2800 },
+        { "desc": "Fourniture & installation d'une alimentation EF et d'une évacuation pour WC Suspendu.", "qty": 2, "unit": "U", "price": 1300 },
+        { "desc": "Fourniture & installation d'une alimentation EC/EF et d'une évacuation pour Douche, robinetterie encastrée 2 sorties, pose du kit douche. Localisation: Salle de bain", "qty": 1, "unit": "U", "price": 1100 },
+        { "desc": "Fourniture & installation d'une alimentation EC/EF et d'une évacuation pour Baignoire, robinetterie encastrée 2 sorties, pose du kit.", "qty": 3, "unit": "U", "price": 1900 },
+        { "desc": "Fourniture & installation d'une alimentation EC/EF et d'une évacuation pour Lavabo, robinetterie encastrée 2 sorties. Localisation: Salle de bain", "qty": 2, "unit": "U", "price": 1100 },
+        { "desc": "Fourniture & installation d'une alimentation EC/EF et d'une évacuation pour Vasque, robinetterie encastrée 2 sorties, pose du kit douche. Localisation: Salle de bain", "qty": 2, "unit": "U", "price": 2100 },
+        { "desc": "Installation d'une alimentation EF et d'une évacuation pour BEC, ballon d'eau chaude plat Thermor Malicio 120L, raccords au circuit d'eau chaude. Localisation: Selon plan", "qty": 2, "unit": "U", "price": 1100 },
+        { "desc": "Fourniture et pose ainsi que le raccordement de l'évacuation 50 de la future cuisine à la colonne générale à l'extérieur sur la façade de la cour, y compris la protection d'un cordiste.", "qty": 2, "unit": "U", "price": 400 }
+      ]
+    },
+    {
+      "title": "Menuiserie extérieure",
+      "description": "",
+      "items": [
+        { "desc": "Fourniture et pose de porte-fenêtres huisserie en bois traditionnelle en recouvrement oscillo-battantes/double vitrage 44.2/16Ar/4th 36db, avec poignée et quincaillerie pour entrebâillement, ouverture à la française.", "qty": 4, "unit": "U", "price": 2471 }
+      ]
+    },
+    {
+      "title": "Menuiserie",
+      "description": "",
+      "items": [
+        { "desc": "Fourniture et pose des blocs-portes d'intérieur postformée", "qty": 6, "unit": "Ens.", "price": 620 }
+      ]
+    },
+    {
+      "title": "Parquet",
+      "description": "",
+      "items": [
+        { "desc": "Ponçage du parquet chêne massif. Nettoyage et application de deux couches de vitrification blanchon d'aspect satiné incolore sur toute la surface.", "qty": 16, "unit": "m²", "price": 85 },
+        { "desc": "Pose de plinthe assortie. Pose de joint époxy.", "qty": 15, "unit": "ml", "price": 60 },
+        { "desc": "Salles de d'eaux : pose de carrelage sur le sol. Pose de joint époxy.", "qty": 35, "unit": "m²", "price": 85 }
+      ]
+    },
+    {
+      "title": "Revêtements",
+      "description": "Carrelages & faïences",
+      "items": [
+        { "desc": "Pose de faïences sur les murs des salles d'eaux & la crédence de la cuisine. Pose de joint époxy.", "qty": 71, "unit": "m²", "price": 130 },
+        { "desc": "Fourniture & pose des plinthes bord arrondi MDF 10cm", "qty": 234, "unit": "ml", "price": 20 }
+      ]
+    },
+    {
+      "title": "Peinture",
+      "description": "",
+      "items": [
+        { "desc": "Réfection de la peinture de tout l'appartement. Ouverture des fissures, grattage, ponçage et application d'un primaire d'accrochage. Rebouchage et mise en enduit des surfaces. Fourniture et pose de toile \"fissnett\" noyée dans l'enduit au droit des fissures. Deux couches de peinture satinée organique Farrow & Ball sur les murs, plafonds des pièces humides & canalisations apparentes.", "qty": 432, "unit": "m²", "price": 60 }
+      ]
+    }
+  ],
+  "taxes": [
+    { "label": "TVA", "rate": 10 }
+  ],
+  "footerNotes": "IBAN: FR76 1695 8000 0119 1544 5441 868   BIC/SWIFT: QNTOFRP1XXX\nSIREN: 919 701 052 R.C.S. Nanterre – SIEGE: 16 Sq Pt de Sèvres, 92100 Boulogne Billancourt\nTVA Intracommunautaire: FR54919701052\n\nCe devis est valable deux mois à compter de sa date d'établissement. Démarrage des travaux: Mars 2026. Délais: 3 mois à partir du démarrage des travaux.\nRèglement: 30% au démarrage des travaux (payable sous 5 jours ouvrés), 60% en cours de chantier, 10% à la réception des travaux.",
+  "terms": null
+}
