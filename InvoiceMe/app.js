@@ -110,6 +110,7 @@
       lbl_company_website: "Site web de l'entreprise",
       ph_company_website: 'https://www.monentreprise.fr',
       company_website_hint: "Un QR code s'affichera automatiquement à côté du nom de l'entreprise.",
+      company_cache_hint: "Ces informations (et le logo) sont mémorisées dans ce navigateur et préremplies automatiquement la prochaine fois que vous cliquez sur « Nouveau ».",
       grp_billto: 'Facturer à',
       lbl_client_name: 'Nom du client',
       ph_client_name: 'ex. Mme ARFA',
@@ -210,6 +211,7 @@
       lbl_company_website: 'Company website',
       ph_company_website: 'https://www.mycompany.com',
       company_website_hint: "A QR code will show automatically next to the company name.",
+      company_cache_hint: 'This info (and the logo) is remembered in this browser and auto-filled next time you click "New."',
       grp_billto: 'Bill To',
       lbl_client_name: 'Client name',
       ph_client_name: 'e.g. Mme ARFA',
@@ -907,6 +909,43 @@
   }
 
   // ============================================================
+  // Company profile cache (localStorage) — company info + logo rarely change
+  // between documents, so they're remembered separately from per-document
+  // data and auto-filled whenever a new invoice/estimate is started.
+  // ============================================================
+  const COMPANY_CACHE_KEY = 'invoiceme-company-profile';
+
+  function saveCompanyProfileCache() {
+    try {
+      const profile = {
+        name: companyName.value,
+        address: companyAddress.value,
+        contact: companyContact.value,
+        website: companyWebsite.value,
+        logo: logoDataUrl || null,
+      };
+      localStorage.setItem(COMPANY_CACHE_KEY, JSON.stringify(profile));
+    } catch (e) { /* storage unavailable or full (e.g. a very large logo) — skip caching silently */ }
+  }
+
+  function loadCompanyProfileCache() {
+    try {
+      const raw = localStorage.getItem(COMPANY_CACHE_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  function freshInvoiceState() {
+    const cachedCompany = loadCompanyProfileCache();
+    return {
+      invoice: { date: todayISO() },
+      company: cachedCompany || undefined,
+    };
+  }
+
+  // ============================================================
   // PDF generation
   // ============================================================
   function ensureSpace(doc, y, needed, pageH) {
@@ -1466,11 +1505,12 @@
       syncHeader();
       if (el === companyName && !logoDataUrl) updateTitleFallback();
       if (el.tagName === 'TEXTAREA') autoGrow(el);
+      if (el === companyName || el === companyAddress || el === companyContact) saveCompanyProfileCache();
       markDirty();
     });
   });
 
-  companyWebsite.addEventListener('input', () => { regenerateQr(); markDirty(); });
+  companyWebsite.addEventListener('input', () => { regenerateQr(); saveCompanyProfileCache(); markDirty(); });
 
   // Rail sections can start collapsed (e.g. Footer notes); textareas inside them
   // can't be measured while hidden, so resize them properly once revealed.
@@ -1572,6 +1612,7 @@
     reader.onload = () => {
       logoDataUrl = reader.result;
       refreshLogoUI();
+      saveCompanyProfileCache();
       setStatus(t('status_logo_added'));
     };
     reader.readAsDataURL(file);
@@ -1588,6 +1629,7 @@
     logoDataUrl = null;
     fileLogo.value = '';
     refreshLogoUI();
+    saveCompanyProfileCache();
     markDirty();
   });
 
@@ -1615,7 +1657,7 @@
   // top-level actions
   $('btnNew').addEventListener('click', () => {
     if (confirm(docStrings().confirmNew)) {
-      populateFromState({ invoice: { date: todayISO() } });
+      populateFromState(freshInvoiceState());
       isDirty = false;
       setStatus(docStrings().newStatus);
     }
@@ -1642,6 +1684,7 @@
       try {
         const state = JSON.parse(reader.result);
         populateFromState(state);
+        saveCompanyProfileCache();
         isDirty = false;
         setStatus(t('status_data_loaded'));
       } catch (err) {
@@ -1720,6 +1763,6 @@
     const saved = localStorage.getItem('invoiceme-lang');
     if (saved === 'en' || saved === 'fr') initialLang = saved;
   } catch (e) { /* storage unavailable, default to French */ }
-  populateFromState({ invoice: { date: todayISO() } });
+  populateFromState(freshInvoiceState());
   setLanguage(initialLang);
 })();
