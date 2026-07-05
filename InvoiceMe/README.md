@@ -6,6 +6,11 @@ plain GitHub Pages site.
 
 ## What it does
 
+- **Invoice or Estimate** — a document-type dropdown at the top of the invoice details
+  switches the wording everywhere it appears (rail labels, the document heading, the
+  per-page PDF footer, status messages, filenames) between Invoice/Facture and
+  Estimate/Devis, in both languages. Saved as part of each document's data, so reopening
+  a saved estimate keeps it labeled as an estimate.
 - **Letterhead** — drop in a logo/title image, used at the top of the PDF.
 - **Company & client info** — free-text fields for address/contact, matching the layout of
   a typical French *devis*.

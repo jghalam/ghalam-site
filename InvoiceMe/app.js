@@ -16,6 +16,12 @@
   const companyWebsite = $('companyWebsite');
   const clientName = $('clientName');
   const clientAddress = $('clientAddress');
+  const docTypeSelect = $('docType');
+  const grpSuperDataLabel = $('grpSuperDataLabel');
+  const grpSuperConfigLabel = $('grpSuperConfigLabel');
+  const grpInvoiceLabel = $('grpInvoiceLabel');
+  const lblInvoiceNumber = $('lblInvoiceNumber');
+  const btnImportPdfLabel = $('btnImportPdfLabel');
   const invoiceNumber = $('invoiceNumber');
   const invoiceDate = $('invoiceDate');
   const invoiceRev = $('invoiceRev');
@@ -80,22 +86,18 @@
     fr: {
       lang_label: 'Langue',
       btn_new: 'Nouveau',
-      btn_new_title: 'Effacer tout et commencer un nouveau devis',
       btn_load: 'Charger des données',
       btn_load_title: 'Charger un fichier de données .json précédemment enregistré',
       btn_save: 'Enregistrer',
-      btn_save_title: "Télécharger les données de ce devis au format .json",
       btn_generate: 'Générer le PDF',
-      btn_generate_title: 'Générer le PDF final du devis',
       btn_import_pdf: 'Importer un PDF',
-      btn_import_pdf_title: "Extraire les données d'un PDF existant pour préremplir ce devis (meilleur effort)",
       confirm_import_overwrite: 'Importer ce PDF remplacera les sections, taxes et coordonnées actuelles par les données extraites. Continuer ?',
       status_importing_pdf: 'Lecture du PDF…',
       status_import_scanned: "Aucune donnée exploitable trouvée — ce PDF semble être une image scannée sans texte. Merci de saisir les informations manuellement.",
-      status_import_done: "Import terminé (meilleur effort) — vérifiez attentivement l'exactitude des données ci-dessous avant de générer ou d'enregistrer le devis.",
       alert_import_error: "Ce fichier n'a pas pu être lu comme PDF, ou une erreur est survenue pendant l'extraction.",
-      grp_super_data: 'Données du devis',
-      grp_super_config: 'Configuration du devis',
+      lbl_doc_type: 'Type de document',
+      opt_doc_invoice: 'Facture',
+      opt_doc_estimate: 'Devis',
       grp_letterhead: 'En-tête',
       lbl_logo: "Logo / image d'en-tête",
       logo_drop_hint: 'Cliquez ou déposez une image',
@@ -112,8 +114,6 @@
       lbl_client_name: 'Nom du client',
       ph_client_name: 'ex. Mme ARFA',
       lbl_client_address: 'Adresse du client',
-      grp_invoice: 'Détails du devis',
-      lbl_invoice_number: 'Numéro de devis',
       lbl_date: 'Date',
       lbl_revision: 'Révision',
       lbl_invoice_title: 'Titre / description',
@@ -176,36 +176,28 @@
       status_terms_attached: 'PDF de conditions joint',
       status_data_saved: 'Données enregistrées ✓',
       status_data_loaded: 'Données chargées ✓',
-      status_new_ready: 'Nouveau devis prêt',
       status_generating: 'Génération du PDF…',
       status_pdf_generated: 'PDF généré ✓',
       status_popup_blocked: 'Fenêtre popup bloquée — le PDF a été téléchargé à la place.',
-      confirm_new: 'Commencer un nouveau devis ? Les modifications non enregistrées seront perdues.',
       alert_bad_json: "Ce fichier n'a pas pu être lu comme données de devis (JSON invalide).",
       alert_pdf_error: 'Une erreur est survenue lors de la génération du PDF. Consultez la console pour plus de détails.',
-      devis_word: 'Devis Numéro',
-      devis_connector: 'du',
       page_title: 'InvoiceMe — Facturation BTP',
     },
     en: {
       lang_label: 'Language',
       btn_new: 'New',
-      btn_new_title: 'Clear everything and start a new invoice',
       btn_load: 'Load Data',
       btn_load_title: 'Load a previously saved .json data file',
       btn_save: 'Save Data',
-      btn_save_title: "Download this invoice's data as a .json file",
       btn_generate: 'Generate PDF',
-      btn_generate_title: 'Generate the final invoice PDF',
       btn_import_pdf: 'Import PDF',
-      btn_import_pdf_title: 'Extract data from an existing PDF to pre-fill this invoice (best effort)',
       confirm_import_overwrite: 'Importing this PDF will replace the current sections, taxes, and contact info with the extracted data. Continue?',
       status_importing_pdf: 'Reading PDF…',
       status_import_scanned: 'No matching data found — this PDF looks like a scanned image with no text layer. Please enter details manually.',
-      status_import_done: 'Import complete (best effort) — please carefully check the data below for accuracy before generating or saving the invoice.',
       alert_import_error: 'That file could not be read as a PDF, or something went wrong during extraction.',
-      grp_super_data: 'Invoice Data',
-      grp_super_config: 'Invoice Configuration',
+      lbl_doc_type: 'Document type',
+      opt_doc_invoice: 'Invoice',
+      opt_doc_estimate: 'Estimate',
       grp_letterhead: 'Letterhead',
       lbl_logo: 'Logo / title image',
       logo_drop_hint: 'Click or drop an image',
@@ -222,8 +214,6 @@
       lbl_client_name: 'Client name',
       ph_client_name: 'e.g. Mme ARFA',
       lbl_client_address: 'Client address',
-      grp_invoice: 'Invoice details',
-      lbl_invoice_number: 'Invoice number',
       lbl_date: 'Date',
       lbl_revision: 'Revision',
       lbl_invoice_title: 'Title / description',
@@ -286,15 +276,11 @@
       status_terms_attached: 'Terms PDF attached',
       status_data_saved: 'Data saved ✓',
       status_data_loaded: 'Data loaded ✓',
-      status_new_ready: 'New invoice ready',
       status_generating: 'Generating PDF…',
       status_pdf_generated: 'PDF generated ✓',
       status_popup_blocked: 'Popup window blocked — downloaded the PDF instead.',
-      confirm_new: 'Start a new invoice? Unsaved changes will be lost.',
       alert_bad_json: 'That file could not be read as invoice data (invalid JSON).',
       alert_pdf_error: 'Something went wrong generating the PDF. Check the console for details.',
-      devis_word: 'Invoice No.',
-      devis_connector: 'dated',
       page_title: 'InvoiceMe — Construction Invoice Builder',
     },
   };
@@ -306,6 +292,77 @@
     root.querySelectorAll('[data-i18n]').forEach((el) => { el.textContent = t(el.dataset.i18n); });
     root.querySelectorAll('[data-i18n-placeholder]').forEach((el) => { el.placeholder = t(el.dataset.i18nPlaceholder); });
     root.querySelectorAll('[data-i18n-title]').forEach((el) => { el.title = t(el.dataset.i18nTitle); });
+  }
+
+  // ---- Invoice vs Estimate: every doc/language-dependent string lives here, since French
+  // grammar (la facture / le devis) means these can't be built by simple concatenation. ----
+  let docType = 'invoice';
+  const DOC_STRINGS = {
+    fr: {
+      invoice: {
+        noun: 'Facture', nounUpper: 'FACTURE',
+        superDataLabel: 'Données de la facture', superConfigLabel: 'Configuration de la facture',
+        groupLabel: 'Détails de la facture', numberLabel: 'Numéro de facture',
+        newTitle: 'Effacer tout et commencer une nouvelle facture',
+        saveTitle: 'Télécharger les données de cette facture au format .json',
+        generateTitle: 'Générer le PDF final de la facture',
+        importTitle: "Extraire les données d'un PDF existant pour préremplir cette facture (meilleur effort)",
+        importDone: "Import terminé (meilleur effort) — vérifiez attentivement l'exactitude des données ci-dessous avant de générer ou d'enregistrer la facture.",
+        newStatus: 'Nouvelle facture prête',
+        confirmNew: 'Commencer une nouvelle facture ? Les modifications non enregistrées seront perdues.',
+      },
+      estimate: {
+        noun: 'Devis', nounUpper: 'DEVIS',
+        superDataLabel: 'Données du devis', superConfigLabel: 'Configuration du devis',
+        groupLabel: 'Détails du devis', numberLabel: 'Numéro de devis',
+        newTitle: 'Effacer tout et commencer un nouveau devis',
+        saveTitle: 'Télécharger les données de ce devis au format .json',
+        generateTitle: 'Générer le PDF final du devis',
+        importTitle: "Extraire les données d'un PDF existant pour préremplir ce devis (meilleur effort)",
+        importDone: "Import terminé (meilleur effort) — vérifiez attentivement l'exactitude des données ci-dessous avant de générer ou d'enregistrer le devis.",
+        newStatus: 'Nouveau devis prêt',
+        confirmNew: 'Commencer un nouveau devis ? Les modifications non enregistrées seront perdues.',
+      },
+    },
+    en: {
+      invoice: {
+        noun: 'Invoice', nounUpper: 'INVOICE',
+        superDataLabel: 'Invoice Data', superConfigLabel: 'Invoice Configuration',
+        groupLabel: 'Invoice details', numberLabel: 'Invoice number',
+        newTitle: 'Clear everything and start a new invoice',
+        saveTitle: "Download this invoice's data as a .json file",
+        generateTitle: 'Generate the final invoice PDF',
+        importTitle: 'Extract data from an existing PDF to pre-fill this invoice (best effort)',
+        importDone: 'Import complete (best effort) — please carefully check the data below for accuracy before generating or saving the invoice.',
+        newStatus: 'New invoice ready',
+        confirmNew: 'Start a new invoice? Unsaved changes will be lost.',
+      },
+      estimate: {
+        noun: 'Estimate', nounUpper: 'ESTIMATE',
+        superDataLabel: 'Estimate Data', superConfigLabel: 'Estimate Configuration',
+        groupLabel: 'Estimate details', numberLabel: 'Estimate number',
+        newTitle: 'Clear everything and start a new estimate',
+        saveTitle: "Download this estimate's data as a .json file",
+        generateTitle: 'Generate the final estimate PDF',
+        importTitle: 'Extract data from an existing PDF to pre-fill this estimate (best effort)',
+        importDone: 'Import complete (best effort) — please carefully check the data below for accuracy before generating or saving the estimate.',
+        newStatus: 'New estimate ready',
+        confirmNew: 'Start a new estimate? Unsaved changes will be lost.',
+      },
+    },
+  };
+  const docStrings = () => DOC_STRINGS[currentLang][docType];
+
+  function updateDocTypeLabels() {
+    const ds = docStrings();
+    grpSuperDataLabel.textContent = ds.superDataLabel;
+    grpSuperConfigLabel.textContent = ds.superConfigLabel;
+    grpInvoiceLabel.textContent = ds.groupLabel;
+    lblInvoiceNumber.textContent = ds.numberLabel;
+    $('btnNew').title = ds.newTitle;
+    $('btnSaveData').title = ds.saveTitle;
+    $('btnGeneratePdf').title = ds.generateTitle;
+    btnImportPdfLabel.title = ds.importTitle;
   }
 
   const LANG_FORMAT_DEFAULTS = {
@@ -326,6 +383,7 @@
 
     localize(document);
     try { localStorage.setItem('invoiceme-lang', currentLang); } catch (e) { /* storage unavailable, ignore */ }
+    updateDocTypeLabels();
     syncHeader();
     updateSummary();
     refreshTermsUI();
@@ -333,6 +391,13 @@
   }
 
   langSelect.addEventListener('change', (e) => setLanguage(e.target.value));
+
+  docTypeSelect.addEventListener('change', (e) => {
+    docType = (e.target.value === 'estimate') ? 'estimate' : 'invoice';
+    updateDocTypeLabels();
+    syncHeader();
+    markDirty();
+  });
 
   // ============================================================
   // Utilities
@@ -463,16 +528,19 @@
   function invoiceHeadingText(number, date, title) {
     const num = number || '—';
     const d = formatDate(date);
-    return `${t('devis_word')} ${num} ${t('devis_connector')} ${d}` + (title ? ` — ${title}` : '');
+    const noun = docStrings().noun;
+    const base = currentLang === 'fr' ? `${noun} Numéro ${num} du ${d}` : `${noun} No. ${num} dated ${d}`;
+    return base + (title ? ` — ${title}` : '');
   }
 
   function titleBlockLine(number, date, rev) {
     const num = number || '—';
     const d = formatDate(date);
     const r = (rev || 'A').trim() || 'A';
+    const nounUpper = docStrings().nounUpper;
     return currentLang === 'fr'
-      ? `N° ${num}   •   ${d}   •   RÉV. ${r}`
-      : `No. ${num}   •   ${d}   •   REV. ${r}`;
+      ? `${nounUpper} N° ${num}   •   ${d}   •   RÉV. ${r}`
+      : `${nounUpper} No. ${num}   •   ${d}   •   REV. ${r}`;
   }
 
   let statusTimer = null;
@@ -778,7 +846,7 @@
       _version: 1,
       company: { name: companyName.value, address: companyAddress.value, contact: companyContact.value, website: companyWebsite.value, logo: logoDataUrl || null },
       client: { name: clientName.value, address: clientAddress.value },
-      invoice: { number: invoiceNumber.value, date: invoiceDate.value, rev: invoiceRev.value, title: invoiceTitle.value },
+      invoice: { number: invoiceNumber.value, date: invoiceDate.value, rev: invoiceRev.value, title: invoiceTitle.value, docType },
       sections,
       taxes,
       footerNotes: footerNotes.value,
@@ -812,6 +880,9 @@
     invoiceDate.value = state.invoice?.date || todayISO();
     invoiceRev.value = state.invoice?.rev || 'A';
     invoiceTitle.value = state.invoice?.title || '';
+    docType = (state.invoice?.docType === 'estimate') ? 'estimate' : 'invoice';
+    docTypeSelect.value = docType;
+    updateDocTypeLabels();
 
     sectionsMount.innerHTML = '';
     (state.sections && state.sections.length ? state.sections : [{}]).forEach((sec) => {
@@ -1079,7 +1150,7 @@
 
     return {
       blob: new Blob([bytes], { type: 'application/pdf' }),
-      filename: `InvoiceMe-${state.invoice.number || 'draft'}.pdf`,
+      filename: `InvoiceMe-${docTypeFilenameWord()}-${safeInvoiceNumber(state.invoice.number)}.pdf`,
     };
   }
 
@@ -1543,17 +1614,19 @@
 
   // top-level actions
   $('btnNew').addEventListener('click', () => {
-    if (confirm(t('confirm_new'))) {
+    if (confirm(docStrings().confirmNew)) {
       populateFromState({ invoice: { date: todayISO() } });
       isDirty = false;
-      setStatus(t('status_new_ready'));
+      setStatus(docStrings().newStatus);
     }
   });
+
+  const docTypeFilenameWord = () => (docType === 'estimate' ? 'Estimate' : 'Invoice');
 
   $('btnSaveData').addEventListener('click', async () => {
     const state = collectState();
     const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
-    const filename = `InvoiceMe-${safeInvoiceNumber(state.invoice.number)}-${fileTimestamp()}.json`;
+    const filename = `InvoiceMe-${docTypeFilenameWord()}-${safeInvoiceNumber(state.invoice.number)}-${fileTimestamp()}.json`;
     const saved = await saveFileWithPicker(blob, filename, 'InvoiceMe data (JSON)', 'application/json', ['.json']);
     if (saved) {
       isDirty = false;
@@ -1598,7 +1671,7 @@
       populateFromState({
         company: p.company,
         client: p.client,
-        invoice: { number: p.invoice.number, date: p.invoice.date || todayISO(), rev: 'A', title: p.invoice.title },
+        invoice: { number: p.invoice.number, date: p.invoice.date || todayISO(), rev: 'A', title: p.invoice.title, docType },
         sections: p.sections,
         taxes: p.taxes,
         footerNotes: p.footerNotes,
@@ -1607,7 +1680,7 @@
       });
       isDirty = true;
       setStatus('');
-      alert(t('status_import_done'));
+      alert(docStrings().importDone);
     } catch (err) {
       console.error(err);
       setStatus('');

@@ -75,24 +75,24 @@
   <!-- ============ LEFT CONTROL RAIL ============ -->
   <aside class="rail">
     <div class="rail-actions">
-      <button class="btn btn-ghost" id="btnNew" data-i18n="btn_new" data-i18n-title="btn_new_title" title="">Nouveau</button>
+      <button class="btn btn-ghost" id="btnNew" data-i18n="btn_new" title="">Nouveau</button>
       <label class="btn btn-ghost" data-i18n-title="btn_load_title" title="">
         <span data-i18n="btn_load">Charger des données</span>
         <input type="file" id="fileLoadData" accept="application/json" hidden>
       </label>
-      <button class="btn btn-ghost" id="btnSaveData" data-i18n="btn_save" data-i18n-title="btn_save_title" title="">Enregistrer</button>
-      <label class="btn btn-ghost" data-i18n-title="btn_import_pdf_title" title="">
+      <button class="btn btn-ghost" id="btnSaveData" data-i18n="btn_save" title="">Enregistrer</button>
+      <label class="btn btn-ghost" id="btnImportPdfLabel" title="">
         <span data-i18n="btn_import_pdf">Importer un PDF</span>
         <input type="file" id="fileImportPdf" accept="application/pdf" hidden>
       </label>
-      <button class="btn btn-accent" id="btnGeneratePdf" data-i18n="btn_generate" data-i18n-title="btn_generate_title" title="">Générer le PDF</button>
+      <button class="btn btn-accent" id="btnGeneratePdf" data-i18n="btn_generate" title="">Générer le PDF</button>
     </div>
 
     <div class="rail-status" id="railStatus" aria-live="polite"></div>
 
     <div class="rail-scroll">
 
-      <div class="rail-supergroup-label" data-i18n="grp_super_data">Données du devis</div>
+      <div class="rail-supergroup-label" id="grpSuperDataLabel">Données du devis</div>
 
       <details class="field-group" open>
         <summary data-i18n="grp_letterhead">En-tête</summary>
@@ -127,8 +127,13 @@
       </details>
 
       <details class="field-group" open>
-        <summary data-i18n="grp_invoice">Détails du devis</summary>
-        <label class="lbl" data-i18n="lbl_invoice_number">Numéro de devis</label>
+        <summary id="grpInvoiceLabel">Détails du devis</summary>
+        <label class="lbl" data-i18n="lbl_doc_type">Type de document</label>
+        <select class="inp" id="docType">
+          <option value="invoice" data-i18n="opt_doc_invoice">Facture</option>
+          <option value="estimate" data-i18n="opt_doc_estimate">Devis</option>
+        </select>
+        <label class="lbl" id="lblInvoiceNumber">Numéro de devis</label>
         <input class="inp" id="invoiceNumber" placeholder="280126">
         <label class="lbl" data-i18n="lbl_date">Date</label>
         <input class="inp" id="invoiceDate" type="date">
@@ -155,7 +160,7 @@
         <button class="btn btn-tiny btn-ghost" id="btnRemoveTerms" data-i18n="btn_remove_terms" hidden>Supprimer le PDF joint</button>
       </details>
 
-      <div class="rail-supergroup-label" data-i18n="grp_super_config">Configuration du devis</div>
+      <div class="rail-supergroup-label" id="grpSuperConfigLabel">Configuration du devis</div>
 
       <details class="field-group" open>
         <summary data-i18n="grp_format">Format des nombres &amp; devise</summary>
@@ -312,6 +317,6 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
-<script src="app.js?v=17"></script>
+<script src="app.js?v=18"></script>
 </body>
 </html>
