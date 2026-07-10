@@ -1,323 +1,317 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>InvoiceMe — Construction Invoice Builder</title>
-<meta name="description" content="Build branded construction invoices in the browser: custom sections and line items, PDF export, bilingual FR/EN, no backend required.">
-
-<!-- Favicon: SVG for modern browsers, PNG fallbacks for Safari / older browsers / bookmarks -->
-<link rel="icon" type="image/svg+xml" href="icon.svg?v=6">
-<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=6">
-<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png?v=6">
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=6">
-
-<!--
-  Link-preview images (Open Graph / Twitter Card) point at the live ghalam.net/InvoiceMe/
-  deployment below. If you ever move the app to a different URL, update og:url / og:image /
-  twitter:image to match — Slack, iMessage, etc. read these directly from the HTML (they
-  don't run JavaScript) and need an absolute URL. Title/description are bilingual (FR / EN)
-  since these tags are static — a crawler reads them once and can't switch per viewer.
--->
-<meta property="og:type" content="website">
-<meta property="og:site_name" content="InvoiceMe">
-<meta property="og:title" content="InvoiceMe — Facturation BTP / Construction Invoicing">
-<meta property="og:description" content="Devis BTP et PDF pros en quelques clics, gratuit et bilingue FR/EN. / Build branded construction invoices and export polished PDFs — free, bilingual FR/EN.">
-<meta property="og:url" content="https://ghalam.net/InvoiceMe/">
-<meta property="og:image" content="https://ghalam.net/InvoiceMe/og-image.png">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="630">
-
-<meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="InvoiceMe — Facturation BTP / Construction Invoicing">
-<meta name="twitter:description" content="Devis BTP et PDF pros en quelques clics, gratuit et bilingue FR/EN. / Build branded construction invoices and export polished PDFs — free, bilingual FR/EN.">
-<meta name="twitter:image" content="https://ghalam.net/InvoiceMe/og-image.png">
-
+<link rel="icon" type="image/png" href="web/favicon-32.png">
+<link rel="apple-touch-icon" href="web/apple-touch-icon.png">
+<title>InvoiceMe – Bilingual Invoice &amp; Estimate Builder</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=15">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:      #0d0f14;
+    --surface: #161820;
+    --border:  #2a2d3a;
+    --text:    #e8eaf0;
+    --muted:   #8b8fa8;
+    --accent:  #7eb8d4;
+    --radius:  14px;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+  nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1.25rem 2rem;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: rgba(13,15,20,0.92);
+    backdrop-filter: blur(12px);
+    z-index: 100;
+  }
+  nav .brand {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.2rem;
+    color: var(--accent);
+    text-decoration: none;
+    letter-spacing: 0.02em;
+  }
+  nav .nav-links { display: flex; gap: 2rem; list-style: none; }
+  nav .nav-links a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 400;
+    letter-spacing: 0.04em;
+    transition: color 0.2s;
+  }
+  nav .nav-links a:hover { color: var(--text); }
+  nav .nav-links a.active { color: var(--accent); }
+
+  .hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 5rem 2rem 4rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: '';
+    position: absolute;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(126,184,212,0.07) 0%, transparent 70%);
+    top: -100px; left: 50%; transform: translateX(-50%);
+    pointer-events: none;
+  }
+  .app-icon {
+    width: 110px; height: 110px;
+    border-radius: 24px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.5), 0 0 0 1px var(--border);
+    margin-bottom: 1.75rem;
+    object-fit: cover;
+  }
+  .hero h1 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2.2rem, 5vw, 3.2rem);
+    font-weight: 400;
+    line-height: 1.15;
+    margin-bottom: 1rem;
+  }
+  .hero h1 span { color: var(--accent); font-style: italic; }
+  .hero .tagline {
+    font-size: 1.1rem;
+    color: var(--muted);
+    max-width: 480px;
+    margin-bottom: 2.5rem;
+  }
+  .hero-ctas {
+    display: flex;
+    gap: 0.85rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  .btn-primary, .btn-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.92rem;
+    font-weight: 500;
+    padding: 0.75rem 1.6rem;
+    border-radius: 100px;
+    text-decoration: none;
+    letter-spacing: 0.02em;
+    transition: opacity 0.2s, transform 0.2s;
+  }
+  .btn-primary { background: var(--accent); color: #0d0f14; }
+  .btn-primary:hover { opacity: 0.88; transform: translateY(-1px); }
+  .btn-secondary { background: var(--surface); color: var(--text); border: 1px solid var(--border); }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+  .hero .platform-note {
+    margin-top: 1.5rem;
+    font-size: 0.8rem;
+    color: var(--muted);
+  }
+
+  section {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 3rem 2rem;
+  }
+  section + section { border-top: 1px solid var(--border); }
+  h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.75rem;
+    font-weight: 400;
+    margin-bottom: 1.25rem;
+  }
+  h2 .dot { color: var(--accent); }
+  p { color: var(--muted); margin-bottom: 1rem; }
+  p:last-child { margin-bottom: 0; }
+
+  .features {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  .feature-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.5rem;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .feature-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+  .feature-card .icon { font-size: 1.5rem; margin-bottom: 0.6rem; display: block; }
+  .feature-card h3 { font-size: 0.95rem; font-weight: 500; color: var(--text); margin-bottom: 0.35rem; }
+  .feature-card p { font-size: 0.85rem; margin-bottom: 0; }
+
+  .links-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+  }
+  .links-list a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem 1.25rem;
+    text-decoration: none;
+    color: var(--text);
+    font-size: 0.92rem;
+    font-weight: 400;
+    transition: border-color 0.2s, transform 0.2s;
+  }
+  .links-list a:hover { border-color: var(--accent); transform: translateX(3px); }
+  .links-list a .link-label { color: var(--accent); font-size: 0.8rem; letter-spacing: 0.04em; }
+
+  .contact-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 2rem;
+    text-align: center;
+  }
+  .contact-card p { margin-bottom: 1rem; }
+  .contact-card a.btn {
+    display: inline-block;
+    background: var(--accent);
+    color: #0d0f14;
+    font-weight: 500;
+    font-size: 0.9rem;
+    padding: 0.6rem 1.6rem;
+    border-radius: 100px;
+    text-decoration: none;
+    letter-spacing: 0.03em;
+    transition: opacity 0.2s;
+  }
+  .contact-card a.btn:hover { opacity: 0.85; }
+
+  footer {
+    text-align: center;
+    padding: 2rem;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.82rem;
+  }
+  footer a { color: var(--muted); text-decoration: none; }
+  footer a:hover { color: var(--accent); }
+
+  @media (max-width: 600px) {
+    nav { padding: 1rem; }
+    nav .nav-links { gap: 1.25rem; }
+    .hero { padding: 3.5rem 1.25rem 3rem; }
+    section { padding: 2.5rem 1.25rem; }
+  }
+</style>
 </head>
 <body>
 
-<!-- ============ TOP BAR ============ -->
-<header class="topbar">
-  <div class="topbar-brand">
-    <div class="topbar-brand-mark" aria-hidden="true">
-      <svg viewBox="0 0 64 64" width="32" height="32">
-        <rect width="64" height="64" rx="12" fill="var(--ink-2)"/>
-        <path d="M16 12 H38 L48 22 V50 A2 2 0 0 1 46 52 H16 A2 2 0 0 1 14 50 V14 A2 2 0 0 1 16 12 Z"
-              fill="none" stroke="var(--text-on-ink)" stroke-width="2.5" stroke-linejoin="round"/>
-        <path d="M38 12 V22 H48" fill="none" stroke="var(--text-on-ink)" stroke-width="2.5" stroke-linejoin="round"/>
-        <line x1="20" y1="30" x2="40" y2="30" stroke="var(--text-on-ink)" stroke-width="2.5" stroke-linecap="round"/>
-        <line x1="20" y1="37" x2="40" y2="37" stroke="var(--text-on-ink)" stroke-width="2.5" stroke-linecap="round"/>
-        <line x1="20" y1="44" x2="33" y2="44" stroke="var(--text-on-ink)" stroke-width="2.5" stroke-linecap="round"/>
-        <circle cx="45" cy="46" r="12" fill="var(--accent)" stroke="var(--ink)" stroke-width="2"/>
-        <path d="M39.5 46 L43.5 50 L51 40.5" fill="none" stroke="var(--ink)" stroke-width="3"
-              stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </div>
-    <div class="topbar-brand-text">
-      <div class="topbar-brand-title">InvoiceMe</div>
-      <div class="topbar-brand-sub">Facturation BTP / Construction Invoicing</div>
-    </div>
+<nav>
+  <a href="index.html" class="brand">InvoiceMe</a>
+  <ul class="nav-links">
+    <li><a href="index.html" class="active">Home</a></li>
+    <li><a href="privacy.html">Privacy</a></li>
+    <li><a href="support.html">Support</a></li>
+    <li><a href="https://ghalam.net/" target="_blank">Ghalam.net</a></li>
+  </ul>
+</nav>
+
+<div class="hero">
+  <img src="web/icon-512.png" alt="InvoiceMe App Icon" class="app-icon">
+  <h1>Invoices and estimates,<br><span>done in minutes</span></h1>
+  <p class="tagline">InvoiceMe builds branded, bilingual invoices and estimates as clean PDFs — custom sections, line items, taxes, and totals, with no account and no backend required.</p>
+  <div class="hero-ctas">
+    <a href="web/index.html" class="btn-primary">Launch Web App →</a>
+    <a href="#about" class="btn-secondary">Learn more</a>
   </div>
-  <div class="topbar-lang">
-    <label for="langSelect" class="visually-hidden" data-i18n="lang_label">Langue</label>
-    <select id="langSelect">
-      <option value="fr">Français</option>
-      <option value="en">English</option>
-    </select>
-  </div>
-</header>
-
-<div class="app">
-
-  <!-- ============ LEFT CONTROL RAIL ============ -->
-  <aside class="rail">
-    <div class="rail-actions">
-      <button class="btn btn-ghost" id="btnNew" data-i18n="btn_new" title="">Nouveau</button>
-      <label class="btn btn-ghost" data-i18n-title="btn_load_title" title="">
-        <span data-i18n="btn_load">Charger des données</span>
-        <input type="file" id="fileLoadData" accept="application/json" hidden>
-      </label>
-      <button class="btn btn-ghost" id="btnSaveData" data-i18n="btn_save" title="">Enregistrer</button>
-      <label class="btn btn-ghost" id="btnImportPdfLabel" title="">
-        <span data-i18n="btn_import_pdf">Importer un PDF</span>
-        <input type="file" id="fileImportPdf" accept="application/pdf" hidden>
-      </label>
-      <button class="btn btn-accent" id="btnGeneratePdf" data-i18n="btn_generate" title="">Générer le PDF</button>
-    </div>
-
-    <div class="rail-status" id="railStatus" aria-live="polite"></div>
-
-    <div class="rail-scroll">
-
-      <div class="rail-supergroup-label" id="grpSuperDataLabel">Données du devis</div>
-
-      <details class="field-group" open>
-        <summary data-i18n="grp_letterhead">En-tête</summary>
-        <label class="lbl" data-i18n="lbl_logo">Logo / image d'en-tête</label>
-        <div class="logo-drop" id="logoDrop">
-          <img id="logoPreview" class="logo-preview" hidden>
-          <span id="logoPlaceholder" class="logo-placeholder" data-i18n="logo_drop_hint">Cliquez ou déposez une image</span>
-          <input type="file" id="fileLogo" accept="image/*" hidden>
-        </div>
-        <button class="btn btn-tiny btn-ghost" id="btnRemoveLogo" data-i18n="btn_remove_logo" hidden>Supprimer le logo</button>
-      </details>
-
-      <details class="field-group" open>
-        <summary data-i18n="grp_company">Entreprise</summary>
-        <label class="lbl" data-i18n="lbl_company_name">Nom de l'entreprise</label>
-        <input class="inp" id="companyName" data-i18n-placeholder="ph_company_name" placeholder="ex. Well Conception">
-        <label class="lbl" data-i18n="lbl_address">Adresse</label>
-        <textarea class="inp" id="companyAddress" rows="2" placeholder="16 Sq Pt de Sèvres&#10;92100 Boulogne Billancourt"></textarea>
-        <label class="lbl" data-i18n="lbl_contact_line">Ligne de contact</label>
-        <textarea class="inp" id="companyContact" rows="2" placeholder="T: 01 45 51 50 49 – company.fr – email@company.fr"></textarea>
-        <label class="lbl" data-i18n="lbl_company_website">Site web de l'entreprise</label>
-        <input class="inp" id="companyWebsite" type="url" data-i18n-placeholder="ph_company_website" placeholder="https://www.monentreprise.fr">
-        <p class="hint" data-i18n="company_website_hint">Un QR code s'affichera automatiquement à côté du nom de l'entreprise.</p>
-        <p class="hint" data-i18n="company_cache_hint">Ces informations (et le logo) sont mémorisées dans ce navigateur et préremplies automatiquement la prochaine fois que vous cliquez sur « Nouveau ».</p>
-      </details>
-
-      <details class="field-group" open>
-        <summary data-i18n="grp_billto">Facturer à</summary>
-        <label class="lbl" data-i18n="lbl_client_name">Nom du client</label>
-        <input class="inp" id="clientName" data-i18n-placeholder="ph_client_name" placeholder="ex. Mme ARFA">
-        <label class="lbl" data-i18n="lbl_client_address">Adresse du client</label>
-        <textarea class="inp" id="clientAddress" rows="2" placeholder="5, Rue du 29 juillet&#10;75001 PARIS"></textarea>
-      </details>
-
-      <details class="field-group" open>
-        <summary id="grpInvoiceLabel">Détails du devis</summary>
-        <label class="lbl" data-i18n="lbl_doc_type">Type de document</label>
-        <select class="inp" id="docType">
-          <option value="invoice" data-i18n="opt_doc_invoice">Facture</option>
-          <option value="estimate" data-i18n="opt_doc_estimate">Devis</option>
-        </select>
-        <label class="lbl" id="lblInvoiceNumber">Numéro de devis</label>
-        <input class="inp" id="invoiceNumber" placeholder="280126">
-        <label class="lbl" data-i18n="lbl_date">Date</label>
-        <input class="inp" id="invoiceDate" type="date">
-        <label class="lbl" data-i18n="lbl_revision">Révision</label>
-        <input class="inp" id="invoiceRev" maxlength="12" placeholder="A">
-        <label class="lbl" data-i18n="lbl_invoice_title">Titre / description</label>
-        <textarea class="inp" id="invoiceTitle" rows="2" data-i18n-placeholder="ph_invoice_title" placeholder="correspondant aux travaux d'un appartement &amp; un studio"></textarea>
-      </details>
-
-      <details class="field-group">
-        <summary data-i18n="grp_footer">Notes de bas de page</summary>
-        <label class="lbl" data-i18n="lbl_footer_notes">Infos bancaires / légales / paiement</label>
-        <textarea class="inp" id="footerNotes" rows="5" data-i18n-placeholder="ph_footer_notes" placeholder="IBAN, BIC, SIREN, conditions de paiement, etc."></textarea>
-      </details>
-
-      <details class="field-group">
-        <summary data-i18n="grp_terms">PDF de conditions joint</summary>
-        <p class="hint" data-i18n="terms_hint">Optionnel. Ses pages seront ajoutées après le devis — pour les mentions légales, CGV, ou une page de signature.</p>
-        <label class="btn btn-tiny btn-ghost">
-          <span data-i18n="btn_choose_pdf">Choisir un PDF</span>
-          <input type="file" id="fileTerms" accept="application/pdf" hidden>
-        </label>
-        <div id="termsFileName" class="hint mono"></div>
-        <button class="btn btn-tiny btn-ghost" id="btnRemoveTerms" data-i18n="btn_remove_terms" hidden>Supprimer le PDF joint</button>
-      </details>
-
-      <div class="rail-supergroup-label" id="grpSuperConfigLabel">Configuration du devis</div>
-
-      <details class="field-group" open>
-        <summary data-i18n="grp_format">Format des nombres &amp; devise</summary>
-        <label class="lbl" data-i18n="lbl_currency">Symbole / code de la devise</label>
-        <input class="inp" id="currencySymbol" maxlength="6" placeholder="€">
-        <label class="lbl" data-i18n="lbl_currency_position">Position du symbole</label>
-        <select class="inp" id="currencyPosition">
-          <option value="after" data-i18n="opt_after">Après le montant — 1 234,56 €</option>
-          <option value="before" data-i18n="opt_before">Avant le montant — €1,234.56</option>
-        </select>
-        <label class="lbl" data-i18n="lbl_number_format">Format des nombres</label>
-        <select class="inp" id="numberFormatPreset">
-          <option value="space-comma" data-i18n="opt_space_comma">1 234,56 — espace · virgule</option>
-          <option value="comma-period" data-i18n="opt_comma_period">1,234.56 — virgule · point</option>
-          <option value="period-comma" data-i18n="opt_period_comma">1.234,56 — point · virgule</option>
-          <option value="apostrophe-period" data-i18n="opt_apostrophe_period">1'234.56 — apostrophe · point</option>
-          <option value="none-period" data-i18n="opt_none_period">1234.56 — aucun · point</option>
-          <option value="custom" data-i18n="opt_custom">Personnalisé…</option>
-        </select>
-        <div id="customFormatFields" hidden>
-          <label class="lbl" data-i18n="lbl_thousands_sep">Séparateur des milliers</label>
-          <select class="inp" id="customThousandsSep">
-            <option value=" " data-i18n="opt_sep_space">Espace</option>
-            <option value="," data-i18n="opt_sep_comma">Virgule</option>
-            <option value="." data-i18n="opt_sep_period">Point</option>
-            <option value="'" data-i18n="opt_sep_apostrophe">Apostrophe</option>
-            <option value="" data-i18n="opt_sep_none">Aucun</option>
-          </select>
-          <label class="lbl" data-i18n="lbl_decimal_sep">Séparateur décimal</label>
-          <select class="inp" id="customDecimalSep">
-            <option value="," data-i18n="opt_sep_comma">Virgule</option>
-            <option value="." data-i18n="opt_sep_period">Point</option>
-          </select>
-        </div>
-        <label class="lbl" data-i18n="lbl_decimals">Nombre de décimales</label>
-        <input class="inp" id="decimalPlaces" type="number" min="0" max="4" value="2">
-      </details>
-
-      <details class="field-group" open>
-        <summary data-i18n="grp_taxes">Taxes</summary>
-        <div id="taxList" class="tax-list"></div>
-        <button class="btn btn-tiny btn-ghost" id="btnAddTax" data-i18n="btn_add_tax">+ Ajouter une taxe</button>
-      </details>
-
-    </div>
-  </aside>
-
-  <!-- ============ RIGHT: DRAFTING TABLE / CANVAS ============ -->
-  <main class="canvas-wrap">
-    <div class="canvas-toolbar">
-      <button class="btn btn-accent btn-sm" id="btnAddSection" data-i18n="btn_add_section">+ Ajouter une section</button>
-      <span class="canvas-toolbar-hint" data-i18n="toolbar_hint">Les sections deviennent des tableaux dans le PDF, dans cet ordre.</span>
-    </div>
-
-    <div class="sheet" id="sheet">
-      <div class="sheet-head">
-        <div class="sheet-head-logo" id="sheetLogoWrap">
-          <img id="sheetLogo" hidden>
-          <div class="sheet-title-fallback" id="sheetTitleFallback">Nom de l'entreprise</div>
-        </div>
-        <div class="sheet-head-row">
-          <div class="sheet-head-company-wrap">
-            <div class="sheet-head-company">
-              <div class="sheet-company-name" id="sheetCompanyName">Nom de l'entreprise</div>
-              <div class="sheet-company-address" id="sheetCompanyAddress"></div>
-              <div class="sheet-company-contact" id="sheetCompanyContact"></div>
-            </div>
-            <div class="sheet-head-qr" id="sheetQrWrap" hidden>
-              <img id="sheetQr" alt="QR code">
-              <div class="sheet-qr-caption" id="sheetQrCaption"></div>
-            </div>
-          </div>
-          <div class="sheet-head-client" id="sheetClientBox">
-            <div class="sheet-client-name" id="sheetClientName">Client</div>
-            <div class="sheet-client-address" id="sheetClientAddress"></div>
-          </div>
-        </div>
-      </div>
-
-      <div class="sheet-title" id="sheetInvoiceTitle">Devis Numéro — du —</div>
-
-      <div id="sectionsMount"></div>
-
-      <div class="sheet-summary">
-        <div class="sheet-summary-head" data-i18n="recap_label">Récapitulatif</div>
-        <table class="summary-table" id="summaryTable"></table>
-      </div>
-
-      <div class="sheet-footer" id="sheetFooterNotes"></div>
-
-      <div class="page-footer" id="pageFooter">
-        <div class="page-footer-left" id="pageFooterLeft">N° 280126   •   28 janvier 2026   •   RÉV. A</div>
-        <div class="page-footer-right" id="pageFooterRight">Well Conception — 16 Sq Pt de Sèvres, 92100 Boulogne Billancourt</div>
-      </div>
-    </div>
-  </main>
+  <p class="platform-note">Free to use in your browser · An iOS app with iCloud sync is in development</p>
 </div>
 
-<!-- Section template (cloned by JS) -->
-<template id="tplSection">
-  <section class="section-card">
-    <div class="section-card-bar">
-      <span class="drag-hint">⠿</span>
-      <input class="section-title-input" data-i18n-placeholder="section_title_placeholder" placeholder="Titre de la section (ex. Plomberie)">
-      <div class="section-card-actions">
-        <button class="icon-btn btn-move-up" data-i18n-title="tooltip_move_up" title="Déplacer vers le haut">↑</button>
-        <button class="icon-btn btn-move-down" data-i18n-title="tooltip_move_down" title="Déplacer vers le bas">↓</button>
-        <button class="icon-btn btn-remove-section" data-i18n-title="tooltip_remove_section" title="Supprimer la section">✕</button>
-      </div>
+<section id="about">
+  <h2>About InvoiceMe<span class="dot">.</span></h2>
+  <p>InvoiceMe is a bilingual (French/English) invoice and estimate builder. Fill in your letterhead, company and client details, add as many sections and line items as the job needs, set your tax lines, and generate a polished PDF — all in the browser, nothing uploaded anywhere.</p>
+  <p>An iOS companion app is also in development, adding optional iCloud sync across devices, saved company profiles and customers, invoice status tracking (Open → Billed → Paid), and billing summary reports — while keeping the same no-account, your-data-stays-yours philosophy.</p>
+</section>
+
+<section>
+  <h2>Features<span class="dot">.</span></h2>
+  <div class="features">
+    <div class="feature-card">
+      <span class="icon">🧾</span>
+      <h3>Invoice or Estimate</h3>
+      <p>One toggle switches every label — headings, footers, filenames — between Invoice and Estimate, in either language.</p>
     </div>
-    <textarea class="section-desc-input" rows="2" data-i18n-placeholder="section_desc_placeholder" placeholder="Description / notes de section (facultatif)"></textarea>
-    <table class="items-table">
-      <thead>
-        <tr>
-          <th class="col-desc" data-i18n="col_desc">Intitulé</th>
-          <th class="col-qty" data-i18n="col_qty">Qté</th>
-          <th class="col-unit" data-i18n="col_unit">Unité</th>
-          <th class="col-price" data-i18n="col_price">Prix U.</th>
-          <th class="col-total" data-i18n="col_amount_ht">Montant HT</th>
-          <th class="col-del"></th>
-        </tr>
-      </thead>
-      <tbody class="items-body"></tbody>
-    </table>
-    <button class="btn btn-tiny btn-ghost btn-add-item" data-i18n="btn_add_item">+ Ajouter une ligne</button>
-    <div class="section-total-row"><span data-i18n="section_total_label">Total de la section :</span> <span class="section-total-value mono">0,00 €</span></div>
-  </section>
-</template>
-
-<!-- Line item template -->
-<template id="tplItem">
-  <tr>
-    <td><textarea class="item-desc" rows="1" data-i18n-placeholder="item_desc_placeholder" placeholder="Description"></textarea></td>
-    <td><input class="item-qty" type="number" step="any" value="1"></td>
-    <td><input class="item-unit" type="text" placeholder="U"></td>
-    <td><div class="price-cell"><span class="price-currency mono"></span><input class="item-price" type="text" inputmode="decimal" value="0"></div></td>
-    <td class="item-line-total mono">0,00 €</td>
-    <td><button class="icon-btn btn-remove-item" data-i18n-title="tooltip_remove_item" title="Supprimer la ligne">✕</button></td>
-  </tr>
-</template>
-
-<!-- Tax line template -->
-<template id="tplTax">
-  <div class="tax-row">
-    <input class="tax-label" type="text" placeholder="TVA">
-    <input class="tax-rate" type="number" step="any" placeholder="10">
-    <span class="tax-pct">%</span>
-    <button class="icon-btn btn-remove-tax" data-i18n-title="tooltip_remove_tax" title="Supprimer la taxe">✕</button>
+    <div class="feature-card">
+      <span class="icon">🌐</span>
+      <h3>Bilingual</h3>
+      <p>Full French/English support, including number formatting, dates, and the generated PDF itself.</p>
+    </div>
+    <div class="feature-card">
+      <span class="icon">📐</span>
+      <h3>Custom Sections</h3>
+      <p>Add unlimited sections and line items — descriptions, quantities, units, and prices, totaled automatically.</p>
+    </div>
+    <div class="feature-card">
+      <span class="icon">💱</span>
+      <h3>Any Currency Format</h3>
+      <p>Set your currency symbol, position, and separator style — applied everywhere in the document.</p>
+    </div>
+    <div class="feature-card">
+      <span class="icon">📎</span>
+      <h3>Attach Terms</h3>
+      <p>Append an existing terms/legal PDF directly onto the generated invoice.</p>
+    </div>
+    <div class="feature-card">
+      <span class="icon">🔒</span>
+      <h3>Private by Design</h3>
+      <p>The web app runs entirely in your browser. No servers, no accounts, no tracking.</p>
+    </div>
   </div>
-</template>
+</section>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
-<script src="app.js?v=19"></script>
+<section>
+  <h2>Legal &amp; Support<span class="dot">.</span></h2>
+  <div class="links-list">
+    <a href="privacy.html">
+      <span>Privacy Policy</span>
+      <span class="link-label">View →</span>
+    </a>
+    <a href="support.html">
+      <span>Support</span>
+      <span class="link-label">View →</span>
+    </a>
+  </div>
+</section>
+
+<section>
+  <h2>Get in Touch<span class="dot">.</span></h2>
+  <div class="contact-card">
+    <p>Questions, feedback, or bug reports? Reach out directly.</p>
+    <a href="mailto:jghalam@yahoo.com" class="btn">Contact Joe</a>
+  </div>
+</section>
+
+<footer>
+  <p>© 2026 InvoiceMe &nbsp;·&nbsp; <a href="privacy.html">Privacy</a> &nbsp;·&nbsp; <a href="support.html">Support</a> &nbsp;·&nbsp; <a href="https://ghalam.net/">Ghalam.net</a></p>
+</footer>
+
 </body>
 </html>

@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>InvoiceMe — Construction Invoice Builder</title>
+<meta name="description" content="Build branded construction invoices in the browser: custom sections and line items, PDF export, bilingual FR/EN, no backend required.">
+
+<!-- Favicon: SVG for modern browsers, PNG fallbacks for Safari / older browsers / bookmarks -->
+<link rel="icon" type="image/svg+xml" href="icon.svg?v=6">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png?v=6">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png?v=6">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png?v=6">
+
+<!--
+  Link-preview images (Open Graph / Twitter Card) point at the live
+  ghalam.net/InvoiceMe/web/ deployment below — nested under /web/ because
+  InvoiceMe/ itself is now the app's marketing/privacy/support landing
+  page (index.html, privacy.html, support.html), matching every other app
+  on ghalam.net. If you ever move the app to a different URL, update
+  og:url / og:image / twitter:image to match — Slack, iMessage, etc. read
+  these directly from the HTML (they don't run JavaScript) and need an
+  absolute URL. Title/description are bilingual (FR / EN) since these tags
+  are static — a crawler reads them once and can't switch per viewer.
+-->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="InvoiceMe">
+<meta property="og:title" content="InvoiceMe — Facturation BTP / Construction Invoicing">
+<meta property="og:description" content="Devis BTP et PDF pros en quelques clics, gratuit et bilingue FR/EN. / Build branded construction invoices and export polished PDFs — free, bilingual FR/EN.">
+<meta property="og:url" content="https://ghalam.net/InvoiceMe/web/">
+<meta property="og:image" content="https://ghalam.net/InvoiceMe/web/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="InvoiceMe — Facturation BTP / Construction Invoicing">
+<meta name="twitter:description" content="Devis BTP et PDF pros en quelques clics, gratuit et bilingue FR/EN. / Build branded construction invoices and export polished PDFs — free, bilingual FR/EN.">
+<meta name="twitter:image" content="https://ghalam.net/InvoiceMe/web/og-image.png">
+
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css?v=15">
+</head>
+<body>
+
+<!-- ============ TOP BAR ============ -->
+<header class="topbar">
+  <div class="topbar-brand">
+    <div class="topbar-brand-mark" aria-hidden="true">
+      <svg viewBox="0 0 64 64" width="32" height="32">
+        <rect width="64" height="64" rx="12" fill="var(--ink-2)"/>
+        <path d="M16 12 H38 L48 22 V50 A2 2 0 0 1 46 52 H16 A2 2 0 0 1 14 50 V14 A2 2 0 0 1 16 12 Z"
+              fill="none" stroke="var(--text-on-ink)" stroke-width="2.5" stroke-linejoin="round"/>
+        <path d="M38 12 V22 H48" fill="none" stroke="var(--text-on-ink)" stroke-width="2.5" stroke-linejoin="round"/>
+        <line x1="20" y1="30" x2="40" y2="30" stroke="var(--text-on-ink)" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="20" y1="37" x2="40" y2="37" stroke="var(--text-on-ink)" stroke-width="2.5" stroke-linecap="round"/>
+        <line x1="20" y1="44" x2="33" y2="44" stroke="var(--text-on-ink)" stroke-width="2.5" stroke-linecap="round"/>
+        <circle cx="45" cy="46" r="12" fill="var(--accent)" stroke="var(--ink)" stroke-width="2"/>
+        <path d="M39.5 46 L43.5 50 L51 40.5" fill="none" stroke="var(--ink)" stroke-width="3"
+              stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+    <div class="topbar-brand-text">
+      <div class="topbar-brand-title">InvoiceMe</div>
+      <div class="topbar-brand-sub">Facturation BTP / Construction Invoicing</div>
+    </div>
+  </div>
+  <div class="topbar-lang">
+    <label for="langSelect" class="visually-hidden" data-i18n="lang_label">Langue</label>
+    <select id="langSelect">
+      <option value="fr">Français</option>
+      <option value="en">English</option>
+    </select>
+  </div>
+</header>
+
+<div class="app">
+
+  <!-- ============ LEFT CONTROL RAIL ============ -->
+  <aside class="rail">
+    <div class="rail-actions">
+      <button class="btn btn-ghost" id="btnNew" data-i18n="btn_new" title="">Nouveau</button>
+      <label class="btn btn-ghost" data-i18n-title="btn_load_title" title="">
+        <span data-i18n="btn_load">Charger des données</span>
+        <input type="file" id="fileLoadData" accept="application/json" hidden>
+      </label>
+      <button class="btn btn-ghost" id="btnSaveData" data-i18n="btn_save" title="">Enregistrer</button>
+      <label class="btn btn-ghost" id="btnImportPdfLabel" title="">
+        <span data-i18n="btn_import_pdf">Importer un PDF</span>
+        <input type="file" id="fileImportPdf" accept="application/pdf" hidden>
+      </label>
+      <button class="btn btn-accent" id="btnGeneratePdf" data-i18n="btn_generate" title="">Générer le PDF</button>
+    </div>
+
+    <div class="rail-status" id="railStatus" aria-live="polite"></div>
+
+    <div class="rail-scroll">
+
+      <div class="rail-supergroup-label" id="grpSuperDataLabel">Données du devis</div>
+
+      <details class="field-group" open>
+        <summary data-i18n="grp_letterhead">En-tête</summary>
+        <label class="lbl" data-i18n="lbl_logo">Logo / image d'en-tête</label>
+        <div class="logo-drop" id="logoDrop">
+          <img id="logoPreview" class="logo-preview" hidden>
+          <span id="logoPlaceholder" class="logo-placeholder" data-i18n="logo_drop_hint">Cliquez ou déposez une image</span>
+          <input type="file" id="fileLogo" accept="image/*" hidden>
+        </div>
+        <button class="btn btn-tiny btn-ghost" id="btnRemoveLogo" data-i18n="btn_remove_logo" hidden>Supprimer le logo</button>
+      </details>
+
+      <details class="field-group" open>
+        <summary data-i18n="grp_company">Entreprise</summary>
+        <label class="lbl" data-i18n="lbl_company_name">Nom de l'entreprise</label>
+        <input class="inp" id="companyName" data-i18n-placeholder="ph_company_name" placeholder="ex. Well Conception">
+        <label class="lbl" data-i18n="lbl_address">Adresse</label>
+        <textarea class="inp" id="companyAddress" rows="2" placeholder="16 Sq Pt de Sèvres&#10;92100 Boulogne Billancourt"></textarea>
+        <label class="lbl" data-i18n="lbl_contact_line">Ligne de contact</label>
+        <textarea class="inp" id="companyContact" rows="2" placeholder="T: 01 45 51 50 49 – company.fr – email@company.fr"></textarea>
+        <label class="lbl" data-i18n="lbl_company_website">Site web de l'entreprise</label>
+        <input class="inp" id="companyWebsite" type="url" data-i18n-placeholder="ph_company_website" placeholder="https://www.monentreprise.fr">
+        <p class="hint" data-i18n="company_website_hint">Un QR code s'affichera automatiquement à côté du nom de l'entreprise.</p>
+        <p class="hint" data-i18n="company_cache_hint">Ces informations (et le logo) sont mémorisées dans ce navigateur et préremplies automatiquement la prochaine fois que vous cliquez sur « Nouveau ».</p>
+      </details>
+
+      <details class="field-group" open>
+        <summary data-i18n="grp_billto">Facturer à</summary>
+        <label class="lbl" data-i18n="lbl_client_name">Nom du client</label>
+        <input class="inp" id="clientName" data-i18n-placeholder="ph_client_name" placeholder="ex. Mme ARFA">
+        <label class="lbl" data-i18n="lbl_client_address">Adresse du client</label>
+        <textarea class="inp" id="clientAddress" rows="2" placeholder="5, Rue du 29 juillet&#10;75001 PARIS"></textarea>
+      </details>
+
+      <details class="field-group" open>
+        <summary id="grpInvoiceLabel">Détails du devis</summary>
+        <label class="lbl" data-i18n="lbl_doc_type">Type de document</label>
+        <select class="inp" id="docType">
+          <option value="invoice" data-i18n="opt_doc_invoice">Facture</option>
+          <option value="estimate" data-i18n="opt_doc_estimate">Devis</option>
+        </select>
+        <label class="lbl" id="lblInvoiceNumber">Numéro de devis</label>
+        <input class="inp" id="invoiceNumber" placeholder="280126">
+        <label class="lbl" data-i18n="lbl_date">Date</label>
+        <input class="inp" id="invoiceDate" type="date">
+        <label class="lbl" data-i18n="lbl_revision">Révision</label>
+        <input class="inp" id="invoiceRev" maxlength="12" placeholder="A">
+        <label class="lbl" data-i18n="lbl_invoice_title">Titre / description</label>
+        <textarea class="inp" id="invoiceTitle" rows="2" data-i18n-placeholder="ph_invoice_title" placeholder="correspondant aux travaux d'un appartement &amp; un studio"></textarea>
+      </details>
+
+      <details class="field-group">
+        <summary data-i18n="grp_footer">Notes de bas de page</summary>
+        <label class="lbl" data-i18n="lbl_footer_notes">Infos bancaires / légales / paiement</label>
+        <textarea class="inp" id="footerNotes" rows="5" data-i18n-placeholder="ph_footer_notes" placeholder="IBAN, BIC, SIREN, conditions de paiement, etc."></textarea>
+      </details>
+
+      <details class="field-group">
+        <summary data-i18n="grp_terms">PDF de conditions joint</summary>
+        <p class="hint" data-i18n="terms_hint">Optionnel. Ses pages seront ajoutées après le devis — pour les mentions légales, CGV, ou une page de signature.</p>
+        <label class="btn btn-tiny btn-ghost">
+          <span data-i18n="btn_choose_pdf">Choisir un PDF</span>
+          <input type="file" id="fileTerms" accept="application/pdf" hidden>
+        </label>
+        <div id="termsFileName" class="hint mono"></div>
+        <button class="btn btn-tiny btn-ghost" id="btnRemoveTerms" data-i18n="btn_remove_terms" hidden>Supprimer le PDF joint</button>
+      </details>
+
+      <div class="rail-supergroup-label" id="grpSuperConfigLabel">Configuration du devis</div>
+
+      <details class="field-group" open>
+        <summary data-i18n="grp_format">Format des nombres &amp; devise</summary>
+        <label class="lbl" data-i18n="lbl_currency">Symbole / code de la devise</label>
+        <input class="inp" id="currencySymbol" maxlength="6" placeholder="€">
+        <label class="lbl" data-i18n="lbl_currency_position">Position du symbole</label>
+        <select class="inp" id="currencyPosition">
+          <option value="after" data-i18n="opt_after">Après le montant — 1 234,56 €</option>
+          <option value="before" data-i18n="opt_before">Avant le montant — €1,234.56</option>
+        </select>
+        <label class="lbl" data-i18n="lbl_number_format">Format des nombres</label>
+        <select class="inp" id="numberFormatPreset">
+          <option value="space-comma" data-i18n="opt_space_comma">1 234,56 — espace · virgule</option>
+          <option value="comma-period" data-i18n="opt_comma_period">1,234.56 — virgule · point</option>
+          <option value="period-comma" data-i18n="opt_period_comma">1.234,56 — point · virgule</option>
+          <option value="apostrophe-period" data-i18n="opt_apostrophe_period">1'234.56 — apostrophe · point</option>
+          <option value="none-period" data-i18n="opt_none_period">1234.56 — aucun · point</option>
+          <option value="custom" data-i18n="opt_custom">Personnalisé…</option>
+        </select>
+        <div id="customFormatFields" hidden>
+          <label class="lbl" data-i18n="lbl_thousands_sep">Séparateur des milliers</label>
+          <select class="inp" id="customThousandsSep">
+            <option value=" " data-i18n="opt_sep_space">Espace</option>
+            <option value="," data-i18n="opt_sep_comma">Virgule</option>
+            <option value="." data-i18n="opt_sep_period">Point</option>
+            <option value="'" data-i18n="opt_sep_apostrophe">Apostrophe</option>
+            <option value="" data-i18n="opt_sep_none">Aucun</option>
+          </select>
+          <label class="lbl" data-i18n="lbl_decimal_sep">Séparateur décimal</label>
+          <select class="inp" id="customDecimalSep">
+            <option value="," data-i18n="opt_sep_comma">Virgule</option>
+            <option value="." data-i18n="opt_sep_period">Point</option>
+          </select>
+        </div>
+        <label class="lbl" data-i18n="lbl_decimals">Nombre de décimales</label>
+        <input class="inp" id="decimalPlaces" type="number" min="0" max="4" value="2">
+      </details>
+
+      <details class="field-group" open>
+        <summary data-i18n="grp_taxes">Taxes</summary>
+        <div id="taxList" class="tax-list"></div>
+        <button class="btn btn-tiny btn-ghost" id="btnAddTax" data-i18n="btn_add_tax">+ Ajouter une taxe</button>
+      </details>
+
+    </div>
+  </aside>
+
+  <!-- ============ RIGHT: DRAFTING TABLE / CANVAS ============ -->
+  <main class="canvas-wrap">
+    <div class="canvas-toolbar">
+      <button class="btn btn-accent btn-sm" id="btnAddSection" data-i18n="btn_add_section">+ Ajouter une section</button>
+      <span class="canvas-toolbar-hint" data-i18n="toolbar_hint">Les sections deviennent des tableaux dans le PDF, dans cet ordre.</span>
+    </div>
+
+    <div class="sheet" id="sheet">
+      <div class="sheet-head">
+        <div class="sheet-head-logo" id="sheetLogoWrap">
+          <img id="sheetLogo" hidden>
+          <div class="sheet-title-fallback" id="sheetTitleFallback">Nom de l'entreprise</div>
+        </div>
+        <div class="sheet-head-row">
+          <div class="sheet-head-company-wrap">
+            <div class="sheet-head-company">
+              <div class="sheet-company-name" id="sheetCompanyName">Nom de l'entreprise</div>
+              <div class="sheet-company-address" id="sheetCompanyAddress"></div>
+              <div class="sheet-company-contact" id="sheetCompanyContact"></div>
+            </div>
+            <div class="sheet-head-qr" id="sheetQrWrap" hidden>
+              <img id="sheetQr" alt="QR code">
+              <div class="sheet-qr-caption" id="sheetQrCaption"></div>
+            </div>
+          </div>
+          <div class="sheet-head-client" id="sheetClientBox">
+            <div class="sheet-client-name" id="sheetClientName">Client</div>
+            <div class="sheet-client-address" id="sheetClientAddress"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sheet-title" id="sheetInvoiceTitle">Devis Numéro — du —</div>
+
+      <div id="sectionsMount"></div>
+
+      <div class="sheet-summary">
+        <div class="sheet-summary-head" data-i18n="recap_label">Récapitulatif</div>
+        <table class="summary-table" id="summaryTable"></table>
+      </div>
+
+      <div class="sheet-footer" id="sheetFooterNotes"></div>
+
+      <div class="page-footer" id="pageFooter">
+        <div class="page-footer-left" id="pageFooterLeft">N° 280126   •   28 janvier 2026   •   RÉV. A</div>
+        <div class="page-footer-right" id="pageFooterRight">Well Conception — 16 Sq Pt de Sèvres, 92100 Boulogne Billancourt</div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Section template (cloned by JS) -->
+<template id="tplSection">
+  <section class="section-card">
+    <div class="section-card-bar">
+      <span class="drag-hint">⠿</span>
+      <input class="section-title-input" data-i18n-placeholder="section_title_placeholder" placeholder="Titre de la section (ex. Plomberie)">
+      <div class="section-card-actions">
+        <button class="icon-btn btn-move-up" data-i18n-title="tooltip_move_up" title="Déplacer vers le haut">↑</button>
+        <button class="icon-btn btn-move-down" data-i18n-title="tooltip_move_down" title="Déplacer vers le bas">↓</button>
+        <button class="icon-btn btn-remove-section" data-i18n-title="tooltip_remove_section" title="Supprimer la section">✕</button>
+      </div>
+    </div>
+    <textarea class="section-desc-input" rows="2" data-i18n-placeholder="section_desc_placeholder" placeholder="Description / notes de section (facultatif)"></textarea>
+    <table class="items-table">
+      <thead>
+        <tr>
+          <th class="col-desc" data-i18n="col_desc">Intitulé</th>
+          <th class="col-qty" data-i18n="col_qty">Qté</th>
+          <th class="col-unit" data-i18n="col_unit">Unité</th>
+          <th class="col-price" data-i18n="col_price">Prix U.</th>
+          <th class="col-total" data-i18n="col_amount_ht">Montant HT</th>
+          <th class="col-del"></th>
+        </tr>
+      </thead>
+      <tbody class="items-body"></tbody>
+    </table>
+    <button class="btn btn-tiny btn-ghost btn-add-item" data-i18n="btn_add_item">+ Ajouter une ligne</button>
+    <div class="section-total-row"><span data-i18n="section_total_label">Total de la section :</span> <span class="section-total-value mono">0,00 €</span></div>
+  </section>
+</template>
+
+<!-- Line item template -->
+<template id="tplItem">
+  <tr>
+    <td><textarea class="item-desc" rows="1" data-i18n-placeholder="item_desc_placeholder" placeholder="Description"></textarea></td>
+    <td><input class="item-qty" type="number" step="any" value="1"></td>
+    <td><input class="item-unit" type="text" placeholder="U"></td>
+    <td><div class="price-cell"><span class="price-currency mono"></span><input class="item-price" type="text" inputmode="decimal" value="0"></div></td>
+    <td class="item-line-total mono">0,00 €</td>
+    <td><button class="icon-btn btn-remove-item" data-i18n-title="tooltip_remove_item" title="Supprimer la ligne">✕</button></td>
+  </tr>
+</template>
+
+<!-- Tax line template -->
+<template id="tplTax">
+  <div class="tax-row">
+    <input class="tax-label" type="text" placeholder="TVA">
+    <input class="tax-rate" type="number" step="any" placeholder="10">
+    <span class="tax-pct">%</span>
+    <button class="icon-btn btn-remove-tax" data-i18n-title="tooltip_remove_tax" title="Supprimer la taxe">✕</button>
+  </div>
+</template>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+<script src="app.js?v=19"></script>
+</body>
+</html>
