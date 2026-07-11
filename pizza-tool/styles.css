@@ -12,6 +12,14 @@
   --steel-dim: #E1E7EA;
   --marquee: #D98A1E;
 
+  --canotto: #B8622A;
+  --canotto-dim: #F1DFCE;
+  --canotto2: #E3A857;
+
+  --tonda: #8C7A4B;
+  --tonda-dim: #EAE4D3;
+  --tonda2: #7A2E2E;
+
   --font-body: 'IBM Plex Sans', system-ui, sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
   --font-display: 'Fraunces', serif;
@@ -28,6 +36,22 @@ body[data-style="newyork"]{
   --accent-dim: var(--steel-dim);
   --accent2: var(--marquee);
   --font-display: 'Big Shoulders Display', sans-serif;
+}
+
+body[data-style="canotto"]{
+  --accent: var(--canotto);
+  --accent-dim: var(--canotto-dim);
+  --accent2: var(--canotto2);
+}
+body[data-style="canotto"] .wordmark,
+body[data-style="canotto"] .ticket-order{
+  font-style: italic;
+}
+
+body[data-style="tonda"]{
+  --accent: var(--tonda);
+  --accent-dim: var(--tonda-dim);
+  --accent2: var(--tonda2);
 }
 
 *{ box-sizing: border-box; }
@@ -66,13 +90,29 @@ body{
   margin: 0 0 10px;
 }
 
+.brand{
+  display: flex;
+  align-items: center;
+  gap: 18px;
+}
+
+.brand-swatch{
+  width: clamp(44px, 6vw, 68px);
+  height: clamp(44px, 6vw, 68px);
+  object-fit: cover;
+  border-radius: 8px;
+  transform: rotate(-4deg);
+  box-shadow: 0 6px 14px rgba(38,32,25,0.22), 0 0 0 3px var(--paper);
+  flex-shrink: 0;
+}
+
 .wordmark{
   font-family: var(--font-display);
   font-optical-sizing: auto;
   font-weight: 600;
   font-size: clamp(48px, 9vw, 88px);
   line-height: .95;
-  margin: 0 0 12px;
+  margin: 0;
   color: var(--char);
   letter-spacing: -0.01em;
   transition: font-family .2s ease;
@@ -88,7 +128,16 @@ body[data-style="newyork"] .wordmark{
   font-size: 16px;
   color: var(--char-soft);
   max-width: 46ch;
-  margin: 0;
+  margin: 16px 0 0;
+}
+
+.tagline-sub{
+  font-size: 13px;
+  font-style: italic;
+  color: var(--char-soft);
+  max-width: 52ch;
+  margin: 6px 0 0;
+  opacity: .8;
 }
 
 /* ================= Layout ================= */
@@ -115,7 +164,18 @@ body[data-style="newyork"] .wordmark{
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
-  margin-bottom: 28px;
+  margin-bottom: 16px;
+}
+
+.style-blurb{
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--char-soft);
+  border-left: 2.5px solid var(--accent);
+  padding: 2px 0 2px 12px;
+  margin: 0 0 28px;
+  transition: border-color .3s ease;
+  min-height: 39px;
 }
 
 .style-btn{

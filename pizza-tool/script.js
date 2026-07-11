@@ -19,7 +19,37 @@
         { key: "oil", name: "Olive oil", pct: 3 },
         { key: "sugar", name: "Sugar", pct: 1 }
       ]
+    },
+    canotto: {
+      label: "Canotto Dough",
+      defaults: { ballWeight: 250, ballCount: 4, hydration: 70 },
+      salt: 3,
+      yeast: { instant: 0.06, fresh: 0.15 },
+      extras: []
+    },
+    tonda: {
+      label: "Tonda Romana Dough",
+      defaults: { ballWeight: 175, ballCount: 4, hydration: 60 },
+      salt: 2.5,
+      yeast: { instant: 0.06, fresh: 0.15 },
+      extras: [
+        { key: "oil", name: "Olive oil", pct: 6 }
+      ]
     }
+  };
+
+  const STYLE_NAMES = {
+    neapolitan: "Neapolitan",
+    newyork: "New York",
+    canotto: "Canotto",
+    tonda: "Tonda Romana"
+  };
+
+  const STYLE_BLURBS = {
+    neapolitan: "Naples' original: a soft, thin center with a tall, airy, leopard-spotted cornicione, cooked scorching hot and fast in a wood-fired oven.",
+    newyork: "Foldable slice pizza, baked at a lower heat for longer. A touch of oil and sugar add browning and chew that hold up to a reheat the next day.",
+    canotto: "Neapolitan's puffier cousin — very high hydration blows the rim up into a thick, cloud-like \u2018dinghy\u2019 (canotto) around a thin, delicate center.",
+    tonda: "Rome's round pizza: lower hydration plus olive oil roll out into a thin, cracker-crisp base — almost the opposite instinct from Naples' pillowy crust."
   };
 
   // ---------- State ----------
@@ -44,6 +74,7 @@
     yeastButtons: document.querySelectorAll("[data-yeast]"),
     resetBtn: document.getElementById("resetBtn"),
     resetStyleName: document.getElementById("resetStyleName"),
+    styleBlurb: document.getElementById("styleBlurb"),
     ticketStyleName: document.getElementById("ticketStyleName"),
     ticketBallSummary: document.getElementById("ticketBallSummary"),
     ticketTotal: document.getElementById("ticketTotal"),
@@ -188,7 +219,8 @@
       btn.setAttribute("aria-selected", isActive ? "true" : "false");
     });
 
-    el.resetStyleName.textContent = styleKey === "neapolitan" ? "Neapolitan" : "New York";
+    el.resetStyleName.textContent = STYLE_NAMES[styleKey];
+    el.styleBlurb.textContent = STYLE_BLURBS[styleKey];
 
     render();
   }

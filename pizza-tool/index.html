@@ -4,10 +4,21 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Impasto — Pizza Dough Calculator</title>
-<meta name="description" content="Calculate exact ingredient weights for Neapolitan and New York style pizza dough.">
+<meta name="description" content="Calculate exact ingredient weights for Neapolitan, New York, Canotto, and Tonda Romana pizza dough.">
+
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<meta name="theme-color" content="#EDE6D6">
+<meta property="og:title" content="Impasto — Pizza Dough Calculator">
+<meta property="og:description" content="Calculate exact ingredient weights for Neapolitan, New York, Canotto, and Tonda Romana pizza dough.">
+<meta property="og:image" content="icon-512.png">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Big+Shoulders+Display:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500;1,9..144,600&family=Big+Shoulders+Display:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="styles.css">
 </head>
 <body data-style="neapolitan">
@@ -15,9 +26,13 @@
   <div class="stage">
 
     <header class="site-head">
-      <p class="eyebrow">NEAPOLITAN &nbsp;/&nbsp; NEW YORK</p>
-      <h1 class="wordmark">Impasto</h1>
+      <p class="eyebrow">NEAPOLITAN &nbsp;/&nbsp; NEW YORK &nbsp;/&nbsp; CANOTTO &nbsp;/&nbsp; TONDA ROMANA</p>
+      <div class="brand">
+        <img class="brand-swatch" src="impasto-swatch.png" alt="Close-up of thick, textured oil paint applied with a palette knife" width="240" height="240">
+        <h1 class="wordmark">Impasto</h1>
+      </div>
       <p class="tagline">Dial in your dough. Get a printed ticket of exact grams.</p>
+      <p class="tagline-sub">Impasto is also the painting term for paint laid on thick enough to hold the strokes of the knife — much like dough worked by hand.</p>
     </header>
 
     <main class="layout">
@@ -34,7 +49,17 @@
             <span class="style-btn-label">New York</span>
             <span class="style-btn-sub">foldable, by the slice</span>
           </button>
+          <button type="button" class="style-btn" data-style-btn="canotto" role="tab" aria-selected="false">
+            <span class="style-btn-label">Canotto</span>
+            <span class="style-btn-sub">puffed, airy rim</span>
+          </button>
+          <button type="button" class="style-btn" data-style-btn="tonda" role="tab" aria-selected="false">
+            <span class="style-btn-label">Tonda Romana</span>
+            <span class="style-btn-sub">thin, cracker-crisp</span>
+          </button>
         </div>
+
+        <p class="style-blurb" id="styleBlurb" aria-live="polite"></p>
 
         <div class="field-group">
           <div class="field">
