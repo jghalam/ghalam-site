@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Impasto — Pizza Dough Calculator</title>
+<meta name="description" content="Calculate exact ingredient weights for Neapolitan and New York style pizza dough.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Big+Shoulders+Display:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body data-style="neapolitan">
+
+  <div class="stage">
+
+    <header class="site-head">
+      <p class="eyebrow">NEAPOLITAN &nbsp;/&nbsp; NEW YORK</p>
+      <h1 class="wordmark">Impasto</h1>
+      <p class="tagline">Dial in your dough. Get a printed ticket of exact grams.</p>
+    </header>
+
+    <main class="layout">
+
+      <!-- CONTROLS -->
+      <section class="controls" aria-label="Dough parameters">
+
+        <div class="style-toggle" role="tablist" aria-label="Pizza style">
+          <button type="button" class="style-btn is-active" data-style-btn="neapolitan" role="tab" aria-selected="true">
+            <span class="style-btn-label">Neapolitan</span>
+            <span class="style-btn-sub">soft, puffed cornicione</span>
+          </button>
+          <button type="button" class="style-btn" data-style-btn="newyork" role="tab" aria-selected="false">
+            <span class="style-btn-label">New York</span>
+            <span class="style-btn-sub">foldable, by the slice</span>
+          </button>
+        </div>
+
+        <div class="field-group">
+          <div class="field">
+            <div class="field-head">
+              <label for="ballWeight">Dough ball size</label>
+              <output for="ballWeight" id="ballWeightVal">240 g</output>
+            </div>
+            <input type="range" id="ballWeight" min="150" max="500" step="5" value="240">
+          </div>
+
+          <div class="field">
+            <div class="field-head">
+              <label for="ballCount">Number of balls</label>
+              <output for="ballCount" id="ballCountVal">4</output>
+            </div>
+            <div class="stepper">
+              <button type="button" class="step-btn" data-step="-1" aria-label="Decrease number of balls">−</button>
+              <input type="number" id="ballCount" min="1" max="24" step="1" value="4" inputmode="numeric">
+              <button type="button" class="step-btn" data-step="1" aria-label="Increase number of balls">+</button>
+            </div>
+          </div>
+
+          <div class="field">
+            <div class="field-head">
+              <label for="hydration">Hydration</label>
+              <output for="hydration" id="hydrationVal">65%</output>
+            </div>
+            <input type="range" id="hydration" min="50" max="90" step="1" value="65">
+          </div>
+
+          <div class="field">
+            <div class="field-head">
+              <label>Yeast</label>
+            </div>
+            <div class="yeast-toggle" role="radiogroup" aria-label="Yeast type">
+              <button type="button" class="yeast-btn is-active" data-yeast="instant" role="radio" aria-checked="true">Instant dry</button>
+              <button type="button" class="yeast-btn" data-yeast="fresh" role="radio" aria-checked="false">Fresh</button>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" class="reset-btn" id="resetBtn">Reset to <span id="resetStyleName">Neapolitan</span> defaults</button>
+
+      </section>
+
+      <!-- TICKET -->
+      <section class="ticket-wrap" aria-label="Calculated dough recipe">
+        <div class="ticket" id="ticket">
+
+          <div class="ticket-edge ticket-edge--top" id="edgeTop" aria-hidden="true"></div>
+
+          <div class="ticket-body">
+            <p class="ticket-shop">IMPASTO DOUGH CO.</p>
+            <p class="ticket-order" id="ticketStyleName">Neapolitan Dough</p>
+
+            <div class="ticket-rule"></div>
+
+            <div class="ticket-line ticket-line--summary">
+              <span id="ticketBallSummary">4 balls × 240 g</span>
+              <span id="ticketTotal">960 g</span>
+            </div>
+
+            <div class="ticket-rule ticket-rule--dashed"></div>
+
+            <ul class="ticket-items" id="ticketItems">
+              <!-- populated by JS -->
+            </ul>
+
+            <div class="ticket-rule ticket-rule--dashed"></div>
+
+            <div class="ticket-line ticket-line--total">
+              <span>TOTAL</span>
+              <span id="ticketGrandTotal">960 g</span>
+            </div>
+
+            <p class="ticket-foot" id="ticketFoot">baked fresh — order #001</p>
+          </div>
+
+          <div class="ticket-edge ticket-edge--bottom" id="edgeBottom" aria-hidden="true"></div>
+        </div>
+      </section>
+
+    </main>
+
+    <footer class="site-foot">
+      <p>Baker's-percentage math: every ingredient is a share of the flour weight, scaled to hit your total dough weight exactly.</p>
+    </footer>
+
+  </div>
+
+<script src="script.js"></script>
+</body>
+</html>
