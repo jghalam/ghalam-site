@@ -457,3 +457,12 @@ input[type="range"]::-moz-range-thumb{
   color: var(--char-soft);
   max-width: 60ch;
 }
+
+.version-tag{
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--char-soft);
+  opacity: 0.6;
+  margin-top: 10px;
+  max-width: none;
+}

@@ -16,10 +16,11 @@
 <meta property="og:description" content="Calculate exact ingredient weights for Neapolitan, New York, Canotto, and Tonda Romana pizza dough.">
 <meta property="og:image" content="icon-512.png">
 
+<!-- APP_VERSION: bump this string (and the two query params below + the footer tag) on every deploy so browsers/CDN fetch fresh CSS/JS instead of a stale cached copy -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500;1,9..144,600&family=Big+Shoulders+Display:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="styles.css?v=1.0.0">
 </head>
 <body data-style="neapolitan">
 
@@ -155,10 +156,11 @@
 
     <footer class="site-foot">
       <p>Baker's-percentage math: every ingredient is a share of the flour weight, scaled to hit your total dough weight exactly.</p>
+      <p class="version-tag">v1.0.0</p>
     </footer>
 
   </div>
 
-<script src="script.js"></script>
+<script src="script.js?v=1.0.0"></script>
 </body>
 </html>

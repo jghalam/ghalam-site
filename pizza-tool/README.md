@@ -65,6 +65,20 @@ Once you have that live URL, update the `og:image` line in `index.html` to the f
 
 No build process, no npm install, no server — it's just static files.
 
+## Versioning (and avoiding stale-cache deploys)
+
+`styles.css` and `script.js` are linked with a `?v=1.0.0` query string, and the same number is shown in plain text at the bottom of the page. GitHub Pages' CDN (and browsers) can cache `.css`/`.js` files for a while, so if you push a change and it doesn't show up right away, it's almost always this — the CDN is still serving the old file under the old URL.
+
+**On every deploy where you change `styles.css` or `script.js`, bump the version number in three spots in `index.html`:**
+
+1. `<link rel="stylesheet" href="styles.css?v=1.0.0">`
+2. `<script src="script.js?v=1.0.0"></script>`
+3. `<p class="version-tag">v1.0.0</p>` in the footer
+
+Bumping the query string changes the URL, so the CDN/browser treats it as a brand new file instead of reusing a cached one — no waiting for cache expiry. The visible footer tag doubles as a quick sanity check: load the live site, glance at the bottom, and confirm it matches the version you just pushed before assuming a fix didn't take.
+
+Any bump works (`1.0.1` for a small fix, `1.1.0` for a new feature, or just an incrementing integer) — the number itself has no functional meaning, it just needs to change.
+
 ## Local preview
 
 Just open `index.html` directly in a browser, or serve the folder locally:
