@@ -99,6 +99,15 @@
               <button type="button" class="yeast-btn" data-yeast="fresh" role="radio" aria-checked="false">Fresh</button>
             </div>
           </div>
+
+          <div class="field">
+            <div class="field-head">
+              <label for="restHours">Resting time</label>
+              <output for="restHours" id="restHoursVal">24h+</output>
+            </div>
+            <input type="range" id="restHours" min="3" max="24" step="1" value="24">
+            <p class="field-hint" id="restHoursHint">0.06% yeast</p>
+          </div>
         </div>
 
         <button type="button" class="reset-btn" id="resetBtn">Reset to <span id="resetStyleName">Neapolitan</span> defaults</button>

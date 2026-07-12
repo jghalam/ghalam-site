@@ -7,14 +7,12 @@
       label: "Neapolitan Dough",
       defaults: { ballWeight: 240, ballCount: 4, hydration: 65 },
       salt: 2.5,
-      yeast: { instant: 0.06, fresh: 0.15 },
       extras: [] // no oil/sugar
     },
     newyork: {
       label: "New York Dough",
       defaults: { ballWeight: 270, ballCount: 4, hydration: 66 },
       salt: 2,
-      yeast: { instant: 0.06, fresh: 0.15 },
       extras: [
         { key: "oil", name: "Olive oil", pct: 3 },
         { key: "sugar", name: "Sugar", pct: 1 }
@@ -24,19 +22,39 @@
       label: "Canotto Dough",
       defaults: { ballWeight: 250, ballCount: 4, hydration: 70 },
       salt: 3,
-      yeast: { instant: 0.06, fresh: 0.15 },
       extras: []
     },
     tonda: {
       label: "Tonda Romana Dough",
       defaults: { ballWeight: 175, ballCount: 4, hydration: 60 },
       salt: 2.5,
-      yeast: { instant: 0.06, fresh: 0.15 },
       extras: [
         { key: "oil", name: "Olive oil", pct: 6 }
       ]
     }
   };
+
+  // Yeast dosage scales with planned resting (bulk + proof) time, independent of pizza style.
+  // Longer rests need less yeast; short same-day rests need much more.
+  // Fit as an exponential curve through the two known reference points, since fermentation
+  // speed compounds over time rather than scaling linearly with the clock.
+  const YEAST_REST = {
+    hoursMin: 3,
+    hoursMax: 24,
+    instant: { atMin: 1.5, atMax: 0.06 },
+    fresh: { atMin: 2.5, atMax: 0.15 }
+  };
+
+  function yeastPercentForHours(type, hours){
+    const cfg = YEAST_REST[type];
+    const t = Math.max(YEAST_REST.hoursMin, Math.min(YEAST_REST.hoursMax, hours));
+    const frac = (t - YEAST_REST.hoursMin) / (YEAST_REST.hoursMax - YEAST_REST.hoursMin);
+    return cfg.atMin * Math.pow(cfg.atMax / cfg.atMin, frac);
+  }
+
+  function restLabel(hours){
+    return hours >= YEAST_REST.hoursMax ? `${hours}h+` : `${hours}h`;
+  }
 
   const STYLE_NAMES = {
     neapolitan: "Neapolitan",
@@ -58,7 +76,8 @@
     ballWeight: 240,
     ballCount: 4,
     hydration: 65,
-    yeastType: "instant"
+    yeastType: "instant",
+    restHours: 24
   };
 
   // ---------- DOM refs ----------
@@ -72,6 +91,9 @@
     hydration: document.getElementById("hydration"),
     hydrationVal: document.getElementById("hydrationVal"),
     yeastButtons: document.querySelectorAll("[data-yeast]"),
+    restHours: document.getElementById("restHours"),
+    restHoursVal: document.getElementById("restHoursVal"),
+    restHoursHint: document.getElementById("restHoursHint"),
     resetBtn: document.getElementById("resetBtn"),
     resetStyleName: document.getElementById("resetStyleName"),
     styleBlurb: document.getElementById("styleBlurb"),
@@ -141,7 +163,7 @@
     const totalDoughWeight = state.ballWeight * state.ballCount;
 
     const saltPct = recipe.salt;
-    const yeastPct = recipe.yeast[state.yeastType];
+    const yeastPct = yeastPercentForHours(state.yeastType, state.restHours);
     const extrasPct = recipe.extras.reduce((sum, ex) => sum + ex.pct, 0);
 
     const totalPct = 100 + state.hydration + saltPct + yeastPct + extrasPct;
@@ -156,17 +178,24 @@
       weight: flourWeight * (ex.pct / 100)
     }));
 
+    const yeastLabel = state.yeastType === "instant" ? "instant dry" : "fresh";
     const items = [
       { name: "Flour", pct: 100, weight: flourWeight, decimals: 0 },
       { name: "Water", pct: state.hydration, weight: waterWeight, decimals: 0 },
       { name: "Salt", pct: saltPct, weight: saltWeight, decimals: 1 },
       ...extras.map(ex => ({ name: ex.name, pct: ex.pct, weight: ex.weight, decimals: ex.name === "Sugar" ? 1 : 1 })),
-      { name: `Yeast (${state.yeastType === "instant" ? "instant dry" : "fresh"})`, pct: yeastPct, weight: yeastWeight, decimals: 2 }
+      { name: `Yeast (${yeastLabel}, ${restLabel(state.restHours)} rise)`, pct: yeastPct, weight: yeastWeight, decimals: 2 }
     ];
 
     const grandTotal = items.reduce((sum, i) => sum + i.weight, 0);
 
     return { totalDoughWeight, items, grandTotal, label: recipe.label };
+  }
+
+  function updateRestHint(){
+    const pct = yeastPercentForHours(state.yeastType, state.restHours);
+    el.restHoursVal.textContent = restLabel(state.restHours);
+    el.restHoursHint.textContent = `${fmtPct(pct)}% yeast`;
   }
 
   // ---------- Render ----------
@@ -194,6 +223,7 @@
     el.ticketGrandTotal.textContent = `${fmt(result.grandTotal, 0)} g`;
     el.ticketFoot.textContent = `baked fresh — order #${orderNumber()}`;
 
+    updateRestHint();
     pulse(el.ticketTotal);
     pulse(el.ticketGrandTotal);
   }
@@ -272,6 +302,11 @@
       });
       render();
     });
+  });
+
+  el.restHours.addEventListener("input", () => {
+    state.restHours = Number(el.restHours.value);
+    render();
   });
 
   el.resetBtn.addEventListener("click", resetDefaults);
