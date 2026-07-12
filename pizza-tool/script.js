@@ -184,7 +184,7 @@
       { name: "Water", pct: state.hydration, weight: waterWeight, decimals: 0 },
       { name: "Salt", pct: saltPct, weight: saltWeight, decimals: 1 },
       ...extras.map(ex => ({ name: ex.name, pct: ex.pct, weight: ex.weight, decimals: ex.name === "Sugar" ? 1 : 1 })),
-      { name: `Yeast (${yeastLabel}, ${restLabel(state.restHours)} rise)`, pct: yeastPct, weight: yeastWeight, decimals: 2 }
+      { name: `Yeast (${yeastLabel})`, pct: yeastPct, weight: yeastWeight, decimals: 2 }
     ];
 
     const grandTotal = items.reduce((sum, i) => sum + i.weight, 0);
