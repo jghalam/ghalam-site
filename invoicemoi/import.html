@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Open in InvoiceMoi</title>
+  <style>
+    body {
+      background: #0d0f14;
+      color: #f5f5f0;
+      font-family: -apple-system, BlinkMacSystemFont, "DM Sans", sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+      padding: 24px;
+      text-align: center;
+    }
+    h1 { font-size: 1.4rem; margin-bottom: 8px; }
+    p { color: #a9a9a3; max-width: 340px; line-height: 1.5; }
+    .badge {
+      margin-top: 28px;
+      display: inline-block;
+    }
+    .badge img { height: 48px; }
+    .manual-link {
+      margin-top: 20px;
+      font-size: 0.85rem;
+      color: #7a95ff;
+      word-break: break-all;
+    }
+  </style>
+</head>
+<body>
+  <h1>Open this backup in InvoiceMoi</h1>
+  <p>
+    If you have InvoiceMoi installed, this link should have opened directly
+    in the app. If you're seeing this page instead, you'll need the app
+    first.
+  </p>
+
+  <a class="badge" href="https://apps.apple.com/us/app/invoicemoi/id6789648568">
+    <img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="Download on the App Store">
+  </a>
+
+  <p class="manual-link">
+    Already have the app? Open this same link again on this device, or
+    download the backup file directly and use Settings &rarr; Restore from
+    File inside InvoiceMoi:
+    <br>
+    <span id="file-url"></span>
+  </p>
+
+  <script>
+    // Surface the actual backup file's URL (from ?file=...) as a plain
+    // link too, so "download it and restore manually" always works even
+    // if something about the direct-open path isn't cooperating.
+    const params = new URLSearchParams(window.location.search);
+    const fileURL = params.get('file');
+    if (fileURL) {
+      const el = document.getElementById('file-url');
+      const a = document.createElement('a');
+      a.href = fileURL;
+      a.textContent = fileURL;
+      a.style.color = '#7a95ff';
+      el.appendChild(a);
+    }
+  </script>
+</body>
+</html>
