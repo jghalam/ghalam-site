@@ -24,6 +24,15 @@
             "comment": "GhalamRadio station share link"
           }
         ]
+      },
+      {
+        "appIDs": ["TRY27PHH3P.com.joe.ghalam.db.InvoiceMe"],
+        "components": [
+          {
+            "/": "/invoicemoi/import/*",
+            "comment": "Only links under /invoicemoi/import/ open directly in the app. Every other ghalam.net page (including /invoicemoi/ itself) stays a normal webpage."
+          }
+        ]
       }
     ]
   }
