@@ -32,7 +32,8 @@
             "/": "/invoicemoi/import/*",
             "comment": "Only links under /invoicemoi/import/ open directly in the app. Every other ghalam.net page (including /invoicemoi/ itself) stays a normal webpage."
           }
-       
+        ]
+      }
     ]
   }
 }
