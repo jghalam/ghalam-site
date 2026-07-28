@@ -204,6 +204,58 @@
   }
   .contact-card a.btn:hover { opacity: 0.85; }
 
+  .tool-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.75rem;
+  }
+  .tool-card label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--muted);
+    letter-spacing: 0.03em;
+    margin-bottom: 0.5rem;
+  }
+  .tool-card input[type="text"] {
+    width: 100%;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.9rem;
+  }
+  .tool-card input[type="text"]:focus { outline: none; border-color: var(--accent); }
+  .tool-card .btn-primary {
+    border: none;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    margin-top: 1rem;
+  }
+  .generated-link-wrap { margin-top: 1.5rem; }
+  .generated-link-row { display: flex; gap: 0.6rem; }
+  .generated-link-row input { flex: 1; }
+  .generated-link-row .btn-secondary {
+    border: 1px solid var(--border);
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    white-space: nowrap;
+  }
+  .tool-hint {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-top: 0.85rem;
+    margin-bottom: 0;
+  }
+  .tool-error {
+    font-size: 0.85rem;
+    color: #e08b8b;
+    margin-top: 0.85rem;
+    margin-bottom: 0;
+  }
+
   footer {
     text-align: center;
     padding: 2rem;
@@ -240,15 +292,16 @@
   <p class="tagline">InvoiceMoi builds branded, bilingual invoices and estimates as clean PDFs — custom sections, line items, taxes, and totals, with no account and no backend required.</p>
   <div class="hero-ctas">
     <a href="web/index.html" class="btn-primary">Launch Web App →</a>
+    <a href="https://apps.apple.com/app/idYOUR_APP_ID" class="btn-secondary" target="_blank" rel="noopener">Download on the App Store</a>
     <a href="#about" class="btn-secondary">Learn more</a>
   </div>
-  <p class="platform-note">Free to use in your browser · An iOS app with iCloud sync is in development</p>
+  <p class="platform-note">Free to use in your browser · Also available as an iOS app with iCloud sync</p>
 </div>
 
 <section id="about">
   <h2>About InvoiceMoi<span class="dot">.</span></h2>
   <p>InvoiceMoi is a bilingual (French/English) invoice and estimate builder. Fill in your letterhead, company and client details, add as many sections and line items as the job needs, set your tax lines, and generate a polished PDF — all in the browser, nothing uploaded anywhere.</p>
-  <p>An iOS companion app is also in development, adding optional iCloud sync across devices, saved company profiles and customers, invoice status tracking (Open → Billed → Paid), and billing summary reports — while keeping the same no-account, your-data-stays-yours philosophy.</p>
+  <p>InvoiceMoi is also available as an iOS app, adding optional iCloud sync across devices, saved company profiles and customers, invoice status tracking (Open → Billed → Paid), and billing summary reports — while keeping the same no-account, your-data-stays-yours philosophy. <a href="https://apps.apple.com/app/idYOUR_APP_ID" target="_blank" rel="noopener">Download it on the App Store →</a></p>
 </section>
 
 <section>
@@ -309,9 +362,100 @@
   </div>
 </section>
 
+<section id="link-tool">
+  <h2>Backup Link Generator<span class="dot">.</span></h2>
+  <p>Have a backup file uploaded to Google Drive? Paste its share link below to generate the actual link to send — tapping it on a device with InvoiceMoi installed opens the app directly and starts the import.</p>
+  <div class="tool-card">
+    <label for="drive-link-input">Google Drive share link</label>
+    <input type="text" id="drive-link-input" placeholder="https://drive.google.com/file/d/&hellip;/view?usp=sharing" autocomplete="off" spellcheck="false">
+    <button id="generate-link-btn" class="btn-primary">Generate Link</button>
+    <p id="tool-error" class="tool-error" hidden></p>
+    <div id="generated-link-wrap" class="generated-link-wrap" hidden>
+      <label for="generated-link-output">Shareable link</label>
+      <div class="generated-link-row">
+        <input type="text" id="generated-link-output" readonly>
+        <button id="copy-link-btn" class="btn-secondary">Copy</button>
+      </div>
+      <p class="tool-hint">This only wraps a link — it doesn't check that the file is actually shared publicly, or that Drive will serve it directly instead of a "can't scan this file for viruses" page (Drive does this unpredictably for some files). Test the link yourself once before sending it anywhere important.</p>
+    </div>
+  </div>
+</section>
+
 <footer>
   <p>© 2026 InvoiceMoi &nbsp;·&nbsp; <a href="privacy.html">Privacy</a> &nbsp;·&nbsp; <a href="support.html">Support</a> &nbsp;·&nbsp; <a href="https://ghalam.net/">Ghalam.net</a></p>
 </footer>
+
+<script>
+(function () {
+  var input = document.getElementById('drive-link-input');
+  var generateBtn = document.getElementById('generate-link-btn');
+  var wrap = document.getElementById('generated-link-wrap');
+  var output = document.getElementById('generated-link-output');
+  var copyBtn = document.getElementById('copy-link-btn');
+  var errorEl = document.getElementById('tool-error');
+
+  // Drive share links show up in a couple of shapes depending on how the
+  // link was generated — .../file/d/FILE_ID/view?... is the common one,
+  // but a bare ?id=FILE_ID (or &id=FILE_ID) shows up too, so both are
+  // checked rather than assuming one exact format.
+  function extractFileId(raw) {
+    var patterns = [/\/file\/d\/([a-zA-Z0-9_-]+)/, /[?&]id=([a-zA-Z0-9_-]+)/];
+    for (var i = 0; i < patterns.length; i++) {
+      var match = raw.match(patterns[i]);
+      if (match) return match[1];
+    }
+    return null;
+  }
+
+  function generate() {
+    errorEl.hidden = true;
+    wrap.hidden = true;
+
+    var raw = input.value.trim();
+    if (!raw) {
+      errorEl.textContent = 'Paste a Google Drive share link first.';
+      errorEl.hidden = false;
+      return;
+    }
+
+    var fileId = extractFileId(raw);
+    if (!fileId) {
+      errorEl.textContent = "Couldn't find a file ID in that link — make sure it looks like https://drive.google.com/file/d/.../view?usp=sharing";
+      errorEl.hidden = false;
+      return;
+    }
+
+    var directUrl = 'https://drive.google.com/uc?export=download&id=' + fileId;
+    var finalLink = 'https://ghalam.net/invoicemoi/import.html?file=' + encodeURIComponent(directUrl);
+    output.value = finalLink;
+    wrap.hidden = false;
+  }
+
+  generateBtn.addEventListener('click', generate);
+  input.addEventListener('keydown', function (e) {
+    if (e.key === 'Enter') generate();
+  });
+
+  copyBtn.addEventListener('click', function () {
+    output.select();
+    output.setSelectionRange(0, 99999);
+    var done = function () {
+      var original = copyBtn.textContent;
+      copyBtn.textContent = 'Copied!';
+      setTimeout(function () { copyBtn.textContent = original; }, 1500);
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(output.value).then(done).catch(function () {
+        document.execCommand('copy');
+        done();
+      });
+    } else {
+      document.execCommand('copy');
+      done();
+    }
+  });
+})();
+</script>
 
 </body>
 </html>
