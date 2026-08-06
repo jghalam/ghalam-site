@@ -1,1 +1,44 @@
+name: Update KEV data
 
+on:
+  schedule:
+    # Runs daily at 06:00 UTC. CISA typically publishes updates on business days.
+    - cron: '0 6 * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  update-kev:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Fetch latest CISA KEV catalog
+        run: |
+          mkdir -p easycve/data
+          curl -sSL -f \
+            "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json" \
+            -o easycve/data/kev.json.tmp
+
+          if node -e "const d=require('./easycve/data/kev.json.tmp'); if(!Array.isArray(d.vulnerabilities)) process.exit(1);"; then
+            mv easycve/data/kev.json.tmp easycve/data/kev.json
+          else
+            echo "Downloaded file failed validation, keeping previous easycve/data/kev.json"
+            rm -f easycve/data/kev.json.tmp
+            exit 1
+          fi
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add easycve/data/kev.json
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "chore: sync KEV catalog $(date -u +%Y-%m-%d)"
+            git push
+          fi
