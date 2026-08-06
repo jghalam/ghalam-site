@@ -133,6 +133,9 @@
   }
   .badge.known{background:#f8717133;color:var(--danger);}
   .badge.unknown{background:#ffffff14;color:var(--muted);}
+  .badge.cwe{background:#ffffff0f;color:var(--muted);border:1px solid var(--border);font-weight:500;}
+  .cwe-cell{max-width:150px;}
+  .cwe-cell .badge{margin:0 4px 4px 0;display:inline-block;}
   .desc-cell{max-width:340px;color:var(--muted);}
   .due-soon{color:var(--warn);font-weight:700;}
   .due-past{color:var(--danger);font-weight:700;}
@@ -240,6 +243,10 @@
           <option value="Unknown">Unknown</option>
         </select>
       </div>
+      <div class="field">
+        <label for="fCwe">CWE contains</label>
+        <input id="fCwe" type="text" placeholder="e.g. CWE-502 or 79">
+      </div>
     </div>
 
     <div class="filters-grid dates-grid">
@@ -278,6 +285,7 @@
         <li><strong>All filters combine together (AND, not OR).</strong> Filling in "CVE ID contains" and "Vendor / product contains" shows only rows that match both — it narrows the results, it doesn't broaden them.</li>
         <li><strong>Text filters are partial and case-insensitive.</strong> "CVE ID contains" matches anywhere in the ID, so <code>2026</code> or <code>63077</code> both work — you don't need the full <code>CVE-2026-63077</code>. Same for description/name and vendor/product.</li>
         <li><strong>"Description / name contains" searches two fields at once</strong> — the vulnerability name and the short description — so a product name that only appears in one or the other will still match.</li>
+        <li><strong>"CWE contains" matches against a CVE's weakness classification(s)</strong> — e.g. <code>CWE-502</code> is deserialization of untrusted data, <code>CWE-79</code> is cross-site scripting. A CVE can have more than one CWE; this matches if any of them contain your text. Not every CVE has one, so entries without a CWE won't match a non-empty filter here.</li>
         <li><strong>Date ranges are inclusive</strong> on both ends: a "from" date matches vulnerabilities added or due on that exact day too, not just after it.</li>
         <li><strong>Leave either side of a date range blank to leave that side open.</strong> Setting only a "from" date returns everything from that date through the most recent entry, with no upper limit. Setting only a "to" date returns everything up through that date, with no lower limit.</li>
         <li><strong>Empty filters are ignored entirely.</strong> A blank field never excludes rows — it simply isn't applied, so leaving everything blank shows the full catalog.</li>
@@ -300,6 +308,7 @@
           <th>Date Added</th>
           <th>Due Date</th>
           <th>Ransomware</th>
+          <th>CWEs</th>
           <th>Description</th>
         </tr>
       </thead>
@@ -337,7 +346,7 @@
   // ---------- DOM ----------
   var $ = function(id){ return document.getElementById(id); };
   var els = {
-    fCve: $("fCve"), fText: $("fText"), fVendor: $("fVendor"), fRansom: $("fRansom"),
+    fCve: $("fCve"), fText: $("fText"), fVendor: $("fVendor"), fRansom: $("fRansom"), fCwe: $("fCwe"),
     fAddedFrom: $("fAddedFrom"), fAddedTo: $("fAddedTo"), fDueFrom: $("fDueFrom"), fDueTo: $("fDueTo"),
     btnSearch: $("btnSearch"), btnReset: $("btnReset"), btnCsv: $("btnCsv"), btnShare: $("btnShare"),
     shareBox: $("shareBox"), shareUrl: $("shareUrl"),
@@ -490,6 +499,7 @@
       text: els.fText.value.trim().toLowerCase(),
       vendor: els.fVendor.value.trim().toLowerCase(),
       ransom: els.fRansom.value,
+      cwe: els.fCwe.value.trim().toLowerCase(),
       addedFrom: els.fAddedFrom.value || "",
       addedTo: els.fAddedTo.value || "",
       dueFrom: els.fDueFrom.value || "",
@@ -502,6 +512,7 @@
     els.fText.value = f.text || "";
     els.fVendor.value = f.vendor || "";
     els.fRansom.value = f.ransom || "";
+    els.fCwe.value = f.cwe || "";
     els.fAddedFrom.value = f.addedFrom || "";
     els.fAddedTo.value = f.addedTo || "";
     els.fDueFrom.value = f.dueFrom || "";
@@ -530,6 +541,12 @@
 
       if(f.ransom && (v.knownRansomwareCampaignUse||"") !== f.ransom) return false;
 
+      if(f.cwe){
+        var cweList = Array.isArray(v.cwes) ? v.cwes : [];
+        var hayCwe = cweList.join(" ").toLowerCase();
+        if(hayCwe.indexOf(f.cwe) === -1) return false;
+      }
+
       if(addedFrom || addedTo){
         var da = parseDate(v.dateAdded);
         if(!da) return false;
@@ -551,7 +568,7 @@
   // ---------- Rendering ----------
   function renderTable(rows){
     if(!rows.length){
-      els.resultsBody.innerHTML = '<tr><td colspan="7" class="empty-state">No vulnerabilities match those filters.</td></tr>';
+      els.resultsBody.innerHTML = '<tr><td colspan="8" class="empty-state">No vulnerabilities match those filters.</td></tr>';
       els.resultCount.innerHTML = "<strong>0</strong> results";
       return;
     }
@@ -565,6 +582,10 @@
       }
       var ransomClass = (v.knownRansomwareCampaignUse === "Known") ? "known" : "unknown";
       var nvdUrl = "https://nvd.nist.gov/vuln/detail/" + encodeURIComponent(v.cveID);
+      var cweList = Array.isArray(v.cwes) ? v.cwes : [];
+      var cweHtml = cweList.length
+        ? cweList.map(function(c){ return '<span class="badge cwe">' + escapeHtml(c) + "</span>"; }).join(" ")
+        : '<span style="color:var(--muted)">—</span>';
 
       return "<tr>" +
         '<td class="cve-id"><a href="' + nvdUrl + '" target="_blank" rel="noopener">' + escapeHtml(v.cveID) + "</a></td>" +
@@ -573,6 +594,7 @@
         "<td>" + escapeHtml(v.dateAdded) + "</td>" +
         '<td class="' + dueClass + '">' + escapeHtml(v.dueDate) + "</td>" +
         '<td><span class="badge ' + ransomClass + '">' + escapeHtml(v.knownRansomwareCampaignUse) + "</span></td>" +
+        '<td class="cwe-cell">' + cweHtml + "</td>" +
         '<td class="desc-cell">' + escapeHtml(v.shortDescription) + "</td>" +
         "</tr>";
     }).join("");
@@ -603,6 +625,7 @@
     ["dateAdded","Date Added"],
     ["dueDate","Due Date"],
     ["knownRansomwareCampaignUse","Known Ransomware Use"],
+    ["cwes","CWEs"],
     ["shortDescription","Short Description"],
     ["requiredAction","Required Action"]
   ];
@@ -610,7 +633,11 @@
   function toCsv(rows){
     var lines = [CSV_COLUMNS.map(function(c){ return csvEscape(c[1]); }).join(",")];
     rows.forEach(function(v){
-      lines.push(CSV_COLUMNS.map(function(c){ return csvEscape(v[c[0]]); }).join(","));
+      lines.push(CSV_COLUMNS.map(function(c){
+        var val = v[c[0]];
+        if(Array.isArray(val)) val = val.join("; ");
+        return csvEscape(val);
+      }).join(","));
     });
     return lines.join("\r\n");
   }
@@ -641,6 +668,7 @@
     if(f.text) params.set("q", f.text);
     if(f.vendor) params.set("vendor", f.vendor);
     if(f.ransom) params.set("ransomware", f.ransom);
+    if(f.cwe) params.set("cwe", f.cwe);
     if(f.addedFrom) params.set("addedFrom", f.addedFrom);
     if(f.addedTo) params.set("addedTo", f.addedTo);
     if(f.dueFrom) params.set("dueFrom", f.dueFrom);
@@ -682,6 +710,7 @@
       text: p.q || p.text || "",
       vendor: p.vendor || "",
       ransom: p.ransomware || "",
+      cwe: p.cwe || "",
       addedFrom: p.addedFrom || "",
       addedTo: p.addedTo || "",
       dueFrom: p.dueFrom || "",
@@ -709,7 +738,7 @@
   els.btnCsv.addEventListener("click", function(){ downloadCsv(state.filtered); });
   els.btnShare.addEventListener("click", shareCurrentQuery);
 
-  [els.fCve, els.fText, els.fVendor].forEach(function(input){
+  [els.fCve, els.fText, els.fVendor, els.fCwe].forEach(function(input){
     input.addEventListener("keydown", function(e){
       if(e.key === "Enter") runSearch();
     });
