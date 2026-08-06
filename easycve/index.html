@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>EasyCVE — CISA Known Exploited Vulnerabilities, made searchable</title>
 <meta name="description" content="A friendly search and CSV export tool for CISA's Known Exploited Vulnerabilities (KEV) catalog.">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2048%2048%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%226%22%20y1%3D%224%22%20x2%3D%2242%22%20y2%3D%2244%22%20gradientUnits%3D%22userSpaceOnUse%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23ff6b4a%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23ffb199%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Cpath%20d%3D%22M24%203.5%20L41%2010%20V21.5%20C41%2032.5%2033.5%2040.5%2024%2044.5%20C14.5%2040.5%207%2032.5%207%2021.5%20V10%20Z%22%20fill%3D%22url%28%23g%29%22%2F%3E%3Cpath%20d%3D%22M24%203.5%20L41%2010%20V21.5%20C41%2032.5%2033.5%2040.5%2024%2044.5%20C14.5%2040.5%207%2032.5%207%2021.5%20V10%20Z%22%20fill%3D%22none%22%20stroke%3D%22%230d0f14%22%20stroke-opacity%3D%220.15%22%20stroke-width%3D%221%22%2F%3E%3Ccircle%20cx%3D%2220.5%22%20cy%3D%2221%22%20r%3D%226.4%22%20fill%3D%22none%22%20stroke%3D%22%230d0f14%22%20stroke-width%3D%223.1%22%2F%3E%3Cline%20x1%3D%2225.2%22%20y1%3D%2225.7%22%20x2%3D%2231%22%20y2%3D%2231.5%22%20stroke%3D%22%230d0f14%22%20stroke-width%3D%223.1%22%20stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
 <style>
@@ -44,10 +45,8 @@
   }
   header.top .brand{display:flex;align-items:center;gap:12px;}
   header.top .brand .logo{
-    width:38px;height:38px;border-radius:9px;
-    background:linear-gradient(135deg,var(--accent),#ffb199);
-    display:flex;align-items:center;justify-content:center;
-    font-family:'DM Serif Display',serif;color:#0d0f14;font-size:20px;
+    flex-shrink:0;
+    filter:drop-shadow(0 2px 6px rgba(255,107,74,.25));
   }
   header.top h1{font-size:26px;}
   header.top .tagline{color:var(--muted);font-size:14px;margin-top:2px;}
@@ -72,6 +71,10 @@
     grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
     gap:14px;
   }
+  .filters-grid.dates-grid{
+    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+    margin-top:14px;
+  }
   .field label{
     display:block;font-size:12.5px;color:var(--muted);margin-bottom:6px;
     text-transform:uppercase;letter-spacing:.03em;
@@ -82,8 +85,10 @@
     font-family:inherit;
   }
   .field input:focus, .field select:focus{outline:2px solid var(--accent-dim);border-color:var(--accent);}
-  .field-row{display:flex;gap:8px;}
-  .field-row > div{flex:1;}
+  .field-row{display:flex;align-items:center;gap:8px;min-width:0;}
+  .field-row > div{flex:1 1 0;min-width:0;}
+  .field-row input{min-width:0;}
+  .field-row .range-sep{color:var(--muted);font-size:12.5px;flex:0 0 auto;}
 
   .actions{
     display:flex;flex-wrap:wrap;gap:10px;margin-top:18px;align-items:center;
@@ -139,6 +144,30 @@
     border-radius:8px;padding:9px 10px;font-size:12.5px;font-family:monospace;
   }
 
+  details.help{
+    margin-top:18px;border-top:1px solid var(--border);padding-top:14px;
+  }
+  details.help summary{
+    cursor:pointer;color:var(--muted);font-size:13px;font-weight:500;
+    list-style:none;display:flex;align-items:center;gap:6px;
+  }
+  details.help summary::-webkit-details-marker{display:none;}
+  details.help summary::before{
+    content:"▸";color:var(--accent);font-size:11px;transition:transform .15s ease;
+  }
+  details.help[open] summary::before{transform:rotate(90deg);}
+  details.help summary:hover{color:var(--text);}
+  details.help ul{
+    margin:12px 0 2px 0;padding-left:20px;color:var(--muted);font-size:13.5px;
+  }
+  details.help li{margin-bottom:9px;line-height:1.55;}
+  details.help li:last-child{margin-bottom:0;}
+  details.help strong{color:var(--text);font-weight:700;}
+  details.help code{
+    background:var(--panel-2);border:1px solid var(--border);border-radius:4px;
+    padding:1px 5px;font-size:12.5px;color:var(--accent);
+  }
+
   footer{margin-top:40px;color:var(--muted);font-size:12.5px;text-align:center;}
   footer a{color:var(--muted);text-decoration:underline;}
 
@@ -162,7 +191,18 @@
 
   <header class="top">
     <div class="brand">
-      <div class="logo">C</div>
+      <svg class="logo" width="38" height="38" viewBox="0 0 48 48" aria-hidden="true">
+        <defs>
+          <linearGradient id="logoGrad" x1="6" y1="4" x2="42" y2="44" gradientUnits="userSpaceOnUse">
+            <stop offset="0" stop-color="#ff6b4a"/>
+            <stop offset="1" stop-color="#ffb199"/>
+          </linearGradient>
+        </defs>
+        <path d="M24 3.5 L41 10 V21.5 C41 32.5 33.5 40.5 24 44.5 C14.5 40.5 7 32.5 7 21.5 V10 Z" fill="url(#logoGrad)"/>
+        <path d="M24 3.5 L41 10 V21.5 C41 32.5 33.5 40.5 24 44.5 C14.5 40.5 7 32.5 7 21.5 V10 Z" fill="none" stroke="#0d0f14" stroke-opacity="0.15" stroke-width="1"/>
+        <circle cx="20.5" cy="21" r="6.4" fill="none" stroke="#0d0f14" stroke-width="3.1"/>
+        <line x1="25.2" y1="25.7" x2="31" y2="31.5" stroke="#0d0f14" stroke-width="3.1" stroke-linecap="round"/>
+      </svg>
       <div>
         <h1>EasyCVE</h1>
         <div class="tagline">A friendlier way to search CISA's Known Exploited Vulnerabilities catalog</div>
@@ -195,10 +235,14 @@
           <option value="Unknown">Unknown</option>
         </select>
       </div>
+    </div>
+
+    <div class="filters-grid dates-grid">
       <div class="field">
         <label>Date added range</label>
         <div class="field-row">
           <div><input id="fAddedFrom" type="date"></div>
+          <span class="range-sep">to</span>
           <div><input id="fAddedTo" type="date"></div>
         </div>
       </div>
@@ -206,6 +250,7 @@
         <label>Due date range</label>
         <div class="field-row">
           <div><input id="fDueFrom" type="date"></div>
+          <span class="range-sep">to</span>
           <div><input id="fDueTo" type="date"></div>
         </div>
       </div>
@@ -221,6 +266,19 @@
     <div class="share-box" id="shareBox" style="display:none;">
       <input id="shareUrl" type="text" readonly>
     </div>
+
+    <details class="help">
+      <summary>How these filters work</summary>
+      <ul>
+        <li><strong>All filters combine together (AND, not OR).</strong> Filling in "CVE ID contains" and "Vendor / product contains" shows only rows that match both — it narrows the results, it doesn't broaden them.</li>
+        <li><strong>Text filters are partial and case-insensitive.</strong> "CVE ID contains" matches anywhere in the ID, so <code>2026</code> or <code>63077</code> both work — you don't need the full <code>CVE-2026-63077</code>. Same for description/name and vendor/product.</li>
+        <li><strong>"Description / name contains" searches two fields at once</strong> — the vulnerability name and the short description — so a product name that only appears in one or the other will still match.</li>
+        <li><strong>Date ranges are inclusive</strong> on both ends: a "from" date matches vulnerabilities added or due on that exact day too, not just after it.</li>
+        <li><strong>Leave either side of a date range blank to leave that side open.</strong> Setting only a "from" date returns everything from that date through the most recent entry, with no upper limit. Setting only a "to" date returns everything up through that date, with no lower limit.</li>
+        <li><strong>Empty filters are ignored entirely.</strong> A blank field never excludes rows — it simply isn't applied, so leaving everything blank shows the full catalog.</li>
+        <li><strong>Shareable links only encode the filters you've actually set</strong> — blank fields are simply left out of the URL.</li>
+      </ul>
+    </details>
   </div>
 
   <div class="results-header">
