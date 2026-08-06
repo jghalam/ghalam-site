@@ -1,5 +1,5 @@
 # EasyCVE
-
+## Title
 A friendly search UI for CISA's [Known Exploited Vulnerabilities (KEV) catalog](https://www.cisa.gov/known-exploited-vulnerabilities-catalog), built as a static site for GitHub Pages.
 
 ## How it works
