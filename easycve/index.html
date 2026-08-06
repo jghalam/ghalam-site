@@ -57,6 +57,11 @@
   }
   .sync-info .dot.stale{background:var(--warn);}
   .sync-info .dot.error{background:var(--danger);}
+  .sync-info .link-btn{
+    background:none;border:none;padding:0;margin:0;color:var(--accent);
+    font-size:13px;font-family:inherit;text-decoration:underline;cursor:pointer;
+  }
+  .sync-info .link-btn:hover{color:#ff8064;}
 
   .card{
     background:var(--panel);
@@ -417,11 +422,65 @@
       els.syncText.textContent = "Couldn't load catalog data.";
       return;
     }
-    var released = state.catalog.dateReleased ? state.catalog.dateReleased.split("T")[0] : "unknown";
+
     var count = state.catalog.count != null ? state.catalog.count : (state.catalog.vulnerabilities || []).length;
+    var releasedRaw = state.catalog.dateReleased;
+    var released = releasedRaw ? releasedRaw.split("T")[0] : "unknown";
     var sourceLabel = state.dataSource === "local" ? "repo mirror" : "live CISA fetch";
-    els.syncDot.className = "dot";
-    els.syncText.textContent = count + " CVEs · catalog released " + released + " (" + sourceLabel + ")";
+
+    // Staleness: how old is the catalog itself (per CISA's own dateReleased),
+    // not just when our copy last succeeded — a stuck Action can serve an
+    // old file with an old dateReleased indefinitely.
+    var releasedDate = releasedRaw ? new Date(releasedRaw) : null;
+    var ageHours = releasedDate ? (Date.now() - releasedDate.getTime()) / 3600000 : null;
+    var isPlaceholder = state.catalog.catalogVersion === "placeholder" || count === 0;
+    var STALE_HOURS = 36; // CISA typically updates on business days; give it slack past 24h.
+
+    if(isPlaceholder){
+      els.syncDot.className = "dot error";
+      els.syncText.innerHTML = "No data yet — the sync workflow hasn't populated this file. "
+        + '<button class="ghost link-btn" id="btnForceRefresh" type="button">Try fetching from CISA now</button>';
+    } else if(ageHours != null && ageHours > STALE_HOURS){
+      var ageDays = (ageHours / 24).toFixed(1);
+      els.syncDot.className = "dot stale";
+      els.syncText.innerHTML = count + " CVEs · catalog released " + released + " (" + ageDays + " days old — mirror may be behind) · "
+        + '<button class="ghost link-btn" id="btnForceRefresh" type="button">Try fetching from CISA now</button>';
+    } else {
+      els.syncDot.className = "dot";
+      els.syncText.textContent = count + " CVEs · catalog released " + released + " (" + sourceLabel + ")";
+    }
+
+    var refreshBtn = document.getElementById("btnForceRefresh");
+    if(refreshBtn){
+      refreshBtn.addEventListener("click", forceRefreshFromCisa);
+    }
+  }
+
+  function forceRefreshFromCisa(){
+    els.syncText.textContent = "Trying CISA directly…";
+    fetch(CISA_DATA_URL, {cache:"no-store"})
+      .then(function(res){
+        if(!res.ok) throw new Error("CISA fetch failed: " + res.status);
+        return res.json();
+      })
+      .then(function(json){
+        state.catalog = json;
+        state.dataSource = "cisa";
+        updateSyncInfo();
+        var handled = applyUrlParams();
+        if(!handled){
+          state.filtered = (json.vulnerabilities || []).slice().sort(function(a,b){
+            return (b.dateAdded||"").localeCompare(a.dateAdded||"");
+          });
+          renderTable(state.filtered);
+        }
+        showToast("Loaded fresh data directly from CISA.");
+      })
+      .catch(function(err){
+        console.warn("Direct CISA fetch failed:", err);
+        showToast("CISA blocked the direct request (common — their server filters non-browser-like traffic). The repo mirror will pick it up once the workflow runs.");
+        updateSyncInfo();
+      });
   }
 
   // ---------- Filtering ----------
