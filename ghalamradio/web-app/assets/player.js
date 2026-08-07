@@ -23,6 +23,22 @@ const Player = (() => {
   function setOnStateChange(fn) { onStateChange = fn; }
   function setOnMetadata(fn) { onMetadata = fn; } // called with {artist, title} or null
 
+  // The page is always served over https, so a plain http:// stream URL is
+  // "active mixed content". Chrome/Safari auto-upgrade it for <audio>/<video>
+  // elements, but a raw fetch() (which icecast-metadata-player uses to read
+  // ICY metadata) is blocked outright, with no upgrade attempt at all —
+  // it fails immediately every time. Upgrading the scheme ourselves before
+  // playback means both the ICY path and the plain fallback get a real shot
+  // at working (whichever the origin server actually supports), instead of
+  // guaranteeing the ICY attempt fails and wasting a round trip. We only use
+  // this for the outgoing request — the station's stored URL is untouched.
+  function toPlayableUrl(url) {
+    if (location.protocol === 'https:' && /^http:\/\//i.test(url || '')) {
+      return 'https://' + url.slice('http://'.length);
+    }
+    return url;
+  }
+
   function loadHlsJs() {
     if (window.Hls) return Promise.resolve(window.Hls);
     if (hlsLoadPromise) return hlsLoadPromise;
@@ -63,18 +79,18 @@ const Player = (() => {
     return /\.m3u8(\?|$)/i.test(url || '');
   }
 
-  function playPlain(station) {
-    audio.src = station.url;
+  function playPlain(station, playUrl) {
+    audio.src = playUrl || station.url;
     audio.play().catch(err => {
       console.warn('Plain audio fallback failed to play:', station.url, err && err.name, err && err.message);
       onStateChange({ status: 'error', station });
     });
   }
 
-  function playViaHls(station) {
+  function playViaHls(station, playUrl) {
     loadHlsJs().then(Hls => {
       if (currentStation !== station) return; // superseded by a newer play() call
-      if (!Hls.isSupported()) { playPlain(station); return; }
+      if (!Hls.isSupported()) { playPlain(station, playUrl); return; }
       hls = new Hls();
       hls.on(Hls.Events.ERROR, (evt, data) => {
         if (data.fatal) onStateChange({ status: 'error', station });
@@ -83,10 +99,10 @@ const Player = (() => {
         const parsed = extractId3FromHlsEvent(data);
         if (parsed) onMetadata(parsed);
       });
-      hls.loadSource(station.url);
+      hls.loadSource(playUrl);
       hls.attachMedia(audio);
       audio.play().catch(() => {});
-    }).catch(() => playPlain(station));
+    }).catch(() => playPlain(station, playUrl));
   }
 
   // Not every failure mode surfaces cleanly through onError/play().catch() —
@@ -112,12 +128,12 @@ const Player = (() => {
     };
   }
 
-  function playViaIcecast(station) {
+  function playViaIcecast(station, playUrl) {
     loadIcecastPlayer().then(IcecastMetadataPlayer => {
       if (currentStation !== station) return; // superseded by a newer play() call
 
       const guard = withFallbackTimeout(station, 8000, () => {
-        console.warn('ICY playback stalled or failed — falling back to plain audio:', station.url);
+        console.warn('ICY playback stalled or failed — falling back to plain audio:', playUrl);
         if (icyPlayer) { try { icyPlayer.detachAudioElement(); } catch {} icyPlayer = null; }
         // icecast-metadata-player's own error/cleanup chain doesn't finish in
         // this same tick — it calls audio.pause() on this shared element
@@ -127,12 +143,12 @@ const Player = (() => {
         // next tick lets its cleanup fully settle before we touch the
         // element ourselves.
         setTimeout(() => {
-          if (currentStation === station) playPlain(station);
+          if (currentStation === station) playPlain(station, playUrl);
         }, 50);
       });
 
       try {
-        icyPlayer = new IcecastMetadataPlayer(station.url, {
+        icyPlayer = new IcecastMetadataPlayer(playUrl, {
           audioElement: audio,
           metadataTypes: ['icy'],
           enableLogging: true, // surfaces warnings like missing/undetectable Icy-MetaInt
@@ -152,7 +168,7 @@ const Player = (() => {
       } catch (err) {
         guard.fallbackNow();
       }
-    }).catch(() => playPlain(station));
+    }).catch(() => playPlain(station, playUrl));
   }
 
   function play(station) {
@@ -165,10 +181,11 @@ const Player = (() => {
     onMetadata(null); // clear any previous track info immediately
     onStateChange({ status: 'loading', station });
 
-    if (isHlsUrl(station.url)) {
-      playViaHls(station);
+    const playUrl = toPlayableUrl(station.url);
+    if (isHlsUrl(playUrl)) {
+      playViaHls(station, playUrl);
     } else {
-      playViaIcecast(station);
+      playViaIcecast(station, playUrl);
     }
   }
 

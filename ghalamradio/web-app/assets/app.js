@@ -300,9 +300,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function handlePlay(station) {
     if (isVideoStation(station)) {
+      Player.stop(); // don't let audio keep playing underneath the video
+      syncPlaybackUI();
       openVideoModal(station);
       return;
     }
+    closeVideoModal(); // don't let a video keep playing behind the audio bar
     if (Player.current && Player.current.url === station.url) {
       Player.stop();
     } else {
