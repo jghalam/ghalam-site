@@ -65,7 +65,10 @@ const Player = (() => {
 
   function playPlain(station) {
     audio.src = station.url;
-    audio.play().catch(() => onStateChange({ status: 'error', station }));
+    audio.play().catch(err => {
+      console.warn('Plain audio fallback failed to play:', station.url, err && err.name, err && err.message);
+      onStateChange({ status: 'error', station });
+    });
   }
 
   function playViaHls(station) {
