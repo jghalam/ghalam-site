@@ -334,6 +334,9 @@
   // ---------- Config ----------
   // Primary source: JSON mirrored into this repo by the GitHub Action (same-origin, no CORS issues).
   var LOCAL_DATA_URL = "data/kev.json";
+  // Written by the workflow on every run, even when the catalog itself didn't
+  // change — lets the site show "last checked" separately from "last changed".
+  var SYNC_STATUS_URL = "data/sync-status.json";
   // Fallback: direct from CISA (may be blocked by CORS in some browsers — best effort only).
   var CISA_DATA_URL = "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json";
 
@@ -341,6 +344,7 @@
     catalog: null,      // full parsed JSON
     filtered: [],        // current filtered rows
     dataSource: null,    // "local" | "cisa"
+    syncStatus: null,    // { lastChecked, catalogVersion, catalogDateReleased, count } or null
   };
 
   // ---------- DOM ----------
@@ -425,6 +429,30 @@
       });
   }
 
+  // Best-effort: this file only exists once the workflow has run at least
+  // once with the "Record sync status" step. Missing/failed fetch just
+  // means we fall back to dateReleased-based staleness — never blocks load.
+  function loadSyncStatus(){
+    return fetch(SYNC_STATUS_URL, {cache:"no-store"})
+      .then(function(res){
+        if(!res.ok) throw new Error("sync-status fetch failed: " + res.status);
+        return res.json();
+      })
+      .catch(function(err){
+        console.warn("No sync-status.json available:", err);
+        return null;
+      });
+  }
+
+  function timeAgo(iso){
+    var d = new Date(iso);
+    if(isNaN(d.getTime())) return "unknown";
+    var hrs = (Date.now() - d.getTime()) / 3600000;
+    if(hrs < 1) return Math.round(hrs * 60) + " min ago";
+    if(hrs < 48) return hrs.toFixed(1) + "h ago";
+    return (hrs / 24).toFixed(1) + " days ago";
+  }
+
   function updateSyncInfo(){
     if(!state.catalog){
       els.syncDot.className = "dot error";
@@ -436,27 +464,33 @@
     var releasedRaw = state.catalog.dateReleased;
     var released = releasedRaw ? releasedRaw.split("T")[0] : "unknown";
     var sourceLabel = state.dataSource === "local" ? "repo mirror" : "live CISA fetch";
-
-    // Staleness: how old is the catalog itself (per CISA's own dateReleased),
-    // not just when our copy last succeeded — a stuck Action can serve an
-    // old file with an old dateReleased indefinitely.
-    var releasedDate = releasedRaw ? new Date(releasedRaw) : null;
-    var ageHours = releasedDate ? (Date.now() - releasedDate.getTime()) / 3600000 : null;
     var isPlaceholder = state.catalog.catalogVersion === "placeholder" || count === 0;
-    var STALE_HOURS = 36; // CISA typically updates on business days; give it slack past 24h.
+
+    var lastChecked = state.syncStatus && state.syncStatus.lastChecked;
+    var checkedHours = lastChecked ? (Date.now() - new Date(lastChecked).getTime()) / 3600000 : null;
+    var STALE_HOURS = 36; // give slack past the daily schedule for weekends/delays.
+
+    // Prefer basing staleness on "when did the workflow last actually check
+    // in", since an unchanged dateReleased is expected whenever CISA hasn't
+    // published anything new — it doesn't mean the sync is broken. Fall back
+    // to dateReleased age only if sync-status.json isn't available yet.
+    var ageHours = checkedHours != null ? checkedHours
+      : (releasedRaw ? (Date.now() - new Date(releasedRaw).getTime()) / 3600000 : null);
+    var checkedSuffix = lastChecked ? " · last checked " + timeAgo(lastChecked) : "";
 
     if(isPlaceholder){
       els.syncDot.className = "dot error";
       els.syncText.innerHTML = "No data yet — the sync workflow hasn't populated this file. "
         + '<button class="ghost link-btn" id="btnForceRefresh" type="button">Try fetching from CISA now</button>';
     } else if(ageHours != null && ageHours > STALE_HOURS){
-      var ageDays = (ageHours / 24).toFixed(1);
+      var ageLabel = lastChecked ? timeAgo(lastChecked) : (ageHours / 24).toFixed(1) + " days old";
       els.syncDot.className = "dot stale";
-      els.syncText.innerHTML = count + " CVEs · catalog released " + released + " (" + ageDays + " days old — mirror may be behind) · "
+      els.syncText.innerHTML = count + " CVEs · catalog released " + released
+        + " (checks may be stalled — last successful check " + ageLabel + ") · "
         + '<button class="ghost link-btn" id="btnForceRefresh" type="button">Try fetching from CISA now</button>';
     } else {
       els.syncDot.className = "dot";
-      els.syncText.textContent = count + " CVEs · catalog released " + released + " (" + sourceLabel + ")";
+      els.syncText.textContent = count + " CVEs · catalog released " + released + checkedSuffix + " (" + sourceLabel + ")";
     }
 
     var refreshBtn = document.getElementById("btnForceRefresh");
@@ -772,9 +806,11 @@
   });
 
   // ---------- Init ----------
-  loadCatalog()
-    .then(function(json){
+  Promise.all([loadCatalog(), loadSyncStatus()])
+    .then(function(results){
+      var json = results[0];
       state.catalog = json;
+      state.syncStatus = results[1];
       updateSyncInfo();
       var handled = applyUrlParams();
       if(!handled){
