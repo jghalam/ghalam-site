@@ -733,15 +733,33 @@
   }
 
   // ---------- Wire up events ----------
+  function debounce(fn, ms){
+    var t = null;
+    return function(){
+      clearTimeout(t);
+      t = setTimeout(fn, ms);
+    };
+  }
+
+  var liveSearch = debounce(runSearch, 200);
+
   els.btnSearch.addEventListener("click", runSearch);
   els.btnReset.addEventListener("click", resetFilters);
   els.btnCsv.addEventListener("click", function(){ downloadCsv(state.filtered); });
   els.btnShare.addEventListener("click", shareCurrentQuery);
 
+  // Text fields: live-filter as the user types, debounced so a fast typer
+  // doesn't re-filter 1,600+ rows on every keystroke.
   [els.fCve, els.fText, els.fVendor, els.fCwe].forEach(function(input){
+    input.addEventListener("input", liveSearch);
     input.addEventListener("keydown", function(e){
-      if(e.key === "Enter") runSearch();
+      if(e.key === "Enter") runSearch(); // instant, no need to wait for debounce
     });
+  });
+
+  // Select + date fields: these fire far less often, so filter immediately.
+  [els.fRansom, els.fAddedFrom, els.fAddedTo, els.fDueFrom, els.fDueTo].forEach(function(input){
+    input.addEventListener("change", runSearch);
   });
 
   $("viewApiLink").addEventListener("click", function(e){
@@ -749,7 +767,7 @@
     var msg = "Build a link like:\n" +
       window.location.origin + window.location.pathname +
       "?cve=CVE-2026&addedFrom=2026-01-01&addedTo=2026-08-06&format=csv&download=1\n\n" +
-      "Supported params: cve, q, vendor, ransomware (Known/Unknown), addedFrom, addedTo, dueFrom, dueTo, format=csv, download=1";
+      "Supported params: cve, q, vendor, ransomware (Known/Unknown), cwe, addedFrom, addedTo, dueFrom, dueTo, format=csv, download=1";
     alert(msg);
   });
 
