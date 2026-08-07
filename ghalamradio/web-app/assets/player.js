@@ -119,7 +119,16 @@ const Player = (() => {
       const guard = withFallbackTimeout(station, 8000, () => {
         console.warn('ICY playback stalled or failed — falling back to plain audio:', station.url);
         if (icyPlayer) { try { icyPlayer.detachAudioElement(); } catch {} icyPlayer = null; }
-        playPlain(station);
+        // icecast-metadata-player's own error/cleanup chain doesn't finish in
+        // this same tick — it calls audio.pause() on this shared element
+        // shortly *after* returning from onError. Calling audio.play() here
+        // synchronously races that trailing pause() and gets aborted
+        // (AbortError: interrupted by a call to pause()). Deferring to the
+        // next tick lets its cleanup fully settle before we touch the
+        // element ourselves.
+        setTimeout(() => {
+          if (currentStation === station) playPlain(station);
+        }, 50);
       });
 
       try {
