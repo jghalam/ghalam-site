@@ -49,6 +49,14 @@ body {
   padding: 3rem 1.5rem 1.25rem;
 }
 
+.header-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  box-shadow: 0 6px 24px rgba(0,0,0,0.45), 0 0 0 1px var(--border);
+  margin-bottom: 0.75rem;
+}
+
 .wordmark {
   font-family: 'DM Serif Display', serif;
   font-weight: 400;
@@ -137,7 +145,92 @@ input:focus-visible, select:focus-visible, button:focus-visible {
 }
 
 .search-bar input[type="search"] { flex: 1; }
-.search-bar select { max-width: 40%; }
+
+/* Custom country dropdown (flag + name; native <select> can't show images) */
+.country-select {
+  position: relative;
+  flex: 0 0 auto;
+  width: 44%;
+  max-width: 220px;
+}
+
+.country-select-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.65rem 0.7rem;
+  cursor: pointer;
+}
+
+.country-select-btn span { flex: 1; text-align: left; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.country-select-btn .chevron { color: var(--text-dim); flex-shrink: 0; }
+
+.country-select-flag {
+  width: 18px;
+  height: 13px;
+  object-fit: cover;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.country-select-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 20;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.5rem;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+}
+
+.country-select-panel input[type="search"] {
+  margin-bottom: 0.4rem;
+}
+
+.country-select-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.country-select-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.45rem 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.88rem;
+}
+
+.country-select-list li:hover,
+.country-select-list li.is-active { background: var(--surface); color: var(--accent); }
+
+.country-select-list img {
+  width: 18px;
+  height: 13px;
+  object-fit: cover;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.country-select-list .no-flag {
+  width: 18px;
+  height: 13px;
+  flex-shrink: 0;
+}
 
 .status-line, .hint {
   color: var(--text-dim);
@@ -187,6 +280,23 @@ input:focus-visible, select:focus-visible, button:focus-visible {
 .station-desc {
   font-size: 0.78rem;
   color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.station-desc .station-flag {
+  width: 16px;
+  height: 12px;
+  object-fit: cover;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.station-desc .station-desc-text {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

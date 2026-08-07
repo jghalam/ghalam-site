@@ -44,7 +44,19 @@ document.addEventListener('DOMContentLoaded', () => {
     nameEl.textContent = station.name || '(unnamed station)';
     const descEl = document.createElement('div');
     descEl.className = 'station-desc';
-    descEl.textContent = station.description || station.url;
+    if (station.countrycode) {
+      const flag = document.createElement('img');
+      flag.className = 'station-flag';
+      flag.alt = '';
+      flag.loading = 'lazy';
+      flag.src = flagUrl(station.countrycode);
+      flag.onerror = () => { flag.style.display = 'none'; };
+      descEl.appendChild(flag);
+    }
+    const descText = document.createElement('span');
+    descText.className = 'station-desc-text';
+    descText.textContent = station.description || station.url;
+    descEl.appendChild(descText);
     meta.appendChild(nameEl);
     meta.appendChild(descEl);
     li.appendChild(meta);
@@ -152,15 +164,15 @@ document.addEventListener('DOMContentLoaded', () => {
   // ---------- browse / search ----------
 
   const searchName = document.getElementById('searchName');
-  const searchCountry = document.getElementById('searchCountry');
   const searchResults = document.getElementById('searchResults');
   const searchHint = document.getElementById('searchHint');
   const dbStatus = document.getElementById('dbStatus');
+  let selectedCountryCode = '';
 
   function renderSearch() {
-    const results = StationDB.search(searchName.value, searchCountry.value);
+    const results = StationDB.search(searchName.value, selectedCountryCode);
     searchResults.innerHTML = '';
-    if (!searchName.value.trim() && !searchCountry.value) {
+    if (!searchName.value.trim() && !selectedCountryCode) {
       searchHint.hidden = false;
       searchHint.textContent = 'Type a name or pick a country to search.';
       return;
@@ -185,19 +197,93 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const debouncedSearch = debounce(renderSearch, CONFIG.SEARCH_DEBOUNCE_MS);
   searchName.addEventListener('input', debouncedSearch);
-  searchCountry.addEventListener('change', renderSearch);
+
+  // ---------- custom country dropdown (flag + name) ----------
+
+  const countrySelect = document.getElementById('countrySelect');
+  const countrySelectBtn = document.getElementById('countrySelectBtn');
+  const countrySelectPanel = document.getElementById('countrySelectPanel');
+  const countrySelectList = document.getElementById('countrySelectList');
+  const countrySelectLabel = document.getElementById('countrySelectLabel');
+  const countrySelectFlag = document.getElementById('countrySelectFlag');
+  const countryFilter = document.getElementById('countryFilter');
+  let countryOptions = []; // [{code, name}]
+
+  function renderCountryList(filterText) {
+    const q = (filterText || '').trim().toLowerCase();
+    countrySelectList.innerHTML = '';
+
+    const allItem = document.createElement('li');
+    allItem.setAttribute('role', 'option');
+    allItem.innerHTML = '<span class="no-flag"></span><span>All countries</span>';
+    allItem.addEventListener('click', () => selectCountry('', 'All countries'));
+    if (!selectedCountryCode) allItem.classList.add('is-active');
+    countrySelectList.appendChild(allItem);
+
+    for (const { code, name } of countryOptions) {
+      if (q && !name.toLowerCase().includes(q) && !code.toLowerCase().includes(q)) continue;
+      const li = document.createElement('li');
+      li.setAttribute('role', 'option');
+      const img = document.createElement('img');
+      img.src = flagUrl(code);
+      img.alt = '';
+      img.loading = 'lazy';
+      img.onerror = () => { img.replaceWith(Object.assign(document.createElement('span'), { className: 'no-flag' })); };
+      const label = document.createElement('span');
+      label.textContent = name;
+      li.appendChild(img);
+      li.appendChild(label);
+      li.addEventListener('click', () => selectCountry(code, name));
+      if (code === selectedCountryCode) li.classList.add('is-active');
+      countrySelectList.appendChild(li);
+    }
+  }
+
+  function selectCountry(code, name) {
+    selectedCountryCode = code;
+    countrySelectLabel.textContent = name;
+    if (code) {
+      countrySelectFlag.src = flagUrl(code);
+      countrySelectFlag.hidden = false;
+      countrySelectFlag.onerror = () => { countrySelectFlag.hidden = true; };
+    } else {
+      countrySelectFlag.hidden = true;
+    }
+    closeCountryPanel();
+    renderSearch();
+  }
+
+  function openCountryPanel() {
+    countrySelectPanel.hidden = false;
+    countrySelectBtn.setAttribute('aria-expanded', 'true');
+    countryFilter.value = '';
+    renderCountryList('');
+    countryFilter.focus();
+  }
+  function closeCountryPanel() {
+    countrySelectPanel.hidden = true;
+    countrySelectBtn.setAttribute('aria-expanded', 'false');
+  }
+
+  countrySelectBtn.addEventListener('click', () => {
+    countrySelectPanel.hidden ? openCountryPanel() : closeCountryPanel();
+  });
+  countryFilter.addEventListener('input', () => renderCountryList(countryFilter.value));
+  document.addEventListener('click', (e) => {
+    if (!countrySelect.contains(e.target)) closeCountryPanel();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeCountryPanel();
+  });
 
   StationDB.load((msg) => { dbStatus.textContent = msg; })
     .then(() => {
       const count = StationDB.getStationCount();
       dbStatus.textContent = `${count.toLocaleString()} stations available`;
-      const countries = StationDB.listCountries();
-      for (const c of countries) {
-        const opt = document.createElement('option');
-        opt.value = c;
-        opt.textContent = c;
-        searchCountry.appendChild(opt);
-      }
+      const codes = StationDB.listCountries();
+      countryOptions = codes
+        .map(code => ({ code, name: countryName(code) }))
+        .sort((a, b) => a.name.localeCompare(b.name));
     })
     .catch(err => {
       console.error(err);
