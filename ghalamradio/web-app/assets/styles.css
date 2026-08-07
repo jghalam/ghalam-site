@@ -416,6 +416,9 @@ input:focus-visible, select:focus-visible, button:focus-visible {
 .player-status {
   font-size: 0.76rem;
   color: var(--text-dim);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* Modals */

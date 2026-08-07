@@ -149,14 +149,34 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   Player.setOnStateChange(({ status, station }) => {
+    lastStatus = status;
     if (!station) { playerBar.hidden = true; syncPlaybackUI(); return; }
     playerBar.hidden = false;
     playerName.textContent = station.name || station.url;
-    if (status === 'loading') playerStatus.textContent = 'Connecting…';
-    else if (status === 'playing') playerStatus.textContent = 'Playing';
-    else if (status === 'error') playerStatus.textContent = 'Couldn\u2019t play this station';
-    else if (status === 'stopped') playerStatus.textContent = 'Stopped';
+    renderPlayerStatusText();
     syncPlaybackUI();
+  });
+
+  // Prefer showing the live track (artist — title) once metadata arrives;
+  // fall back to the connection status otherwise. Metadata can arrive after
+  // the 'playing' state fires, so both paths funnel through this one function
+  // so neither can clobber the other out of order.
+  let lastStatus = null;
+  let lastMetadata = null;
+  function renderPlayerStatusText() {
+    if (lastStatus === 'loading') { playerStatus.textContent = 'Connecting…'; return; }
+    if (lastStatus === 'error') { playerStatus.textContent = 'Couldn\u2019t play this station'; return; }
+    if (lastStatus === 'stopped') { playerStatus.textContent = 'Stopped'; return; }
+    if (lastMetadata && (lastMetadata.title || lastMetadata.artist)) {
+      playerStatus.textContent = [lastMetadata.artist, lastMetadata.title].filter(Boolean).join(' — ');
+    } else {
+      playerStatus.textContent = 'Playing';
+    }
+  }
+
+  Player.setOnMetadata((info) => {
+    lastMetadata = info;
+    renderPlayerStatusText();
   });
 
   function handlePlay(station) {
