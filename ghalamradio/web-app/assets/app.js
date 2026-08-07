@@ -23,7 +23,9 @@ document.addEventListener('DOMContentLoaded', () => {
       <rect width="40" height="40" rx="8" fill="#1c2030"/>
       <text x="50%" y="54%" text-anchor="middle" fill="#e3a83b" font-family="DM Sans" font-size="16" dy=".1em">${letter}</text>
     </svg>`;
-    return 'data:image/svg+xml;base64,' + btoa(svg);
+    // URI-encoding (not base64/btoa) — btoa only supports Latin-1 and throws
+    // on non-Latin script station names/initials (Persian, Arabic, etc.).
+    return 'data:image/svg+xml,' + encodeURIComponent(svg);
   }
 
   function stationRow(station, { onPlay, onAdd, onRemove, onEdit } = {}) {
@@ -45,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
     nameEl.textContent = station.name || '(unnamed station)';
     const descEl = document.createElement('div');
     descEl.className = 'station-desc';
-    if (station.countrycode) {
+    if (station.countrycode && COUNTRY_NAMES[station.countrycode.toUpperCase()]) {
       const flag = document.createElement('img');
       flag.className = 'station-flag';
       flag.alt = '';
@@ -198,8 +200,19 @@ document.addEventListener('DOMContentLoaded', () => {
   const searchName = document.getElementById('searchName');
   const searchResults = document.getElementById('searchResults');
   const searchHint = document.getElementById('searchHint');
+  const searchCount = document.getElementById('searchCount');
   const dbStatus = document.getElementById('dbStatus');
   let selectedCountryCode = '';
+
+  function appendRowSafely(list, station, callbacks) {
+    try {
+      list.appendChild(stationRow(station, callbacks));
+    } catch (err) {
+      // Never let one malformed record (bad characters, missing fields, etc.
+      // — this DB is uncurated global data) take down the rest of the list.
+      console.error('Skipped a station row due to a render error:', station, err);
+    }
+  }
 
   function renderSearch() {
     const results = StationDB.search(searchName.value, selectedCountryCode);
@@ -207,23 +220,29 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!searchName.value.trim() && !selectedCountryCode) {
       searchHint.hidden = false;
       searchHint.textContent = 'Type a name or pick a country to search.';
+      searchCount.hidden = true;
       return;
     }
     searchHint.hidden = results.length > 0;
     if (results.length === 0) {
       searchHint.hidden = false;
       searchHint.textContent = 'No stations found.';
+      searchCount.hidden = true;
       return;
     }
+    searchCount.hidden = false;
+    searchCount.textContent = results.length >= CONFIG.SEARCH_RESULT_LIMIT
+      ? `Showing first ${results.length} matches — refine your search to narrow it down`
+      : `${results.length} station${results.length === 1 ? '' : 's'} found`;
     for (const station of results) {
-      searchResults.appendChild(stationRow(station, {
+      appendRowSafely(searchResults, station, {
         onPlay: handlePlay,
         onAdd: (s) => {
           MyStations.add(s);
           refreshMyStations();
           toast(`Added “${s.name || 'station'}”`);
         }
-      }));
+      });
     }
     syncPlaybackUI();
   }
@@ -257,14 +276,21 @@ document.addEventListener('DOMContentLoaded', () => {
       if (q && !name.toLowerCase().includes(q) && !code.toLowerCase().includes(q)) continue;
       const li = document.createElement('li');
       li.setAttribute('role', 'option');
-      const img = document.createElement('img');
-      img.src = flagUrl(code);
-      img.alt = '';
-      img.loading = 'lazy';
-      img.onerror = () => { img.replaceWith(Object.assign(document.createElement('span'), { className: 'no-flag' })); };
+      // Some entries (e.g. "XX") are radio-browser's placeholder for an
+      // unknown country and have no real flag — skip the request entirely
+      // rather than firing it and letting onerror clean up after a 404.
+      if (COUNTRY_NAMES[code.toUpperCase()]) {
+        const img = document.createElement('img');
+        img.src = flagUrl(code);
+        img.alt = '';
+        img.loading = 'lazy';
+        img.onerror = () => { img.replaceWith(Object.assign(document.createElement('span'), { className: 'no-flag' })); };
+        li.appendChild(img);
+      } else {
+        li.appendChild(Object.assign(document.createElement('span'), { className: 'no-flag' }));
+      }
       const label = document.createElement('span');
       label.textContent = name;
-      li.appendChild(img);
       li.appendChild(label);
       li.addEventListener('click', () => selectCountry(code, name));
       if (code === selectedCountryCode) li.classList.add('is-active');
@@ -382,14 +408,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
     visible.forEach((station) => {
       const index = allStations.indexOf(station); // real index in the unfiltered saved list
-      myStationsList.appendChild(stationRow(station, {
+      appendRowSafely(myStationsList, station, {
         onPlay: handlePlay,
         onEdit: () => openEditModal(index, station),
         onRemove: () => {
           MyStations.removeAt(index);
           refreshMyStations();
         }
-      }));
+      });
     });
     syncPlaybackUI();
   }
@@ -496,7 +522,7 @@ document.addEventListener('DOMContentLoaded', () => {
       (conflicts.length ? `, ${conflicts.length} duplicate${conflicts.length === 1 ? '' : 's'} (already in your list)` : '');
 
     importFreshList.innerHTML = '';
-    fresh.forEach(s => importFreshList.appendChild(stationRow(s)));
+    fresh.forEach(s => appendRowSafely(importFreshList, s, {}));
 
     importConflicts.innerHTML = '';
     pendingConflictChoices.forEach((c, i) => {
