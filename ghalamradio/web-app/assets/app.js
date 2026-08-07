@@ -386,6 +386,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const addHomepageEl = document.getElementById('addHomepage');
   const addImageEl = document.getElementById('addImage');
   const addCountryEl = document.getElementById('addCountry');
+  const addDescriptionEl = document.getElementById('addDescription');
   const addTagsEl = document.getElementById('addTags');
   let editingIndex = null; // null = adding new; number = editing MyStations[index]
 
@@ -404,6 +405,7 @@ document.addEventListener('DOMContentLoaded', () => {
     addHomepageEl.value = station.homepage || '';
     addImageEl.value = station.image || '';
     addCountryEl.value = station.countrycode || '';
+    addDescriptionEl.value = station.description || '';
     addTagsEl.value = station.tags || '';
     addModalTitle.textContent = 'Edit station';
     addSubmitBtn.textContent = 'Save changes';
@@ -415,6 +417,7 @@ document.addEventListener('DOMContentLoaded', () => {
   addForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const countrycode = addCountryEl.value.trim().toUpperCase();
+    const description = addDescriptionEl.value.trim() || (countrycode ? countryName(countrycode) : '');
     const station = {
       name: addNameEl.value.trim(),
       url: addUrlEl.value.trim(),
@@ -422,7 +425,7 @@ document.addEventListener('DOMContentLoaded', () => {
       homepage: addHomepageEl.value.trim(),
       countrycode,
       tags: addTagsEl.value.trim(),
-      description: countrycode ? countryName(countrycode) : ''
+      description
     };
     if (!station.name || !station.url) return;
     if (editingIndex !== null) {
