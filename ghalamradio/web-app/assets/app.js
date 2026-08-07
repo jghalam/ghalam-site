@@ -17,6 +17,45 @@ document.addEventListener('DOMContentLoaded', () => {
     return (...args) => { clearTimeout(t); t = setTimeout(() => fn(...args), ms); };
   }
 
+  // Mirrors the iOS app's isVideoURL(_:) + "description contains 'video'"
+  // check exactly, so a station tagged as video on one platform shows the
+  // same way on the other. Note: unlike AVPlayer on iOS, browsers can only
+  // actually play a narrow set of these containers/codecs (reliably mp4,
+  // usually mov; avi/mkv/flv will very likely fail to decode) — detection
+  // matches iOS 1:1, but playback support is a real browser limitation.
+  const VIDEO_EXTENSIONS = ['mp4', 'mov', 'avi', 'mkv', 'flv'];
+  function isVideoUrl(urlStr) {
+    try {
+      const path = new URL(urlStr).pathname;
+      const ext = path.split('.').pop().toLowerCase();
+      return VIDEO_EXTENSIONS.includes(ext);
+    } catch {
+      return false;
+    }
+  }
+  function isVideoStation(station) {
+    return (station.description || '').includes('video') || isVideoUrl(station.url || '');
+  }
+  function isYouTubeUrl(urlStr) {
+    return /(^|\.)youtube\.com$/.test(safeHost(urlStr)) || /(^|\.)youtu\.be$/.test(safeHost(urlStr));
+  }
+  function safeHost(urlStr) {
+    try { return new URL(urlStr).hostname; } catch { return ''; }
+  }
+  function extractYouTubeId(urlStr) {
+    try {
+      const u = new URL(urlStr);
+      if (u.hostname.includes('youtu.be')) return u.pathname.slice(1);
+      if (u.searchParams.get('v')) return u.searchParams.get('v');
+      const parts = u.pathname.split('/');
+      const embedIdx = parts.indexOf('embed');
+      if (embedIdx !== -1 && parts[embedIdx + 1]) return parts[embedIdx + 1];
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
   function fallbackArt(name) {
     const letter = (name || '?').trim().charAt(0).toUpperCase() || '?';
     const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40">
@@ -45,6 +84,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const nameEl = document.createElement('div');
     nameEl.className = 'station-name';
     nameEl.textContent = station.name || '(unnamed station)';
+    if (isVideoStation(station)) {
+      const badge = document.createElement('span');
+      badge.className = 'video-badge';
+      badge.title = 'Video stream';
+      badge.innerHTML = '<svg viewBox="0 0 24 24" width="13" height="13"><path d="M15 10.5V7a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-3.5l4 4v-11l-4 4z" fill="currentColor"/></svg>';
+      nameEl.appendChild(badge);
+    }
     const descEl = document.createElement('div');
     descEl.className = 'station-desc';
     if (station.countrycode && COUNTRY_NAMES[station.countrycode.toUpperCase()]) {
@@ -75,6 +121,20 @@ document.addEventListener('DOMContentLoaded', () => {
       playBtn.addEventListener('click', () => onPlay(station, playBtn));
       actions.appendChild(playBtn);
       li._playBtn = playBtn;
+    }
+    if (station.homepage) {
+      const linkBtn = document.createElement('a');
+      linkBtn.className = 'icon-btn';
+      linkBtn.href = station.homepage;
+      linkBtn.target = '_blank';
+      linkBtn.rel = 'noopener noreferrer';
+      linkBtn.setAttribute('aria-label', 'Open station website');
+      linkBtn.title = 'Open station website';
+      linkBtn.innerHTML = '<svg viewBox="0 0 24 24" width="15" height="15"><path d="M14 4h6v6M10 14L20 4M18 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h6" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      // Row click handlers elsewhere use bare clicks, not <a> navigation —
+      // stop propagation so this doesn't also trigger a parent row action.
+      linkBtn.addEventListener('click', (e) => e.stopPropagation());
+      actions.appendChild(linkBtn);
     }
     if (onAdd) {
       const addBtn = document.createElement('button');
@@ -125,6 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const playerBar = document.getElementById('playerBar');
   const playerName = document.getElementById('playerName');
+  const playerDesc = document.getElementById('playerDesc');
   const playerStatus = document.getElementById('playerStatus');
   const playerToggle = document.getElementById('playerToggle');
 
@@ -155,6 +216,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!station) { playerBar.hidden = true; syncPlaybackUI(); return; }
     playerBar.hidden = false;
     playerName.textContent = station.name || station.url;
+    playerDesc.textContent = station.description || '';
     renderPlayerStatusText();
     syncPlaybackUI();
   });
@@ -181,7 +243,58 @@ document.addEventListener('DOMContentLoaded', () => {
     renderPlayerStatusText();
   });
 
+  // ---------- video playback ----------
+
+  const videoModal = document.getElementById('videoModal');
+  const videoModalBody = document.getElementById('videoModalBody');
+  const videoModalTitle = document.getElementById('videoModalTitle');
+  const videoModalError = document.getElementById('videoModalError');
+
+  function openVideoModal(station) {
+    videoModalTitle.textContent = station.name || 'Video stream';
+    videoModalError.hidden = true;
+    videoModalBody.innerHTML = '';
+
+    if (isYouTubeUrl(station.url)) {
+      const id = extractYouTubeId(station.url);
+      if (id) {
+        const iframe = document.createElement('iframe');
+        iframe.src = `https://www.youtube.com/embed/${id}?autoplay=1`;
+        iframe.allow = 'autoplay; encrypted-media; picture-in-picture';
+        iframe.allowFullscreen = true;
+        videoModalBody.appendChild(iframe);
+      } else {
+        videoModalError.hidden = false;
+        videoModalError.textContent = 'Couldn\u2019t determine the YouTube video from this link.';
+      }
+    } else {
+      const video = document.createElement('video');
+      video.src = station.url;
+      video.controls = true;
+      video.autoplay = true;
+      video.playsInline = true;
+      video.addEventListener('error', () => { videoModalError.hidden = false; });
+      videoModalBody.appendChild(video);
+    }
+
+    videoModal.showModal();
+  }
+
+  // Clearing the body (not just closing the dialog) matters — a <video> or
+  // YouTube iframe left in the DOM keeps playing in the background otherwise.
+  function closeVideoModal() {
+    videoModalBody.innerHTML = '';
+    if (videoModal.open) videoModal.close();
+  }
+
+  document.getElementById('videoModalClose').addEventListener('click', closeVideoModal);
+  videoModal.addEventListener('close', () => { videoModalBody.innerHTML = ''; });
+
   function handlePlay(station) {
+    if (isVideoStation(station)) {
+      openVideoModal(station);
+      return;
+    }
     if (Player.current && Player.current.url === station.url) {
       Player.stop();
     } else {

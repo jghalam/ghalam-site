@@ -75,10 +75,27 @@
     <svg viewBox="0 0 24 24" width="20" height="20"><rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor"/></svg>
   </button>
   <div class="player-info">
-    <div id="playerName" class="player-name">—</div>
+    <div class="player-title-row">
+      <span id="playerName" class="player-name">—</span>
+      <span id="playerDesc" class="player-desc"></span>
+    </div>
     <div id="playerStatus" class="player-status">—</div>
   </div>
 </div>
+
+<!-- Video playback modal -->
+<dialog id="videoModal" class="modal video-modal">
+  <div class="modal-form">
+    <div class="video-modal-header">
+      <h2 id="videoModalTitle">Video stream</h2>
+      <button type="button" class="icon-btn" id="videoModalClose" aria-label="Close">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <div id="videoModalBody" class="video-modal-body"></div>
+    <p id="videoModalError" class="hint" hidden>This browser can't play this video format. Some formats (e.g. .avi, .mkv, .flv) aren't supported outside of native apps.</p>
+  </div>
+</dialog>
 
 <!-- Manual add modal -->
 <dialog id="addModal" class="modal">
