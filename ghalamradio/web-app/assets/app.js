@@ -2,6 +2,9 @@
 
 document.addEventListener('DOMContentLoaded', () => {
 
+  const appVersionEl = document.getElementById('appVersion');
+  if (appVersionEl) appVersionEl.textContent = `v${APP_VERSION}`;
+
   // ---------- helpers ----------
 
   function toast(msg, ms = 2400) {

@@ -450,6 +450,14 @@ a.icon-btn { text-decoration: none; }
   text-overflow: ellipsis;
 }
 
+.app-version {
+  font-size: 0.68rem;
+  color: var(--text-dim);
+  opacity: 0.55;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
 /* Video */
 .video-badge {
   display: inline-flex;
