@@ -135,7 +135,7 @@ const Player = (() => {
         icyPlayer = new IcecastMetadataPlayer(station.url, {
           audioElement: audio,
           metadataTypes: ['icy'],
-          enableLogging: false,
+          enableLogging: true, // surfaces warnings like missing/undetectable Icy-MetaInt
           retryTimeout: 6, // fail fast to the plain-audio fallback rather than hang
           onMetadata: (metadata) => {
             const parsed = parseStreamTitle(metadata.StreamTitle);
