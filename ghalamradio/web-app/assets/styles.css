@@ -577,7 +577,37 @@ a.icon-btn { text-decoration: none; }
   z-index: 10;
 }
 
-@media (max-width: 420px) {
+@media (max-width: 480px) {
   .search-bar { flex-direction: column; }
   .search-bar select { max-width: 100%; }
+
+  /* Reclaim horizontal space for station names — on a narrow phone, fixed-
+     width elements (artwork, 3-4 action buttons) were eating most of the
+     row, leaving very little room for text before it truncated. */
+  main { padding: 0 0.75rem; }
+
+  .station-row {
+    padding: 0.55rem 0.6rem;
+    gap: 0.5rem;
+  }
+
+  .station-art {
+    width: 32px;
+    height: 32px;
+  }
+
+  .station-actions { gap: 0.3rem; }
+
+  .icon-btn {
+    width: 30px;
+    height: 30px;
+  }
+
+  /* The description line stays single-line/ellipsis (it's secondary info),
+     but the name itself now wraps instead of truncating — this is the main
+     fix, since a cut-off station name is the thing actually worth avoiding. */
+  .station-name {
+    white-space: normal;
+    overflow-wrap: break-word;
+  }
 }
