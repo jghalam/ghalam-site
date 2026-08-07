@@ -587,7 +587,7 @@ document.addEventListener('DOMContentLoaded', () => {
   addForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const countrycode = addCountryEl.value.trim().toUpperCase();
-    const description = addDescriptionEl.value.trim() || (countrycode ? countryName(countrycode) : '');
+    const description = addDescriptionEl.value.trim();
     const station = {
       name: addNameEl.value.trim(),
       url: addUrlEl.value.trim(),
