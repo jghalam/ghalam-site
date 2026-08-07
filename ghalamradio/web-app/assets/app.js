@@ -144,6 +144,8 @@ document.addEventListener('DOMContentLoaded', () => {
       row.classList.toggle('is-selected', isActive);
       if (row._playBtn) setPlayIcon(row._playBtn, isActive);
     });
+    setPlayIcon(playerToggle, !!activeUrl);
+    playerToggle.setAttribute('aria-label', activeUrl ? 'Stop' : 'Play');
   }
 
   Player.setOnStateChange(({ status, station }) => {
@@ -306,13 +308,60 @@ document.addEventListener('DOMContentLoaded', () => {
   const myStationsList = document.getElementById('myStationsList');
   const mineEmpty = document.getElementById('mineEmpty');
   const mineCount = document.getElementById('mineCount');
+  const tagFilterSelect = document.getElementById('tagFilter');
+  let selectedTag = '';
+
+  // Mirrors the iOS app's tag handling: tags is a comma-separated string,
+  // split/trimmed into a unique, sorted set for the filter dropdown, and
+  // matched exactly (not a substring match) when filtering.
+  function extractStationTags(stations) {
+    const set = new Set();
+    for (const s of stations) {
+      (s.tags || '').split(',').map(t => t.trim()).filter(Boolean).forEach(t => set.add(t));
+    }
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }
+
+  function stationHasTag(station, tag) {
+    return (station.tags || '').split(',').map(t => t.trim()).includes(tag);
+  }
+
+  function populateTagFilter(allStations) {
+    const tags = extractStationTags(allStations);
+    tagFilterSelect.innerHTML = '<option value="">All tags</option>';
+    for (const t of tags) {
+      const opt = document.createElement('option');
+      opt.value = t;
+      opt.textContent = t;
+      tagFilterSelect.appendChild(opt);
+    }
+    if (tags.includes(selectedTag)) {
+      tagFilterSelect.value = selectedTag;
+    } else {
+      selectedTag = '';
+      tagFilterSelect.value = '';
+    }
+  }
+
+  tagFilterSelect.addEventListener('change', () => {
+    selectedTag = tagFilterSelect.value;
+    refreshMyStations();
+  });
 
   function refreshMyStations() {
-    const stations = MyStations.load();
+    const allStations = MyStations.load();
+    populateTagFilter(allStations);
+    const visible = selectedTag ? allStations.filter(s => stationHasTag(s, selectedTag)) : allStations;
+
     myStationsList.innerHTML = '';
-    mineEmpty.hidden = stations.length > 0;
-    mineCount.textContent = stations.length ? String(stations.length) : '';
-    stations.forEach((station, index) => {
+    mineEmpty.hidden = visible.length > 0;
+    mineEmpty.textContent = allStations.length === 0
+      ? 'No stations saved yet. Search the directory or add one manually.'
+      : 'No saved stations match this tag.';
+    mineCount.textContent = allStations.length ? String(allStations.length) : '';
+
+    visible.forEach((station) => {
+      const index = allStations.indexOf(station); // real index in the unfiltered saved list
       myStationsList.appendChild(stationRow(station, {
         onPlay: handlePlay,
         onEdit: () => openEditModal(index, station),
@@ -365,14 +414,15 @@ document.addEventListener('DOMContentLoaded', () => {
   document.getElementById('addCancel').addEventListener('click', () => addModal.close());
   addForm.addEventListener('submit', (e) => {
     e.preventDefault();
+    const countrycode = addCountryEl.value.trim().toUpperCase();
     const station = {
       name: addNameEl.value.trim(),
       url: addUrlEl.value.trim(),
       image: addImageEl.value.trim(),
       homepage: addHomepageEl.value.trim(),
-      countrycode: addCountryEl.value.trim().toUpperCase(),
+      countrycode,
       tags: addTagsEl.value.trim(),
-      description: ''
+      description: countrycode ? countryName(countrycode) : ''
     };
     if (!station.name || !station.url) return;
     if (editingIndex !== null) {

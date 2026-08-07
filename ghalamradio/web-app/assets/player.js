@@ -26,8 +26,8 @@ const Player = (() => {
     audio.pause();
     audio.removeAttribute('src');
     audio.load();
-    onStateChange({ status: 'stopped', station: currentStation });
     currentStation = null;
+    onStateChange({ status: 'stopped', station: null });
   }
 
   audio.addEventListener('playing', () => onStateChange({ status: 'playing', station: currentStation }));
