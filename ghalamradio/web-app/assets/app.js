@@ -169,17 +169,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const tabs = document.querySelectorAll('.tab');
   const panels = { browse: document.getElementById('panel-browse'), mine: document.getElementById('panel-mine') };
+
+  function activateTab(name) {
+    const tab = Array.from(tabs).find(t => t.dataset.tab === name);
+    if (!tab) return;
+    tabs.forEach(t => { t.classList.remove('is-active'); t.setAttribute('aria-selected', 'false'); });
+    tab.classList.add('is-active');
+    tab.setAttribute('aria-selected', 'true');
+    Object.values(panels).forEach(p => { p.classList.remove('is-active'); p.hidden = true; });
+    panels[name].classList.add('is-active');
+    panels[name].hidden = false;
+  }
+
   tabs.forEach(tab => {
-    tab.addEventListener('click', () => {
-      tabs.forEach(t => { t.classList.remove('is-active'); t.setAttribute('aria-selected', 'false'); });
-      tab.classList.add('is-active');
-      tab.setAttribute('aria-selected', 'true');
-      Object.values(panels).forEach(p => { p.classList.remove('is-active'); p.hidden = true; });
-      const target = panels[tab.dataset.tab];
-      target.classList.add('is-active');
-      target.hidden = false;
-    });
+    tab.addEventListener('click', () => activateTab(tab.dataset.tab));
   });
+
+  // Land on My Stations if there's already a saved list — Browse only makes
+  // sense as the starting point when there's nothing saved yet.
+  if (MyStations.load().length > 0) activateTab('mine');
 
   // ---------- player ----------
 
