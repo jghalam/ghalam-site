@@ -256,7 +256,15 @@ input:focus-visible, select:focus-visible, button:focus-visible {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 0.65rem 0.75rem;
+  transition: border-color 0.15s ease, background 0.15s ease;
 }
+
+.station-row.is-selected {
+  border-color: var(--accent);
+  background: rgba(227, 168, 59, 0.08);
+}
+
+.station-row.is-selected .station-name { color: var(--accent); }
 
 .station-art {
   width: 40px;

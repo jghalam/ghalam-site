@@ -26,9 +26,10 @@ document.addEventListener('DOMContentLoaded', () => {
     return 'data:image/svg+xml;base64,' + btoa(svg);
   }
 
-  function stationRow(station, { onPlay, onAdd, onRemove } = {}) {
+  function stationRow(station, { onPlay, onAdd, onRemove, onEdit } = {}) {
     const li = document.createElement('li');
     li.className = 'station-row';
+    li.dataset.url = station.url || '';
 
     const img = document.createElement('img');
     img.className = 'station-art';
@@ -81,6 +82,14 @@ document.addEventListener('DOMContentLoaded', () => {
       addBtn.addEventListener('click', () => onAdd(station));
       actions.appendChild(addBtn);
     }
+    if (onEdit) {
+      const editBtn = document.createElement('button');
+      editBtn.className = 'icon-btn';
+      editBtn.setAttribute('aria-label', 'Edit');
+      editBtn.innerHTML = '<svg viewBox="0 0 24 24" width="15" height="15"><path d="M4 20h4l10.5-10.5a1.5 1.5 0 0 0 0-2.12l-1.88-1.88a1.5 1.5 0 0 0-2.12 0L4 16v4z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/></svg>';
+      editBtn.addEventListener('click', () => onEdit(station));
+      actions.appendChild(editBtn);
+    }
     if (onRemove) {
       const rmBtn = document.createElement('button');
       rmBtn.className = 'icon-btn danger';
@@ -116,7 +125,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const playerName = document.getElementById('playerName');
   const playerStatus = document.getElementById('playerStatus');
   const playerToggle = document.getElementById('playerToggle');
-  let activePlayBtn = null;
 
   function setPlayIcon(btn, playing) {
     if (!btn) return;
@@ -126,39 +134,41 @@ document.addEventListener('DOMContentLoaded', () => {
       : '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>';
   }
 
+  // Single source of truth for "is this row the active station": Player.current.
+  // Re-applied to every rendered row on every state change and every list
+  // re-render, so it can never drift out of sync with what's actually playing.
+  function syncPlaybackUI() {
+    const activeUrl = Player.current ? Player.current.url : null;
+    document.querySelectorAll('.station-row[data-url]').forEach(row => {
+      const isActive = !!activeUrl && row.dataset.url === activeUrl;
+      row.classList.toggle('is-selected', isActive);
+      if (row._playBtn) setPlayIcon(row._playBtn, isActive);
+    });
+  }
+
   Player.setOnStateChange(({ status, station }) => {
-    if (!station) { playerBar.hidden = true; return; }
+    if (!station) { playerBar.hidden = true; syncPlaybackUI(); return; }
     playerBar.hidden = false;
     playerName.textContent = station.name || station.url;
     if (status === 'loading') playerStatus.textContent = 'Connecting…';
     else if (status === 'playing') playerStatus.textContent = 'Playing';
     else if (status === 'error') playerStatus.textContent = 'Couldn\u2019t play this station';
     else if (status === 'stopped') playerStatus.textContent = 'Stopped';
-
-    if (activePlayBtn) setPlayIcon(activePlayBtn, false);
-    activePlayBtn = null;
-    if (status === 'playing' || status === 'loading') {
-      // find the row button currently associated, set via handlePlay below
-    }
+    syncPlaybackUI();
   });
 
-  function handlePlay(station, btn) {
-    if (Player.isPlaying(station)) {
+  function handlePlay(station) {
+    if (Player.current && Player.current.url === station.url) {
       Player.stop();
-      setPlayIcon(btn, false);
-      activePlayBtn = null;
-      return;
+    } else {
+      Player.play(station);
     }
-    if (activePlayBtn) setPlayIcon(activePlayBtn, false);
-    Player.play(station);
-    setPlayIcon(btn, true);
-    activePlayBtn = btn;
+    syncPlaybackUI();
   }
 
   playerToggle.addEventListener('click', () => {
     Player.stop();
-    if (activePlayBtn) setPlayIcon(activePlayBtn, false);
-    activePlayBtn = null;
+    syncPlaybackUI();
   });
 
   // ---------- browse / search ----------
@@ -193,6 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }));
     }
+    syncPlaybackUI();
   }
 
   const debouncedSearch = debounce(renderSearch, CONFIG.SEARCH_DEBOUNCE_MS);
@@ -304,40 +315,75 @@ document.addEventListener('DOMContentLoaded', () => {
     stations.forEach((station, index) => {
       myStationsList.appendChild(stationRow(station, {
         onPlay: handlePlay,
+        onEdit: () => openEditModal(index, station),
         onRemove: () => {
           MyStations.removeAt(index);
           refreshMyStations();
         }
       }));
     });
+    syncPlaybackUI();
   }
   refreshMyStations();
 
-  // ---------- manual add ----------
+  // ---------- manual add / edit ----------
 
   const addModal = document.getElementById('addModal');
   const addForm = document.getElementById('addForm');
-  document.getElementById('btnAddManual').addEventListener('click', () => {
+  const addModalTitle = document.getElementById('addModalTitle');
+  const addSubmitBtn = document.getElementById('addSubmitBtn');
+  const addNameEl = document.getElementById('addName');
+  const addUrlEl = document.getElementById('addUrl');
+  const addHomepageEl = document.getElementById('addHomepage');
+  const addImageEl = document.getElementById('addImage');
+  const addCountryEl = document.getElementById('addCountry');
+  const addTagsEl = document.getElementById('addTags');
+  let editingIndex = null; // null = adding new; number = editing MyStations[index]
+
+  function openAddModal() {
+    editingIndex = null;
     addForm.reset();
+    addModalTitle.textContent = 'Add a station';
+    addSubmitBtn.textContent = 'Save station';
     addModal.showModal();
-  });
+  }
+
+  function openEditModal(index, station) {
+    editingIndex = index;
+    addNameEl.value = station.name || '';
+    addUrlEl.value = station.url || '';
+    addHomepageEl.value = station.homepage || '';
+    addImageEl.value = station.image || '';
+    addCountryEl.value = station.countrycode || '';
+    addTagsEl.value = station.tags || '';
+    addModalTitle.textContent = 'Edit station';
+    addSubmitBtn.textContent = 'Save changes';
+    addModal.showModal();
+  }
+
+  document.getElementById('btnAddManual').addEventListener('click', openAddModal);
   document.getElementById('addCancel').addEventListener('click', () => addModal.close());
   addForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const station = {
-      name: document.getElementById('addName').value.trim(),
-      url: document.getElementById('addUrl').value.trim(),
-      image: document.getElementById('addImage').value.trim(),
-      homepage: document.getElementById('addHomepage').value.trim(),
-      countrycode: document.getElementById('addCountry').value.trim().toUpperCase(),
-      tags: document.getElementById('addTags').value.trim(),
+      name: addNameEl.value.trim(),
+      url: addUrlEl.value.trim(),
+      image: addImageEl.value.trim(),
+      homepage: addHomepageEl.value.trim(),
+      countrycode: addCountryEl.value.trim().toUpperCase(),
+      tags: addTagsEl.value.trim(),
       description: ''
     };
     if (!station.name || !station.url) return;
-    MyStations.add(station);
+    if (editingIndex !== null) {
+      MyStations.updateAt(editingIndex, station);
+      toast(`Saved changes to “${station.name}”`);
+    } else {
+      MyStations.add(station);
+      toast(`Added “${station.name}”`);
+    }
     refreshMyStations();
     addModal.close();
-    toast(`Added “${station.name}”`);
   });
 
   // ---------- import (file) ----------

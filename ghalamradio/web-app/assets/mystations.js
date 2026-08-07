@@ -36,5 +36,13 @@ const MyStations = (() => {
     return stations;
   }
 
-  return { load, save, add, addMany, removeAt };
+  function updateAt(index, station) {
+    const stations = load();
+    if (index < 0 || index >= stations.length) return stations;
+    stations[index] = station;
+    save(stations);
+    return stations;
+  }
+
+  return { load, save, add, addMany, removeAt, updateAt };
 })();

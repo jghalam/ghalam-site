@@ -32,7 +32,10 @@ const Player = (() => {
 
   audio.addEventListener('playing', () => onStateChange({ status: 'playing', station: currentStation }));
   audio.addEventListener('waiting', () => onStateChange({ status: 'loading', station: currentStation }));
-  audio.addEventListener('error', () => onStateChange({ status: 'error', station: currentStation }));
+  audio.addEventListener('error', () => {
+    onStateChange({ status: 'error', station: currentStation });
+    currentStation = null; // playback failed — don't keep showing it as active
+  });
 
   function isPlaying(station) {
     return currentStation && currentStation.url === station.url && !audio.paused;

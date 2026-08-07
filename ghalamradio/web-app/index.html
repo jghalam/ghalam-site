@@ -79,7 +79,7 @@
 <!-- Manual add modal -->
 <dialog id="addModal" class="modal">
   <form id="addForm" method="dialog" class="modal-form">
-    <h2>Add a station</h2>
+    <h2 id="addModalTitle">Add a station</h2>
     <label>Name <input type="text" id="addName" required></label>
     <label>Stream URL <input type="url" id="addUrl" required placeholder="https://…"></label>
     <label>Homepage <input type="url" id="addHomepage" placeholder="https://… (optional)"></label>
@@ -88,7 +88,7 @@
     <label>Tags <input type="text" id="addTags" placeholder="optional"></label>
     <div class="modal-actions">
       <button type="button" class="btn btn-ghost" id="addCancel">Cancel</button>
-      <button type="submit" class="btn btn-primary">Save station</button>
+      <button type="submit" class="btn btn-primary" id="addSubmitBtn">Save station</button>
     </div>
   </form>
 </dialog>
