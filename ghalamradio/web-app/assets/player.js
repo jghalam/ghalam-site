@@ -86,28 +86,60 @@ const Player = (() => {
     }).catch(() => playPlain(station));
   }
 
+  // Not every failure mode surfaces cleanly through onError/play().catch() —
+  // some libraries have internal fetch/network failures (e.g. a CORS
+  // preflight rejection) that end up as an unhandled internal promise
+  // rather than reaching our callbacks. A hard timeout is the only reliable
+  // way to guarantee we never leave a station stuck silently "loading".
+  function withFallbackTimeout(station, ms, onTimeout) {
+    let settled = false;
+    const timer = setTimeout(() => {
+      if (settled || currentStation !== station) return;
+      settled = true;
+      onTimeout();
+    }, ms);
+    return {
+      resolve() { settled = true; clearTimeout(timer); },
+      fallbackNow() {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timer);
+        onTimeout();
+      }
+    };
+  }
+
   function playViaIcecast(station) {
     loadIcecastPlayer().then(IcecastMetadataPlayer => {
       if (currentStation !== station) return; // superseded by a newer play() call
-      icyPlayer = new IcecastMetadataPlayer(station.url, {
-        audioElement: audio,
-        metadataTypes: ['icy'],
-        enableLogging: false,
-        retryTimeout: 8, // fail fast to the plain-audio fallback rather than hang
-        onMetadata: (metadata) => {
-          const parsed = parseStreamTitle(metadata.StreamTitle);
-          if (parsed) onMetadata(parsed);
-        },
-        onPlay: () => onStateChange({ status: 'playing', station }),
-        onLoad: () => onStateChange({ status: 'loading', station }),
-        onError: () => {
-          // Likely a CORS block or a server that isn't Icecast-compatible —
-          // fall back to plain playback rather than leaving the station dead.
-          if (icyPlayer) { try { icyPlayer.detachAudioElement(); } catch {} icyPlayer = null; }
-          playPlain(station);
-        }
+
+      const guard = withFallbackTimeout(station, 8000, () => {
+        console.warn('ICY playback stalled or failed — falling back to plain audio:', station.url);
+        if (icyPlayer) { try { icyPlayer.detachAudioElement(); } catch {} icyPlayer = null; }
+        playPlain(station);
       });
-      icyPlayer.play().catch(() => {});
+
+      try {
+        icyPlayer = new IcecastMetadataPlayer(station.url, {
+          audioElement: audio,
+          metadataTypes: ['icy'],
+          enableLogging: false,
+          retryTimeout: 6, // fail fast to the plain-audio fallback rather than hang
+          onMetadata: (metadata) => {
+            const parsed = parseStreamTitle(metadata.StreamTitle);
+            if (parsed) onMetadata(parsed);
+          },
+          onPlay: () => {
+            guard.resolve();
+            onStateChange({ status: 'playing', station });
+          },
+          onLoad: () => onStateChange({ status: 'loading', station }),
+          onError: () => guard.fallbackNow()
+        });
+        icyPlayer.play().catch(() => guard.fallbackNow());
+      } catch (err) {
+        guard.fallbackNow();
+      }
     }).catch(() => playPlain(station));
   }
 
