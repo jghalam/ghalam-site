@@ -1,0 +1,42 @@
+name: Refresh economic data
+
+on:
+  schedule:
+    # 06:00 UTC daily. Cheap to run even for monthly series — the fetchers
+    # just re-pull and overwrite; git will show no diff on days nothing changed.
+    - cron: "0 6 * * *"
+  workflow_dispatch: {}   # adds a manual "Run workflow" button in the Actions tab
+
+permissions:
+  contents: write   # needed so the workflow can commit and push data/ changes
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Fetch FRED series
+        env:
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+        run: python3 fetch_fred.py
+
+      - name: Fetch Treasury data
+        run: python3 fetch_treasury.py
+
+      - name: Fetch CFTC COT (gold)
+        run: python3 fetch_cftc.py --report legacy_futures_only --commodity gold
+
+      - name: Commit and push if data changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/
+          git diff --cached --quiet || git commit -m "Auto-refresh economic data"
+          git push
