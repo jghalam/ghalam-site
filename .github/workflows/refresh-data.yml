@@ -33,8 +33,8 @@ jobs:
       - name: Fetch CFTC COT (gold)
         run: python3 fetch_cftc.py --report legacy_futures_only --commodity gold
 
-      - name: Fetch Stooq (gold price)
-        run: python3 fetch_stooq.py
+      - name: Fetch LBMA gold price
+        run: python3 fetch_lbma.py
 
       - name: Commit and push if data changed
         run: |
