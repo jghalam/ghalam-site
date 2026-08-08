@@ -33,6 +33,9 @@ jobs:
       - name: Fetch CFTC COT (gold)
         run: python3 fetch_cftc.py --report legacy_futures_only --commodity gold
 
+      - name: Fetch Stooq (gold price)
+        run: python3 fetch_stooq.py
+
       - name: Commit and push if data changed
         run: |
           git config user.name "github-actions[bot]"
