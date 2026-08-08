@@ -19,7 +19,13 @@ FRED_SERIES = {
     "unemployment": "UNRATE",
     "gdp": "GDP",
     "m2": "M2SL",
-    "gold_price_london": "GOLDPMGBD228NLBM",  # AM fixing (GOLDAMGBD228NLBM) was discontinued by FRED; PM fixing is still live
+    # NOTE: gold price removed from here — see STOOQ_SYMBOLS below.
+    # FRED's LBMA-sourced gold series (GOLDAMGBD228NLBM, then GOLDPMGBD228NLBM)
+    # have both returned HTTP 400 as of Aug 2026. This lines up with ICE
+    # Benchmark Administration restricting historical LBMA gold data to a
+    # paid licence in 2025, which appears to have cut off FRED's upstream
+    # feed. Gold price is now sourced from Stooq instead (free, no key).
+
     "usd_broad_index": "DTWEXBGS",
     "usd_vs_eur": "DEXUSEU",
     "usd_vs_jpy": "DEXJPUS",
@@ -81,3 +87,12 @@ CFTC_VALUE_FIELDS = {
 CFTC_COMMODITY_FILTERS = {
     "gold": "GOLD",
 }
+
+# --- Stooq (free, no-key CSV) ---------------------------------------------
+# key = internal id (also output filename), value = Stooq's ticker symbol.
+# Same source you'll likely add stock indices to later (e.g. "^spx" for
+# S&P 500) — one less API to integrate.
+STOOQ_SYMBOLS = {
+    "gold_price": "xauusd",
+}
+
