@@ -29,9 +29,27 @@ from site_data import write_series
 
 
 def fetch_raw(url: str) -> list:
-    req = urllib.request.Request(url, headers={"User-Agent": "econ-dashboard/0.1"})
+    req = urllib.request.Request(
+        url,
+        headers={
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+            ),
+            "Accept": "application/json, text/plain, */*",
+            "Referer": "https://www.lbma.org.uk/prices-and-data/lbma-precious-metal-prices",
+        },
+    )
     with urllib.request.urlopen(req, timeout=30) as resp:
-        return json.loads(resp.read().decode("utf-8"))
+        body = resp.read().decode("utf-8")
+    try:
+        return json.loads(body)
+    except json.JSONDecodeError:
+        # Surface what actually came back instead of a bare "Expecting value"
+        # error, so a future failure is diagnosable from the Actions log
+        # alone rather than needing another round of guessing.
+        preview = body[:300].replace("\n", " | ")
+        raise RuntimeError(f"Response wasn't valid JSON. Body started with: {preview}")
 
 
 def to_slim_records(raw: list) -> list:
