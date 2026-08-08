@@ -88,11 +88,13 @@ CFTC_COMMODITY_FILTERS = {
     "gold": "GOLD",
 }
 
-# --- Stooq (free, no-key CSV) ---------------------------------------------
-# key = internal id (also output filename), value = Stooq's ticker symbol.
-# Same source you'll likely add stock indices to later (e.g. "^spx" for
-# S&P 500) — one less API to integrate.
-STOOQ_SYMBOLS = {
-    "gold_price": "xauusd",
+# --- LBMA JSON price feed (free, ungated, no key) --------------------------
+# This is the feed that powers LBMA's own public price chart — distinct
+# from their formal historical data portal, which now requires a paid ICE
+# Benchmark Administration licence. "v" in each record is [USD, GBP, EUR];
+# we only take USD (index 0).
+LBMA_FEEDS = {
+    "gold_price": "https://prices.lbma.org.uk/json/gold_pm.json",
 }
+
 
