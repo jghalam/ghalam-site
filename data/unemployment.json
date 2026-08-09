@@ -1,11 +1,7 @@
 {
   "id": "unemployment",
   "source": "FRED",
-<<<<<<< HEAD
-  "updated": "2026-08-09T06:40:55.764963+00:00",
-=======
-  "updated": "2026-08-09T05:23:50.663761+00:00",
->>>>>>> 7d8c15c (Add Reserves tab, recession probability model, event bubbles, logo/favicon, and layout polish)
+  "updated": "2026-08-09T08:05:09.817418+00:00",
   "count": 942,
   "records": [
     {

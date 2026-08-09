@@ -1,11 +1,7 @@
 {
   "id": "treasury_30y",
   "source": "FRED",
-<<<<<<< HEAD
-  "updated": "2026-08-09T06:40:55.059424+00:00",
-=======
-  "updated": "2026-08-09T05:23:49.563762+00:00",
->>>>>>> 7d8c15c (Add Reserves tab, recession probability model, event bubbles, logo/favicon, and layout polish)
+  "updated": "2026-08-09T08:05:08.965424+00:00",
   "count": 12364,
   "records": [
     {

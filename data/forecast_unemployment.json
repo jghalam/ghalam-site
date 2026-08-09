@@ -1,8 +1,8 @@
 {
   "id": "forecast_unemployment",
   "source": "Forecast",
-  "updated": "2026-08-08T22:52:45.285544+00:00",
-  "count": 12,
+  "updated": "2026-08-09T08:06:28.026769+00:00",
+  "count": 24,
   "records": [
     {
       "date": "2026-07-31",
@@ -75,6 +75,78 @@
       "value": 4.0642,
       "lower": 2.1482,
       "upper": 5.9803
+    },
+    {
+      "date": "2027-07-26",
+      "value": 4.0593,
+      "lower": 2.0649,
+      "upper": 6.0536
+    },
+    {
+      "date": "2027-08-25",
+      "value": 4.0543,
+      "lower": 1.9847,
+      "upper": 6.1239
+    },
+    {
+      "date": "2027-09-24",
+      "value": 4.0493,
+      "lower": 1.907,
+      "upper": 6.1915
+    },
+    {
+      "date": "2027-10-24",
+      "value": 4.0443,
+      "lower": 1.8318,
+      "upper": 6.2568
+    },
+    {
+      "date": "2027-11-23",
+      "value": 4.0393,
+      "lower": 1.7587,
+      "upper": 6.3199
+    },
+    {
+      "date": "2027-12-23",
+      "value": 4.0343,
+      "lower": 1.6876,
+      "upper": 6.381
+    },
+    {
+      "date": "2028-01-22",
+      "value": 4.0293,
+      "lower": 1.6183,
+      "upper": 6.4403
+    },
+    {
+      "date": "2028-02-21",
+      "value": 4.0243,
+      "lower": 1.5506,
+      "upper": 6.4979
+    },
+    {
+      "date": "2028-03-22",
+      "value": 4.0193,
+      "lower": 1.4845,
+      "upper": 6.554
+    },
+    {
+      "date": "2028-04-21",
+      "value": 4.0143,
+      "lower": 1.4199,
+      "upper": 6.6087
+    },
+    {
+      "date": "2028-05-21",
+      "value": 4.0093,
+      "lower": 1.3566,
+      "upper": 6.662
+    },
+    {
+      "date": "2028-06-20",
+      "value": 4.0043,
+      "lower": 1.2945,
+      "upper": 6.714
     }
   ],
   "method": "Holt linear trend (double exponential smoothing)",

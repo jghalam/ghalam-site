@@ -1,11 +1,7 @@
 {
   "id": "usd_vs_eur",
   "source": "FRED",
-<<<<<<< HEAD
-  "updated": "2026-08-09T06:40:58.719239+00:00",
-=======
-  "updated": "2026-08-09T05:23:54.798345+00:00",
->>>>>>> 7d8c15c (Add Reserves tab, recession probability model, event bubbles, logo/favicon, and layout polish)
+  "updated": "2026-08-09T08:05:13.951779+00:00",
   "count": 6916,
   "records": [
     {

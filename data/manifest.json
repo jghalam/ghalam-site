@@ -1,308 +1,232 @@
 {
   "cpi_headline": {
     "source": "FRED",
-<<<<<<< HEAD
-    "updated": "2026-08-09T06:40:49.084506+00:00",
-=======
-    "updated": "2026-08-09T05:23:41.307948+00:00",
->>>>>>> 7d8c15c (Add Reserves tab, recession probability model, event bubbles, logo/favicon, and layout polish)
+    "updated": "2026-08-09T08:04:59.850703+00:00",
     "count": 953
   },
   "cpi_core": {
     "source": "FRED",
-<<<<<<< HEAD
-    "updated": "2026-08-09T06:40:49.840401+00:00",
-=======
-    "updated": "2026-08-09T05:23:42.194083+00:00",
->>>>>>> 7d8c15c (Add Reserves tab, recession probability model, event bubbles, logo/favicon, and layout polish)
+    "updated": "2026-08-09T08:05:01.663000+00:00",
     "count": 833
   },
   "pce_headline": {
     "source": "FRED",
-<<<<<<< HEAD
-    "updated": "2026-08-09T06:40:50.544750+00:00",
-=======
-    "updated": "2026-08-09T05:23:43.038798+00:00",
->>>>>>> 7d8c15c (Add Reserves tab, recession probability model, event bubbles, logo/favicon, and layout polish)
+    "updated": "2026-08-09T08:05:02.471788+00:00",
     "count": 810
   },
   "pce_core": {
     "source": "FRED",
-<<<<<<< HEAD
-    "updated": "2026-08-09T06:40:51.234604+00:00",
-=======
-    "updated": "2026-08-09T05:23:43.841123+00:00",
->>>>>>> 7d8c15c (Add Reserves tab, recession probability model, event bubbles, logo/favicon, and layout polish)
+    "updated": "2026-08-09T08:05:03.496613+00:00",
     "count": 810
   },
   "fed_funds": {
     "source": "FRED",
-<<<<<<< HEAD
-    "updated": "2026-08-09T06:40:51.936612+00:00",
-=======
-    "updated": "2026-08-09T05:23:44.613320+00:00",
->>>>>>> 7d8c15c (Add Reserves tab, recession probability model, event bubbles, logo/favicon, and layout polish)
+    "updated": "2026-08-09T08:05:04.255865+00:00",
     "count": 865
   },
   "treasury_2y": {
     "source": "FRED",
-<<<<<<< HEAD
-    "updated": "2026-08-09T06:40:52.638983+00:00",
-=======
-    "updated": "2026-08-09T05:23:45.643967+00:00",
->>>>>>> 7d8c15c (Add Reserves tab, recession probability model, event bubbles, logo/favicon, and layout polish)
+    "updated": "2026-08-09T08:05:05.319121+00:00",
     "count": 12542
   },
   "treasury_5y": {
     "source": "FRED",
-<<<<<<< HEAD
-    "updated": "2026-08-09T06:40:53.512906+00:00",
-=======
-    "updated": "2026-08-09T05:23:46.811218+00:00",
->>>>>>> 7d8c15c (Add Reserves tab, recession probability model, event bubbles, logo/favicon, and layout polish)
+    "updated": "2026-08-09T08:05:06.457277+00:00",
     "count": 16134
   },
   "treasury_10y": {
     "source": "FRED",
-<<<<<<< HEAD
-    "updated": "2026-08-09T06:40:54.300269+00:00",
-=======
-    "updated": "2026-08-09T05:23:48.472908+00:00",
->>>>>>> 7d8c15c (Add Reserves tab, recession probability model, event bubbles, logo/favicon, and layout polish)
+    "updated": "2026-08-09T08:05:07.736395+00:00",
     "count": 16134
   },
   "treasury_30y": {
     "source": "FRED",
-<<<<<<< HEAD
-    "updated": "2026-08-09T06:40:55.059424+00:00",
-=======
-    "updated": "2026-08-09T05:23:49.563762+00:00",
->>>>>>> 7d8c15c (Add Reserves tab, recession probability model, event bubbles, logo/favicon, and layout polish)
+    "updated": "2026-08-09T08:05:08.965424+00:00",
     "count": 12364
   },
   "unemployment": {
     "source": "FRED",
-<<<<<<< HEAD
-    "updated": "2026-08-09T06:40:55.764963+00:00",
-=======
-    "updated": "2026-08-09T05:23:50.663761+00:00",
->>>>>>> 7d8c15c (Add Reserves tab, recession probability model, event bubbles, logo/favicon, and layout polish)
+    "updated": "2026-08-09T08:05:09.817418+00:00",
     "count": 942
   },
   "gdp": {
     "source": "FRED",
-<<<<<<< HEAD
-    "updated": "2026-08-09T06:40:56.411632+00:00",
-=======
-    "updated": "2026-08-09T05:23:51.517619+00:00",
->>>>>>> 7d8c15c (Add Reserves tab, recession probability model, event bubbles, logo/favicon, and layout polish)
+    "updated": "2026-08-09T08:05:10.959997+00:00",
     "count": 318
   },
   "m2": {
     "source": "FRED",
-<<<<<<< HEAD
-    "updated": "2026-08-09T06:40:57.104302+00:00",
-=======
-    "updated": "2026-08-09T05:23:52.495269+00:00",
->>>>>>> 7d8c15c (Add Reserves tab, recession probability model, event bubbles, logo/favicon, and layout polish)
+    "updated": "2026-08-09T08:05:11.858802+00:00",
     "count": 810
   },
   "usd_broad_index": {
     "source": "FRED",
-<<<<<<< HEAD
-    "updated": "2026-08-09T06:40:57.787623+00:00",
-=======
-    "updated": "2026-08-09T05:23:53.706168+00:00",
->>>>>>> 7d8c15c (Add Reserves tab, recession probability model, event bubbles, logo/favicon, and layout polish)
+    "updated": "2026-08-09T08:05:12.693034+00:00",
     "count": 5159
   },
   "usd_vs_eur": {
     "source": "FRED",
-<<<<<<< HEAD
-    "updated": "2026-08-09T06:40:58.719239+00:00",
-=======
-    "updated": "2026-08-09T05:23:54.798345+00:00",
->>>>>>> 7d8c15c (Add Reserves tab, recession probability model, event bubbles, logo/favicon, and layout polish)
+    "updated": "2026-08-09T08:05:13.951779+00:00",
     "count": 6916
   },
   "usd_vs_jpy": {
     "source": "FRED",
-<<<<<<< HEAD
-    "updated": "2026-08-09T06:40:59.438571+00:00",
-=======
-    "updated": "2026-08-09T05:23:55.889648+00:00",
->>>>>>> 7d8c15c (Add Reserves tab, recession probability model, event bubbles, logo/favicon, and layout polish)
+    "updated": "2026-08-09T08:05:14.869845+00:00",
     "count": 13931
   },
   "usd_vs_gbp": {
     "source": "FRED",
-<<<<<<< HEAD
-    "updated": "2026-08-09T06:41:01.466831+00:00",
-=======
-    "updated": "2026-08-09T05:23:57.575630+00:00",
->>>>>>> 7d8c15c (Add Reserves tab, recession probability model, event bubbles, logo/favicon, and layout polish)
+    "updated": "2026-08-09T08:05:16.070889+00:00",
     "count": 13937
   },
   "usd_vs_cny": {
     "source": "FRED",
-<<<<<<< HEAD
-    "updated": "2026-08-09T06:41:02.220299+00:00",
-=======
-    "updated": "2026-08-09T05:23:58.852560+00:00",
->>>>>>> 7d8c15c (Add Reserves tab, recession probability model, event bubbles, logo/favicon, and layout polish)
+    "updated": "2026-08-09T08:05:17.149314+00:00",
     "count": 11377
-  },
-  "debt_to_penny": {
-    "source": "Treasury Fiscal Data",
-<<<<<<< HEAD
-    "updated": "2026-08-09T06:41:11.217482+00:00",
-=======
-    "updated": "2026-08-09T05:24:19.463023+00:00",
->>>>>>> 7d8c15c (Add Reserves tab, recession probability model, event bubbles, logo/favicon, and layout polish)
-    "count": 8366
-  },
-  "interest_expense": {
-    "source": "Treasury Fiscal Data",
-<<<<<<< HEAD
-    "updated": "2026-08-09T06:41:18.789406+00:00",
-=======
-    "updated": "2026-08-09T05:24:31.430173+00:00",
->>>>>>> 7d8c15c (Add Reserves tab, recession probability model, event bubbles, logo/favicon, and layout polish)
-    "count": 7283
-  },
-  "legacy_futures_only_gold": {
-    "source": "CFTC",
-    "updated": "2026-08-09T06:41:22.823491+00:00",
-    "count": 2209
-  },
-  "gold_price": {
-    "source": "LBMA",
-    "updated": "2026-08-08T21:11:38.895649+00:00",
-    "count": 14657
-  },
-  "cpi_yoy": {
-    "source": "Derived",
-    "updated": "2026-08-09T05:31:22.307208+00:00",
-    "count": 941
-  },
-  "cpi_core_yoy": {
-    "source": "Derived",
-    "updated": "2026-08-09T05:31:22.310639+00:00",
-    "count": 821
-  },
-  "real_yield_10y": {
-    "source": "Derived",
-    "updated": "2026-08-09T05:31:22.355967+00:00",
-    "count": 773
-  },
-  "debt_to_gdp": {
-    "source": "Derived",
-    "updated": "2026-08-09T05:31:22.470825+00:00",
-    "count": 133
-  },
-  "forecast_cpi_yoy": {
-    "source": "Forecast",
-    "updated": "2026-08-08T22:52:45.161316+00:00",
-    "count": 12
-  },
-  "forecast_cpi_core_yoy": {
-    "source": "Forecast",
-    "updated": "2026-08-08T22:52:45.168152+00:00",
-    "count": 12
-  },
-  "forecast_fed_funds": {
-    "source": "Forecast",
-    "updated": "2026-08-08T22:52:45.175172+00:00",
-    "count": 12
-  },
-  "forecast_treasury_10y": {
-    "source": "Forecast",
-    "updated": "2026-08-08T22:52:45.273499+00:00",
-    "count": 90
-  },
-  "forecast_real_yield_10y": {
-    "source": "Forecast",
-    "updated": "2026-08-08T22:52:45.279147+00:00",
-    "count": 90
-  },
-  "forecast_unemployment": {
-    "source": "Forecast",
-    "updated": "2026-08-08T22:52:45.285544+00:00",
-    "count": 12
-  },
-  "forecast_debt_to_gdp": {
-    "source": "Forecast",
-    "updated": "2026-08-08T22:52:45.286754+00:00",
-    "count": 4
-  },
-  "forecast_gold_price": {
-    "source": "Forecast",
-    "updated": "2026-08-08T22:52:45.374577+00:00",
-    "count": 90
-  },
-  "forecast_usd_broad_index": {
-    "source": "Forecast",
-    "updated": "2026-08-08T22:52:45.408094+00:00",
-    "count": 90
-  },
-  "deficit": {
-    "source": "Treasury Fiscal Data",
-    "updated": "2026-08-09T05:24:37.302040+00:00",
-    "count": 144
-  },
-  "total_debt": {
-    "source": "Derived",
-    "updated": "2026-08-09T05:31:22.475513+00:00",
-    "count": 8366
   },
   "sp500": {
     "source": "FRED",
-    "updated": "2026-08-09T05:24:00.365753+00:00",
+    "updated": "2026-08-09T08:05:18.359810+00:00",
     "count": 2514
   },
   "djia": {
     "source": "FRED",
-    "updated": "2026-08-09T05:24:01.950744+00:00",
+    "updated": "2026-08-09T08:05:19.853418+00:00",
     "count": 2514
   },
   "nasdaq_composite": {
     "source": "FRED",
-    "updated": "2026-08-09T05:24:03.044971+00:00",
+    "updated": "2026-08-09T08:05:20.905192+00:00",
     "count": 13994
   },
   "treasury_3mo": {
     "source": "FRED",
-    "updated": "2026-08-09T05:24:04.091343+00:00",
+    "updated": "2026-08-09T08:05:21.994231+00:00",
     "count": 11232
   },
-  "recession_probability": {
-    "source": "Derived",
-    "updated": "2026-08-09T05:31:22.429783+00:00",
-    "count": 11236
+  "debt_to_penny": {
+    "source": "Treasury Fiscal Data",
+    "updated": "2026-08-09T08:05:39.854441+00:00",
+    "count": 8366
+  },
+  "interest_expense": {
+    "source": "Treasury Fiscal Data",
+    "updated": "2026-08-09T08:05:52.123170+00:00",
+    "count": 7283
+  },
+  "deficit": {
+    "source": "Treasury Fiscal Data",
+    "updated": "2026-08-09T08:05:58.348151+00:00",
+    "count": 144
+  },
+  "legacy_futures_only_gold": {
+    "source": "CFTC",
+    "updated": "2026-08-09T08:06:03.069439+00:00",
+    "count": 2209
+  },
+  "gold_price": {
+    "source": "LBMA",
+    "updated": "2026-08-09T08:06:08.182241+00:00",
+    "count": 14657
   },
   "cofer_usd_share": {
     "source": "IMF COFER",
-    "updated": "2026-08-09T07:18:29.064362+00:00",
+    "updated": "2026-08-09T08:06:14.043353+00:00",
     "count": 109
   },
   "cofer_eur_share": {
     "source": "IMF COFER",
-    "updated": "2026-08-09T07:18:29.069581+00:00",
+    "updated": "2026-08-09T08:06:14.049443+00:00",
     "count": 109
   },
   "cofer_jpy_share": {
     "source": "IMF COFER",
-    "updated": "2026-08-09T07:18:29.070817+00:00",
+    "updated": "2026-08-09T08:06:14.050175+00:00",
     "count": 109
   },
   "cofer_gbp_share": {
     "source": "IMF COFER",
-    "updated": "2026-08-09T07:18:29.071971+00:00",
+    "updated": "2026-08-09T08:06:14.050888+00:00",
     "count": 109
   },
   "cofer_cny_share": {
     "source": "IMF COFER",
-    "updated": "2026-08-09T07:18:29.073119+00:00",
+    "updated": "2026-08-09T08:06:14.051488+00:00",
     "count": 38
+  },
+  "cpi_yoy": {
+    "source": "Derived",
+    "updated": "2026-08-09T08:06:19.773674+00:00",
+    "count": 941
+  },
+  "cpi_core_yoy": {
+    "source": "Derived",
+    "updated": "2026-08-09T08:06:19.777840+00:00",
+    "count": 821
+  },
+  "real_yield_10y": {
+    "source": "Derived",
+    "updated": "2026-08-09T08:06:19.826560+00:00",
+    "count": 773
+  },
+  "recession_probability": {
+    "source": "Derived",
+    "updated": "2026-08-09T08:06:19.902886+00:00",
+    "count": 11236
+  },
+  "debt_to_gdp": {
+    "source": "Derived",
+    "updated": "2026-08-09T08:06:19.944572+00:00",
+    "count": 133
+  },
+  "total_debt": {
+    "source": "Derived",
+    "updated": "2026-08-09T08:06:19.949383+00:00",
+    "count": 8366
+  },
+  "forecast_cpi_yoy": {
+    "source": "Forecast",
+    "updated": "2026-08-09T08:06:27.903718+00:00",
+    "count": 24
+  },
+  "forecast_cpi_core_yoy": {
+    "source": "Forecast",
+    "updated": "2026-08-09T08:06:27.910565+00:00",
+    "count": 24
+  },
+  "forecast_fed_funds": {
+    "source": "Forecast",
+    "updated": "2026-08-09T08:06:27.917236+00:00",
+    "count": 24
+  },
+  "forecast_treasury_10y": {
+    "source": "Forecast",
+    "updated": "2026-08-09T08:06:28.014345+00:00",
+    "count": 180
+  },
+  "forecast_real_yield_10y": {
+    "source": "Forecast",
+    "updated": "2026-08-09T08:06:28.020266+00:00",
+    "count": 180
+  },
+  "forecast_unemployment": {
+    "source": "Forecast",
+    "updated": "2026-08-09T08:06:28.026769+00:00",
+    "count": 24
+  },
+  "forecast_debt_to_gdp": {
+    "source": "Forecast",
+    "updated": "2026-08-09T08:06:28.028017+00:00",
+    "count": 8
+  },
+  "forecast_gold_price": {
+    "source": "Forecast",
+    "updated": "2026-08-09T08:06:28.115528+00:00",
+    "count": 180
+  },
+  "forecast_usd_broad_index": {
+    "source": "Forecast",
+    "updated": "2026-08-09T08:06:28.149605+00:00",
+    "count": 180
   }
 }

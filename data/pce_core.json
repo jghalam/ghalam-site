@@ -1,11 +1,7 @@
 {
   "id": "pce_core",
   "source": "FRED",
-<<<<<<< HEAD
-  "updated": "2026-08-09T06:40:51.234604+00:00",
-=======
-  "updated": "2026-08-09T05:23:43.841123+00:00",
->>>>>>> 7d8c15c (Add Reserves tab, recession probability model, event bubbles, logo/favicon, and layout polish)
+  "updated": "2026-08-09T08:05:03.496613+00:00",
   "count": 810,
   "records": [
     {

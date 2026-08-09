@@ -1,11 +1,7 @@
 {
   "id": "debt_to_penny",
   "source": "Treasury Fiscal Data",
-<<<<<<< HEAD
-  "updated": "2026-08-09T06:41:11.217482+00:00",
-=======
-  "updated": "2026-08-09T05:24:19.463023+00:00",
->>>>>>> 7d8c15c (Add Reserves tab, recession probability model, event bubbles, logo/favicon, and layout polish)
+  "updated": "2026-08-09T08:05:39.854441+00:00",
   "count": 8366,
   "records": [
     {
