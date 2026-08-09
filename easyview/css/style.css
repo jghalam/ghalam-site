@@ -245,11 +245,38 @@ body {
 }
 
 .event-panel {
+  position: relative;
   margin: 0 0 24px;
   padding: 18px 24px;
   background: var(--accent-dim);
   border: 1px solid var(--accent);
   border-radius: 10px;
+}
+
+.event-close {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  width: 28px;
+  height: 28px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 1.3rem;
+  line-height: 1;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: color 0.15s ease, background 0.15s ease;
+}
+
+.event-close:hover {
+  color: var(--accent-bright);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.event-close:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
 }
 
 .event-date {
@@ -267,6 +294,7 @@ body {
   font-weight: 400;
   color: var(--text-primary);
   margin: 0 0 8px;
+  padding-right: 36px;
 }
 
 .event-narrative {

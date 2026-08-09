@@ -69,6 +69,8 @@ const state = {
   chart: null,
   chartZoomYears: 10,         // 'all' or a number of years — chart display only,
                                // independent of the slider's full-history bounds
+  dismissedEventId: null,     // id of an event panel the user manually closed — cleared
+                               // whenever the scrubbed position actually changes
 };
 
 /* ---------- helpers ---------- */
@@ -289,6 +291,7 @@ function initSlider() {
   const slider = document.getElementById('timelineSlider');
   slider.addEventListener('input', () => {
     state.selectedTs = Number(slider.value) * DAY_MS;
+    state.dismissedEventId = null;
     updateSliderFill();
     updateDateReadout();
     renderChart();   // redraw crosshair position
@@ -384,6 +387,7 @@ function renderEventMarkers() {
 
 function jumpToDate(ts) {
   state.selectedTs = ts;
+  state.dismissedEventId = null;
   const slider = document.getElementById('timelineSlider');
   slider.value = Math.floor(ts / DAY_MS);
   updateSliderFill();
@@ -409,7 +413,11 @@ function nearestEvent(ts, maxDays) {
 
 function renderEventPanel() {
   const panel = document.getElementById('eventPanel');
-  const ev = nearestEvent(state.selectedTs, NEAR_EVENT_WINDOW_DAYS);
+  let ev = nearestEvent(state.selectedTs, NEAR_EVENT_WINDOW_DAYS);
+
+  if (ev && ev.id === state.dismissedEventId) {
+    ev = null;   // manually dismissed for this position — stays hidden until the scrubber moves
+  }
 
   if (!ev) {
     panel.hidden = true;
@@ -417,6 +425,7 @@ function renderEventPanel() {
   }
 
   panel.hidden = false;
+  panel.dataset.currentEventId = ev.id;
   document.getElementById('eventDate').textContent = formatDate(ev.ts);
   document.getElementById('eventTitle').textContent = ev.title;
   document.getElementById('eventNarrative').textContent = ev.narrative;
@@ -425,6 +434,13 @@ function renderEventPanel() {
   document.getElementById('eventLinked').textContent = linkedLabels.length
     ? `Evidence: ${linkedLabels.join(', ')}`
     : '';
+}
+
+function dismissEventPanel() {
+  const panel = document.getElementById('eventPanel');
+  if (panel.hidden) return;
+  state.dismissedEventId = panel.dataset.currentEventId || null;
+  renderEventPanel();
 }
 
 /* ---------- chart ---------- */
@@ -688,7 +704,11 @@ function renderChart() {
 
   state.chart.canvas.addEventListener('click', (e) => {
     const hit = findBubbleAt(e.clientX, e.clientY);
-    if (hit) jumpToDate(hit.event.ts);
+    if (hit) {
+      jumpToDate(hit.event.ts);
+    } else {
+      dismissEventPanel();
+    }
   });
 
   state.chart.canvas.addEventListener('mousemove', (e) => {
@@ -1039,6 +1059,7 @@ async function init() {
   initSlider();
   initChartZoom();
   initTabs();
+  document.getElementById('eventClose').addEventListener('click', dismissEventPanel);
   loadManifestStatus();
   await loadEvents();
 
