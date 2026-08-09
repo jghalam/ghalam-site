@@ -31,6 +31,18 @@ FRED_SERIES = {
     "usd_vs_jpy": "DEXJPUS",
     "usd_vs_gbp": "DEXUSUK",
     "usd_vs_cny": "DEXCHUS",
+
+    # Major indices. NOTE: sp500/djia are capped at ~10 years of daily
+    # history on FRED regardless of how far back you request — that's a
+    # licensing limit FRED has with S&P Dow Jones Indices, not a bug in
+    # the fetcher. nasdaq_composite doesn't carry that same restriction.
+    "sp500": "SP500",
+    "djia": "DJIA",
+    "nasdaq_composite": "NASDAQCOM",
+
+    # 3-month Treasury yield — needed for the yield-curve recession
+    # probability model (10Y minus 3M spread), not yet built.
+    "treasury_3mo": "DGS3MO",
 }
 
 # --- Treasury Fiscal Data API ---------------------------------------------

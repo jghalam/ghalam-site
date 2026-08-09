@@ -1,0 +1,87 @@
+{
+  "id": "forecast_cpi_core_yoy",
+  "source": "Forecast",
+  "updated": "2026-08-08T22:52:45.168152+00:00",
+  "count": 12,
+  "records": [
+    {
+      "date": "2026-07-01",
+      "value": 2.8293,
+      "lower": 2.4924,
+      "upper": 3.1663
+    },
+    {
+      "date": "2026-07-31",
+      "value": 2.817,
+      "lower": 2.3405,
+      "upper": 3.2935
+    },
+    {
+      "date": "2026-08-30",
+      "value": 2.8047,
+      "lower": 2.2211,
+      "upper": 3.3883
+    },
+    {
+      "date": "2026-09-29",
+      "value": 2.7924,
+      "lower": 2.1185,
+      "upper": 3.4662
+    },
+    {
+      "date": "2026-10-29",
+      "value": 2.78,
+      "lower": 2.0267,
+      "upper": 3.5334
+    },
+    {
+      "date": "2026-11-28",
+      "value": 2.7677,
+      "lower": 1.9424,
+      "upper": 3.593
+    },
+    {
+      "date": "2026-12-28",
+      "value": 2.7554,
+      "lower": 1.864,
+      "upper": 3.6468
+    },
+    {
+      "date": "2027-01-27",
+      "value": 2.7431,
+      "lower": 1.7901,
+      "upper": 3.696
+    },
+    {
+      "date": "2027-02-26",
+      "value": 2.7307,
+      "lower": 1.72,
+      "upper": 3.7415
+    },
+    {
+      "date": "2027-03-28",
+      "value": 2.7184,
+      "lower": 1.653,
+      "upper": 3.7838
+    },
+    {
+      "date": "2027-04-27",
+      "value": 2.7061,
+      "lower": 1.5886,
+      "upper": 3.8235
+    },
+    {
+      "date": "2027-05-27",
+      "value": 2.6938,
+      "lower": 1.5266,
+      "upper": 3.8609
+    }
+  ],
+  "method": "Holt linear trend (double exponential smoothing)",
+  "forecast_of": "cpi_core_yoy",
+  "alpha": 0.8,
+  "beta": 0.3,
+  "residual_sigma": 0.2632,
+  "fit_points_used": 821,
+  "confidence_level": "~80%"
+}

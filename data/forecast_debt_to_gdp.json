@@ -1,0 +1,39 @@
+{
+  "id": "forecast_debt_to_gdp",
+  "source": "Forecast",
+  "updated": "2026-08-08T22:52:45.286754+00:00",
+  "count": 4,
+  "records": [
+    {
+      "date": "2026-07-01",
+      "value": 120.6733,
+      "lower": 118.2848,
+      "upper": 123.0619
+    },
+    {
+      "date": "2026-09-30",
+      "value": 120.9778,
+      "lower": 117.5999,
+      "upper": 124.3557
+    },
+    {
+      "date": "2026-12-30",
+      "value": 121.2823,
+      "lower": 117.1453,
+      "upper": 125.4194
+    },
+    {
+      "date": "2027-03-31",
+      "value": 121.5868,
+      "lower": 116.8097,
+      "upper": 126.3639
+    }
+  ],
+  "method": "Holt linear trend (double exponential smoothing)",
+  "forecast_of": "debt_to_gdp",
+  "alpha": 0.8,
+  "beta": 0.3,
+  "residual_sigma": 1.866,
+  "fit_points_used": 133,
+  "confidence_level": "~80%"
+}

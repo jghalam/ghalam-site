@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EasyView — a record of the economy</title>
+<meta name="description" content="An interactive timeline of US and world economic data — inflation, rates, debt, gold, and currency strength — with evidence tied to every turning point.">
+
+<link rel="icon" type="image/x-icon" href="img/favicon.ico">
+<link rel="icon" type="image/png" sizes="16x16" href="img/favicon-16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="img/favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="img/apple-touch-icon.png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="page">
+
+  <header class="hero">
+    <div class="hero-top">
+      <div class="brand">
+        <img src="img/logo-header.png" alt="" class="brand-logo" width="48" height="48">
+        <h1 class="wordmark">EasyView</h1>
+      </div>
+      <span class="status" id="statusPill">loading data&hellip;</span>
+    </div>
+    <p class="tagline">A record of the economy, one date at a time.</p>
+  </header>
+
+  <nav class="tab-nav" role="tablist" aria-label="View">
+    <button type="button" class="tab-btn active" id="tabBtnHistorical" role="tab" aria-selected="true" aria-controls="tabHistorical">Historical</button>
+    <button type="button" class="tab-btn" id="tabBtnForecast" role="tab" aria-selected="false" aria-controls="tabForecast">Forecast</button>
+    <button type="button" class="tab-btn" id="tabBtnReserves" role="tab" aria-selected="false" aria-controls="tabReserves">Reserves</button>
+  </nav>
+
+  <div id="tabHistorical" role="tabpanel" aria-labelledby="tabBtnHistorical">
+
+    <section class="picker-section" aria-label="Choose indicators">
+      <div class="picker-groups" id="pickerGroups"></div>
+    </section>
+
+    <section class="model-note" id="recessionModelNote" hidden aria-label="About the recession probability model">
+      <p><strong>About this indicator:</strong> a modeled estimate (Estrella-Mishkin yield curve model, 1998) of the probability of a recession within 12 months, based on the 10-year minus 3-month Treasury spread. It is not a guaranteed prediction &mdash; the model has historically missed some recessions and produced false signals for others. The coefficients used here are corroborated by multiple independent sources and cross-checked against real recent data, but not verified to the exact decimal against the <a href="https://www.newyorkfed.org/research/capital_markets/ycfaq" target="_blank" rel="noopener">New York Fed's own published figure</a>, which renders via JavaScript and couldn't be pulled directly &mdash; treat this as a well-sourced approximation, and compare against their page for the authoritative live number.</p>
+    </section>
+
+    <section class="event-panel" id="eventPanel" hidden aria-label="Nearby event">
+      <p class="event-date" id="eventDate">&mdash;</p>
+      <h2 class="event-title" id="eventTitle">&mdash;</h2>
+      <p class="event-narrative" id="eventNarrative">&mdash;</p>
+      <p class="event-linked" id="eventLinked">&mdash;</p>
+    </section>
+
+    <section class="chart-section" aria-label="Chart">
+      <div class="chart-zoom" id="chartZoom" role="group" aria-label="Chart time range">
+        <button type="button" class="zoom-btn" data-years="1">1Y</button>
+        <button type="button" class="zoom-btn" data-years="5">5Y</button>
+        <button type="button" class="zoom-btn active" data-years="10">10Y</button>
+        <button type="button" class="zoom-btn" data-years="all">All</button>
+      </div>
+      <div class="chart-wrap">
+        <canvas id="mainChart" height="380"></canvas>
+      </div>
+    </section>
+
+    <section class="snapshot-section" aria-label="Snapshot for selected date">
+      <h2 class="snapshot-title">Snapshot &mdash; <span id="snapshotDate">&mdash;</span></h2>
+      <dl class="snapshot-grid" id="snapshotGrid"></dl>
+    </section>
+
+    <section class="scrubber-section" aria-label="Timeline">
+      <div class="scrubber-readout" id="dateReadout">&mdash;</div>
+      <input
+        type="range"
+        id="timelineSlider"
+        class="scrubber-track"
+        min="0"
+        max="0"
+        value="0"
+        step="1"
+        aria-label="Select a date on the timeline"
+      >
+      <div class="event-markers" id="eventMarkers"></div>
+      <p class="scrubber-hint">Click near a date, then use &larr; &rarr; to move one day at a time</p>
+      <div class="scrubber-bounds">
+        <span id="boundStart">&mdash;</span>
+        <span id="boundEnd">&mdash;</span>
+      </div>
+    </section>
+
+  </div>
+
+  <div id="tabForecast" role="tabpanel" aria-labelledby="tabBtnForecast" hidden>
+
+    <p class="forecast-intro">The last 12 months of history, plus a projection built from Holt's linear trend method — a simple, transparent extrapolation, not a prediction of turning points or recessions. The shaded band widens the further out it goes, reflecting how much less certain a longer-range projection really is.</p>
+
+    <section class="picker-section" aria-label="Choose indicators to forecast">
+      <div class="picker-groups" id="forecastPickerGroups"></div>
+    </section>
+
+    <section class="chart-section" aria-label="Forecast chart">
+      <div class="chart-wrap">
+        <canvas id="forecastChart" height="380"></canvas>
+      </div>
+    </section>
+
+  </div>
+
+  <div id="tabReserves" role="tabpanel" aria-labelledby="tabBtnReserves" hidden>
+
+    <p class="forecast-intro">The US dollar's share of allocated global foreign exchange reserves, alongside the other four most-held currencies, per the IMF's COFER survey. Quarterly, back to 1999 for the dollar, euro, yen, and pound; the yuan is only shown from late 2016 on, since the IMF didn't break it out separately before then. <strong>These five currencies don't add up to 100%</strong> &mdash; the remainder (currently around 11%) is held in smaller currencies like the Australian and Canadian dollars, not shown here.</p>
+
+    <section class="chart-section" aria-label="Reserve currency shares chart">
+      <div class="chart-wrap">
+        <canvas id="reservesChart" height="380"></canvas>
+      </div>
+    </section>
+
+    <section class="snapshot-section" aria-label="Latest reserve shares">
+      <h2 class="snapshot-title">Latest reading &mdash; <span id="reservesDate">&mdash;</span></h2>
+      <dl class="snapshot-grid" id="reservesSnapshotGrid"></dl>
+    </section>
+
+  </div>
+
+  <footer class="site-footer">
+    <p>Sources: <a href="https://fred.stlouisfed.org/" target="_blank" rel="noopener">FRED</a>, <a href="https://fiscaldata.treasury.gov/" target="_blank" rel="noopener">U.S. Treasury Fiscal Data</a>, <a href="https://www.cftc.gov/MarketReports/CommitmentsofTraders/index.htm" target="_blank" rel="noopener">CFTC</a>, <a href="https://www.lbma.org.uk/prices-and-data/precious-metal-prices" target="_blank" rel="noopener">LBMA</a>, <a href="https://data.imf.org/en/datasets/IMF.STA:COFER" target="_blank" rel="noopener">IMF COFER</a>. Data refreshes automatically; figures are as of each source's own reporting lag.</p>
+  </footer>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

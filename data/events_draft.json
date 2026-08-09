@@ -1,0 +1,1877 @@
+[
+  {
+    "id": "draft_0107",
+    "date": "1969-03-11",
+    "significance": 23.35,
+    "what_triggered_this": [
+      "Gold Price: $44 \u2192 $43 (-2.0%)",
+      "10Y Treasury Yield: 6.15% \u2192 6.06%",
+      "Fed Funds Rate: 7.41% \u2192 8.67%"
+    ],
+    "title": null,
+    "narrative": null,
+    "candidates": [
+      {
+        "series": "gold_price",
+        "date": "1969-03-11",
+        "change": -2.008,
+        "z_score": -4.71,
+        "description": "Gold Price: $44 \u2192 $43 (-2.0%)"
+      },
+      {
+        "series": "treasury_10y",
+        "date": "1969-04-14",
+        "change": -0.09,
+        "z_score": -3.47,
+        "description": "10Y Treasury Yield: 6.15% \u2192 6.06%"
+      },
+      {
+        "series": "fed_funds",
+        "date": "1969-05-01",
+        "change": 1.26,
+        "z_score": 4.79,
+        "description": "Fed Funds Rate: 7.41% \u2192 8.67%"
+      }
+    ]
+  },
+  {
+    "id": "draft_0102",
+    "date": "1969-10-20",
+    "significance": 24.17,
+    "what_triggered_this": [
+      "10Y Treasury Yield: 6.99% \u2192 6.83%",
+      "Real 10Y Yield: 1.85% \u2192 1.01%",
+      "Gold Price: $38 \u2192 $37 (-2.4%)"
+    ],
+    "title": null,
+    "narrative": null,
+    "candidates": [
+      {
+        "series": "treasury_10y",
+        "date": "1969-10-20",
+        "change": -0.16,
+        "z_score": -3.92,
+        "description": "10Y Treasury Yield: 6.99% \u2192 6.83%"
+      },
+      {
+        "series": "real_yield_10y",
+        "date": "1969-11-01",
+        "change": -0.846,
+        "z_score": -2.84,
+        "description": "Real 10Y Yield: 1.85% \u2192 1.01%"
+      },
+      {
+        "series": "gold_price",
+        "date": "1969-11-19",
+        "change": -2.397,
+        "z_score": -6.67,
+        "description": "Gold Price: $38 \u2192 $37 (-2.4%)"
+      }
+    ]
+  },
+  {
+    "id": "draft_0098",
+    "date": "1970-10-30",
+    "significance": 27.4,
+    "what_triggered_this": [
+      "Gold Price: $38 \u2192 $37 (-2.4%)",
+      "Unemployment Rate: 5.50% \u2192 5.90%",
+      "10Y Treasury Yield: 6.72% \u2192 6.48%"
+    ],
+    "title": null,
+    "narrative": null,
+    "candidates": [
+      {
+        "series": "gold_price",
+        "date": "1970-10-30",
+        "change": -2.436,
+        "z_score": -6.95,
+        "description": "Gold Price: $38 \u2192 $37 (-2.4%)"
+      },
+      {
+        "series": "unemployment",
+        "date": "1970-11-01",
+        "change": 0.4,
+        "z_score": 2.4,
+        "description": "Unemployment Rate: 5.50% \u2192 5.90%"
+      },
+      {
+        "series": "treasury_10y",
+        "date": "1970-11-20",
+        "change": -0.24,
+        "z_score": -5.87,
+        "description": "10Y Treasury Yield: 6.72% \u2192 6.48%"
+      }
+    ]
+  },
+  {
+    "id": "draft_0060",
+    "date": "1971-08-09",
+    "significance": 15.83,
+    "what_triggered_this": [
+      "Gold Price: $43 \u2192 $44 (+3.2%)",
+      "10Y Treasury Yield: 6.68% \u2192 6.41%"
+    ],
+    "title": "The Nixon Shock",
+    "narrative": "Nixon suspended the dollar's convertibility into gold, ending the Bretton Woods system and letting the dollar float freely for the first time since World War II.",
+    "candidates": [
+      {
+        "series": "gold_price",
+        "date": "1971-08-09",
+        "change": 3.242,
+        "z_score": 6.23,
+        "description": "Gold Price: $43 \u2192 $44 (+3.2%)"
+      },
+      {
+        "series": "treasury_10y",
+        "date": "1971-08-16",
+        "change": -0.27,
+        "z_score": -5.08,
+        "description": "10Y Treasury Yield: 6.68% \u2192 6.41%"
+      }
+    ]
+  },
+  {
+    "id": "draft_0083",
+    "date": "1973-01-01",
+    "significance": 50.52,
+    "what_triggered_this": [
+      "Unemployment Rate: 5.20% \u2192 4.90%",
+      "10Y Treasury Yield: 6.54% \u2192 6.60%",
+      "Gold Price: $79 \u2192 $86 (+9.1%)",
+      "Core CPI (YoY): 2.75% \u2192 3.21%",
+      "Real 10Y Yield: 2.73% \u2192 1.82%"
+    ],
+    "title": null,
+    "narrative": null,
+    "candidates": [
+      {
+        "series": "unemployment",
+        "date": "1973-01-01",
+        "change": -0.3,
+        "z_score": -2.22,
+        "description": "Unemployment Rate: 5.20% \u2192 4.90%"
+      },
+      {
+        "series": "treasury_10y",
+        "date": "1973-02-01",
+        "change": 0.06,
+        "z_score": 3.5,
+        "description": "10Y Treasury Yield: 6.54% \u2192 6.60%"
+      },
+      {
+        "series": "gold_price",
+        "date": "1973-02-22",
+        "change": 9.079,
+        "z_score": 8.69,
+        "description": "Gold Price: $79 \u2192 $86 (+9.1%)"
+      },
+      {
+        "series": "cpi_core_yoy",
+        "date": "1973-03-01",
+        "change": 0.459,
+        "z_score": 2.04,
+        "description": "Core CPI (YoY): 2.75% \u2192 3.21%"
+      },
+      {
+        "series": "real_yield_10y",
+        "date": "1973-03-01",
+        "change": -0.916,
+        "z_score": -2.98,
+        "description": "Real 10Y Yield: 2.73% \u2192 1.82%"
+      }
+    ]
+  },
+  {
+    "id": "draft_0082",
+    "date": "1973-07-01",
+    "significance": 58.24,
+    "what_triggered_this": [
+      "Fed Funds Rate: 8.49% \u2192 10.40%",
+      "CPI (YoY): 5.74% \u2192 7.40%",
+      "10Y Treasury Yield: 7.43% \u2192 7.55%",
+      "Real 10Y Yield: 1.27% \u2192 0.15%",
+      "Gold Price: $94 \u2192 $103 (+9.6%)"
+    ],
+    "title": null,
+    "narrative": null,
+    "candidates": [
+      {
+        "series": "fed_funds",
+        "date": "1973-07-01",
+        "change": 1.91,
+        "z_score": 4.58,
+        "description": "Fed Funds Rate: 8.49% \u2192 10.40%"
+      },
+      {
+        "series": "cpi_yoy",
+        "date": "1973-08-01",
+        "change": 1.657,
+        "z_score": 5.66,
+        "description": "CPI (YoY): 5.74% \u2192 7.40%"
+      },
+      {
+        "series": "treasury_10y",
+        "date": "1973-08-01",
+        "change": 0.12,
+        "z_score": 4.57,
+        "description": "10Y Treasury Yield: 7.43% \u2192 7.55%"
+      },
+      {
+        "series": "real_yield_10y",
+        "date": "1973-08-01",
+        "change": -1.117,
+        "z_score": -3.38,
+        "description": "Real 10Y Yield: 1.27% \u2192 0.15%"
+      },
+      {
+        "series": "gold_price",
+        "date": "1973-08-16",
+        "change": 9.574,
+        "z_score": 4.21,
+        "description": "Gold Price: $94 \u2192 $103 (+9.6%)"
+      }
+    ]
+  },
+  {
+    "id": "draft_0061",
+    "date": "1973-10-17",
+    "significance": null,
+    "what_triggered_this": [
+      "Manually seeded historical event, not statistically detected"
+    ],
+    "title": "The 1973 oil embargo",
+    "narrative": "OPEC's embargo, in response to Western support for Israel in the Yom Kippur War, quadrupled oil prices and helped trigger the stagflation of the 1970s.",
+    "candidates": [
+      {
+        "series": "cpi_yoy",
+        "date": "1973-10-17",
+        "change": 0,
+        "z_score": 0,
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": "draft_0089",
+    "date": "1974-12-09",
+    "significance": 32.76,
+    "what_triggered_this": [
+      "10Y Treasury Yield: 7.59% \u2192 7.40%",
+      "Fed Funds Rate: 8.53% \u2192 7.13%",
+      "Unemployment Rate: 7.20% \u2192 8.10%",
+      "Gold Price: $186 \u2192 $175 (-6.2%)"
+    ],
+    "title": null,
+    "narrative": null,
+    "candidates": [
+      {
+        "series": "treasury_10y",
+        "date": "1974-12-09",
+        "change": -0.19,
+        "z_score": -5.1,
+        "description": "10Y Treasury Yield: 7.59% \u2192 7.40%"
+      },
+      {
+        "series": "fed_funds",
+        "date": "1975-01-01",
+        "change": -1.4,
+        "z_score": -2.0,
+        "description": "Fed Funds Rate: 8.53% \u2192 7.13%"
+      },
+      {
+        "series": "unemployment",
+        "date": "1975-01-01",
+        "change": 0.9,
+        "z_score": 3.79,
+        "description": "Unemployment Rate: 7.20% \u2192 8.10%"
+      },
+      {
+        "series": "gold_price",
+        "date": "1975-01-02",
+        "change": -6.166,
+        "z_score": -4.0,
+        "description": "Gold Price: $186 \u2192 $175 (-6.2%)"
+      }
+    ]
+  },
+  {
+    "id": "draft_0097",
+    "date": "1975-03-24",
+    "significance": 28.47,
+    "what_triggered_this": [
+      "10Y Treasury Yield: 7.84% \u2192 8.05%",
+      "CPI (YoY): 10.19% \u2192 9.26%",
+      "Core CPI (YoY): 11.27% \u2192 10.31%",
+      "Gold Price: $168 \u2192 $175 (+3.7%)"
+    ],
+    "title": null,
+    "narrative": null,
+    "candidates": [
+      {
+        "series": "treasury_10y",
+        "date": "1975-03-24",
+        "change": 0.21,
+        "z_score": 3.63,
+        "description": "10Y Treasury Yield: 7.84% \u2192 8.05%"
+      },
+      {
+        "series": "cpi_yoy",
+        "date": "1975-05-01",
+        "change": -0.928,
+        "z_score": -2.28,
+        "description": "CPI (YoY): 10.19% \u2192 9.26%"
+      },
+      {
+        "series": "cpi_core_yoy",
+        "date": "1975-05-01",
+        "change": -0.964,
+        "z_score": -3.21,
+        "description": "Core CPI (YoY): 11.27% \u2192 10.31%"
+      },
+      {
+        "series": "gold_price",
+        "date": "1975-05-22",
+        "change": 3.709,
+        "z_score": 3.82,
+        "description": "Gold Price: $168 \u2192 $175 (+3.7%)"
+      }
+    ]
+  },
+  {
+    "id": "draft_0109",
+    "date": "1977-12-01",
+    "significance": 22.88,
+    "what_triggered_this": [
+      "Unemployment Rate: 6.80% \u2192 6.40%",
+      "Gold Price: $172 \u2192 $166 (-3.6%)",
+      "10Y Treasury Yield: 7.85% \u2192 8.01%"
+    ],
+    "title": null,
+    "narrative": null,
+    "candidates": [
+      {
+        "series": "unemployment",
+        "date": "1977-12-01",
+        "change": -0.4,
+        "z_score": -1.98,
+        "description": "Unemployment Rate: 6.80% \u2192 6.40%"
+      },
+      {
+        "series": "gold_price",
+        "date": "1978-01-05",
+        "change": -3.579,
+        "z_score": -3.85,
+        "description": "Gold Price: $172 \u2192 $166 (-3.6%)"
+      },
+      {
+        "series": "treasury_10y",
+        "date": "1978-01-09",
+        "change": 0.16,
+        "z_score": 6.88,
+        "description": "10Y Treasury Yield: 7.85% \u2192 8.01%"
+      }
+    ]
+  },
+  {
+    "id": "draft_0094",
+    "date": "1978-11-01",
+    "significance": 28.73,
+    "what_triggered_this": [
+      "Fed Funds Rate: 8.96% \u2192 9.76%",
+      "10Y Treasury Yield: 8.96% \u2192 8.66%",
+      "Gold Price: $243 \u2192 $228 (-6.2%)"
+    ],
+    "title": null,
+    "narrative": null,
+    "candidates": [
+      {
+        "series": "fed_funds",
+        "date": "1978-11-01",
+        "change": 0.8,
+        "z_score": 2.99,
+        "description": "Fed Funds Rate: 8.96% \u2192 9.76%"
+      },
+      {
+        "series": "treasury_10y",
+        "date": "1978-11-01",
+        "change": -0.3,
+        "z_score": -7.99,
+        "description": "10Y Treasury Yield: 8.96% \u2192 8.66%"
+      },
+      {
+        "series": "gold_price",
+        "date": "1978-11-01",
+        "change": -6.224,
+        "z_score": -4.98,
+        "description": "Gold Price: $243 \u2192 $228 (-6.2%)"
+      }
+    ]
+  },
+  {
+    "id": "draft_0062",
+    "date": "1979-09-18",
+    "significance": 40.48,
+    "what_triggered_this": [
+      "Gold Price: $352 \u2192 $376 (+6.8%)",
+      "Fed Funds Rate: 11.43% \u2192 13.77%",
+      "10Y Treasury Yield: 9.60% \u2192 9.93%"
+    ],
+    "title": "The Volcker Shock",
+    "narrative": "Fed Chair Paul Volcker sharply tightened monetary policy to break double-digit inflation, driving the Fed Funds Rate above 19% by 1981 and triggering a deep recession.",
+    "candidates": [
+      {
+        "series": "gold_price",
+        "date": "1979-09-18",
+        "change": 6.823,
+        "z_score": 4.73,
+        "description": "Gold Price: $352 \u2192 $376 (+6.8%)"
+      },
+      {
+        "series": "fed_funds",
+        "date": "1979-10-01",
+        "change": 2.34,
+        "z_score": 10.1,
+        "description": "Fed Funds Rate: 11.43% \u2192 13.77%"
+      },
+      {
+        "series": "treasury_10y",
+        "date": "1979-10-09",
+        "change": 0.33,
+        "z_score": 7.66,
+        "description": "10Y Treasury Yield: 9.60% \u2192 9.93%"
+      }
+    ]
+  },
+  {
+    "id": "draft_0063",
+    "date": "1980-01-21",
+    "significance": null,
+    "what_triggered_this": [
+      "Manually seeded historical event, not statistically detected"
+    ],
+    "title": "1980 gold price spike",
+    "narrative": "Gold briefly hit an all-time high (in nominal terms) amid high inflation, the Soviet invasion of Afghanistan, and the Iranian Revolution.",
+    "candidates": [
+      {
+        "series": "gold_price",
+        "date": "1980-01-21",
+        "change": 0,
+        "z_score": 0,
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": "draft_0085",
+    "date": "1986-01-08",
+    "significance": 35.86,
+    "what_triggered_this": [
+      "10Y Treasury Yield: 8.94% \u2192 9.13%",
+      "Gold Price: $347 \u2192 $363 (+4.7%)",
+      "Unemployment Rate: 6.70% \u2192 7.20%",
+      "CPI (YoY): 3.20% \u2192 2.15%"
+    ],
+    "title": null,
+    "narrative": null,
+    "candidates": [
+      {
+        "series": "treasury_10y",
+        "date": "1986-01-08",
+        "change": 0.19,
+        "z_score": 3.14,
+        "description": "10Y Treasury Yield: 8.94% \u2192 9.13%"
+      },
+      {
+        "series": "gold_price",
+        "date": "1986-01-16",
+        "change": 4.686,
+        "z_score": 6.41,
+        "description": "Gold Price: $347 \u2192 $363 (+4.7%)"
+      },
+      {
+        "series": "unemployment",
+        "date": "1986-02-01",
+        "change": 0.5,
+        "z_score": 3.63,
+        "description": "Unemployment Rate: 6.70% \u2192 7.20%"
+      },
+      {
+        "series": "cpi_yoy",
+        "date": "1986-03-01",
+        "change": -1.044,
+        "z_score": -3.12,
+        "description": "CPI (YoY): 3.20% \u2192 2.15%"
+      }
+    ]
+  },
+  {
+    "id": "draft_0108",
+    "date": "1987-03-01",
+    "significance": 23.0,
+    "what_triggered_this": [
+      "CPI (YoY): 1.91% \u2192 2.84%",
+      "10Y Treasury Yield: 7.33% \u2192 7.54%",
+      "Gold Price: $475 \u2192 $453 (-4.6%)"
+    ],
+    "title": null,
+    "narrative": null,
+    "candidates": [
+      {
+        "series": "cpi_yoy",
+        "date": "1987-03-01",
+        "change": 0.927,
+        "z_score": 3.39,
+        "description": "CPI (YoY): 1.91% \u2192 2.84%"
+      },
+      {
+        "series": "treasury_10y",
+        "date": "1987-03-30",
+        "change": 0.21,
+        "z_score": 5.2,
+        "description": "10Y Treasury Yield: 7.33% \u2192 7.54%"
+      },
+      {
+        "series": "gold_price",
+        "date": "1987-04-28",
+        "change": -4.581,
+        "z_score": -4.19,
+        "description": "Gold Price: $475 \u2192 $453 (-4.6%)"
+      }
+    ]
+  },
+  {
+    "id": "draft_0064",
+    "date": "1987-10-19",
+    "significance": null,
+    "what_triggered_this": [
+      "Manually seeded historical event, not statistically detected"
+    ],
+    "title": "Black Monday",
+    "narrative": "Global stock markets crashed, with the Dow falling over 22% in a single day \u2014 the largest one-day percentage decline in its history.",
+    "candidates": []
+  },
+  {
+    "id": "draft_0065",
+    "date": "1990-07-01",
+    "significance": 51.9,
+    "what_triggered_this": [
+      "Unemployment Rate: 5.20% \u2192 5.50%",
+      "CPI (YoY): 4.82% \u2192 5.70%",
+      "Core CPI (YoY): 5.11% \u2192 5.48%",
+      "10Y Treasury Yield: 8.43% \u2192 8.71%",
+      "Gold Price: $410 \u2192 $388 (-5.4%)"
+    ],
+    "title": "Gulf War oil shock",
+    "narrative": "Iraq's invasion of Kuwait sent oil prices spiking and contributed to the 1990-91 US recession.",
+    "candidates": [
+      {
+        "series": "unemployment",
+        "date": "1990-07-01",
+        "change": 0.3,
+        "z_score": 2.52,
+        "description": "Unemployment Rate: 5.20% \u2192 5.50%"
+      },
+      {
+        "series": "cpi_yoy",
+        "date": "1990-08-01",
+        "change": 0.884,
+        "z_score": 4.02,
+        "description": "CPI (YoY): 4.82% \u2192 5.70%"
+      },
+      {
+        "series": "cpi_core_yoy",
+        "date": "1990-08-01",
+        "change": 0.375,
+        "z_score": 3.08,
+        "description": "Core CPI (YoY): 5.11% \u2192 5.48%"
+      },
+      {
+        "series": "treasury_10y",
+        "date": "1990-08-06",
+        "change": 0.28,
+        "z_score": 5.36,
+        "description": "10Y Treasury Yield: 8.43% \u2192 8.71%"
+      },
+      {
+        "series": "gold_price",
+        "date": "1990-08-28",
+        "change": -5.374,
+        "z_score": -4.98,
+        "description": "Gold Price: $410 \u2192 $388 (-5.4%)"
+      }
+    ]
+  },
+  {
+    "id": "draft_0088",
+    "date": "1991-01-17",
+    "significance": 32.8,
+    "what_triggered_this": [
+      "10Y Treasury Yield: 8.24% \u2192 8.05%",
+      "Gold Price: $403 \u2192 $379 (-6.0%)",
+      "Fed Funds Rate: 6.91% \u2192 6.25%",
+      "Core CPI (YoY): 5.65% \u2192 5.24%"
+    ],
+    "title": null,
+    "narrative": null,
+    "candidates": [
+      {
+        "series": "treasury_10y",
+        "date": "1991-01-17",
+        "change": -0.19,
+        "z_score": -3.27,
+        "description": "10Y Treasury Yield: 8.24% \u2192 8.05%"
+      },
+      {
+        "series": "gold_price",
+        "date": "1991-01-17",
+        "change": -5.955,
+        "z_score": -5.59,
+        "description": "Gold Price: $403 \u2192 $379 (-6.0%)"
+      },
+      {
+        "series": "fed_funds",
+        "date": "1991-02-01",
+        "change": -0.66,
+        "z_score": -2.72,
+        "description": "Fed Funds Rate: 6.91% \u2192 6.25%"
+      },
+      {
+        "series": "cpi_core_yoy",
+        "date": "1991-03-01",
+        "change": -0.409,
+        "z_score": -3.33,
+        "description": "Core CPI (YoY): 5.65% \u2192 5.24%"
+      }
+    ]
+  },
+  {
+    "id": "draft_0106",
+    "date": "1992-08-13",
+    "significance": 23.67,
+    "what_triggered_this": [
+      "Gold Price: $347 \u2192 $337 (-2.7%)",
+      "10Y Treasury Yield: 6.53% \u2192 6.68%",
+      "Unemployment Rate: 7.60% \u2192 7.30%"
+    ],
+    "title": null,
+    "narrative": null,
+    "candidates": [
+      {
+        "series": "gold_price",
+        "date": "1992-08-13",
+        "change": -2.739,
+        "z_score": -6.41,
+        "description": "Gold Price: $347 \u2192 $337 (-2.7%)"
+      },
+      {
+        "series": "treasury_10y",
+        "date": "1992-08-24",
+        "change": 0.15,
+        "z_score": 3.67,
+        "description": "10Y Treasury Yield: 6.53% \u2192 6.68%"
+      },
+      {
+        "series": "unemployment",
+        "date": "1992-10-01",
+        "change": -0.3,
+        "z_score": -3.07,
+        "description": "Unemployment Rate: 7.60% \u2192 7.30%"
+      }
+    ]
+  },
+  {
+    "id": "draft_0066",
+    "date": "1994-02-04",
+    "significance": null,
+    "what_triggered_this": [
+      "Manually seeded historical event, not statistically detected"
+    ],
+    "title": "The 1994 bond market rout",
+    "narrative": "The Fed's rapid, unexpected rate hikes triggered one of the worst bond market selloffs in decades, later dubbed the \"bond massacre.\"",
+    "candidates": [
+      {
+        "series": "fed_funds",
+        "date": "1994-02-04",
+        "change": 0,
+        "z_score": 0,
+        "description": ""
+      },
+      {
+        "series": "treasury_10y",
+        "date": "1994-02-04",
+        "change": 0,
+        "z_score": 0,
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": "draft_0100",
+    "date": "1995-01-01",
+    "significance": 25.21,
+    "what_triggered_this": [
+      "Core CPI (YoY): 2.59% \u2192 2.91%",
+      "Gold Price: $381 \u2192 $376 (-1.4%)",
+      "Fed Funds Rate: 5.53% \u2192 5.92%",
+      "10Y Treasury Yield: 7.68% \u2192 7.49%"
+    ],
+    "title": null,
+    "narrative": null,
+    "candidates": [
+      {
+        "series": "cpi_core_yoy",
+        "date": "1995-01-01",
+        "change": 0.321,
+        "z_score": 2.38,
+        "description": "Core CPI (YoY): 2.59% \u2192 2.91%"
+      },
+      {
+        "series": "gold_price",
+        "date": "1995-01-04",
+        "change": -1.391,
+        "z_score": -3.8,
+        "description": "Gold Price: $381 \u2192 $376 (-1.4%)"
+      },
+      {
+        "series": "fed_funds",
+        "date": "1995-02-01",
+        "change": 0.39,
+        "z_score": 1.86,
+        "description": "Fed Funds Rate: 5.53% \u2192 5.92%"
+      },
+      {
+        "series": "treasury_10y",
+        "date": "1995-02-03",
+        "change": -0.19,
+        "z_score": -3.42,
+        "description": "10Y Treasury Yield: 7.68% \u2192 7.49%"
+      }
+    ]
+  },
+  {
+    "id": "draft_0067",
+    "date": "1997-07-02",
+    "significance": null,
+    "what_triggered_this": [
+      "Manually seeded historical event, not statistically detected"
+    ],
+    "title": "The Asian financial crisis",
+    "narrative": "Thailand's currency collapse triggered a wave of devaluations and financial crises across East Asia, with ripple effects on global markets.",
+    "candidates": [
+      {
+        "series": "usd_broad_index",
+        "date": "1997-07-02",
+        "change": 0,
+        "z_score": 0,
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": "draft_0068",
+    "date": "1998-08-01",
+    "significance": 20.41,
+    "what_triggered_this": [
+      "Core CPI (YoY): 2.24% \u2192 2.47%",
+      "10Y Treasury Yield: 4.95% \u2192 4.76%",
+      "Gold Price: $283 \u2192 $290 (+2.5%)"
+    ],
+    "title": "Russian default and LTCM collapse",
+    "narrative": "Russia defaulted on its debt, and the resulting turmoil helped sink the hedge fund Long-Term Capital Management, prompting a Fed-orchestrated bailout to avert wider contagion.",
+    "candidates": [
+      {
+        "series": "cpi_core_yoy",
+        "date": "1998-08-01",
+        "change": 0.234,
+        "z_score": 3.11,
+        "description": "Core CPI (YoY): 2.24% \u2192 2.47%"
+      },
+      {
+        "series": "treasury_10y",
+        "date": "1998-09-10",
+        "change": -0.19,
+        "z_score": -5.0,
+        "description": "10Y Treasury Yield: 4.95% \u2192 4.76%"
+      },
+      {
+        "series": "gold_price",
+        "date": "1998-09-10",
+        "change": 2.487,
+        "z_score": 3.23,
+        "description": "Gold Price: $283 \u2192 $290 (+2.5%)"
+      }
+    ]
+  },
+  {
+    "id": "draft_0104",
+    "date": "2000-01-01",
+    "significance": 23.87,
+    "what_triggered_this": [
+      "Debt / GDP: 57.10% \u2192 57.75%",
+      "Fed Funds Rate: 5.45% \u2192 5.73%",
+      "Gold Price: $294 \u2192 $313 (+6.5%)",
+      "Core CPI (YoY): 2.16% \u2192 2.45%"
+    ],
+    "title": null,
+    "narrative": null,
+    "candidates": [
+      {
+        "series": "debt_to_gdp",
+        "date": "2000-01-01",
+        "change": 0.65,
+        "z_score": 2.09,
+        "description": "Debt / GDP: 57.10% \u2192 57.75%"
+      },
+      {
+        "series": "fed_funds",
+        "date": "2000-02-01",
+        "change": 0.28,
+        "z_score": 2.01,
+        "description": "Fed Funds Rate: 5.45% \u2192 5.73%"
+      },
+      {
+        "series": "gold_price",
+        "date": "2000-02-07",
+        "change": 6.487,
+        "z_score": 4.33,
+        "description": "Gold Price: $294 \u2192 $313 (+6.5%)"
+      },
+      {
+        "series": "cpi_core_yoy",
+        "date": "2000-03-01",
+        "change": 0.283,
+        "z_score": 2.42,
+        "description": "Core CPI (YoY): 2.16% \u2192 2.45%"
+      }
+    ]
+  },
+  {
+    "id": "draft_0069",
+    "date": "2000-03-10",
+    "significance": null,
+    "what_triggered_this": [
+      "Manually seeded historical event, not statistically detected"
+    ],
+    "title": "The dot-com bubble bursts",
+    "narrative": "The Nasdaq peaked and began a two-and-a-half-year decline of nearly 80%, as speculative internet-era valuations unwound.",
+    "candidates": [
+      {
+        "series": "fed_funds",
+        "date": "2000-03-10",
+        "change": 0,
+        "z_score": 0,
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": "draft_0099",
+    "date": "2001-05-01",
+    "significance": 26.68,
+    "what_triggered_this": [
+      "Fed Funds Rate: 4.80% \u2192 4.21%",
+      "10Y Treasury Yield: 5.31% \u2192 5.51%",
+      "Gold Price: $273 \u2192 $291 (+6.7%)"
+    ],
+    "title": null,
+    "narrative": null,
+    "candidates": [
+      {
+        "series": "fed_funds",
+        "date": "2001-05-01",
+        "change": -0.59,
+        "z_score": -2.72,
+        "description": "Fed Funds Rate: 4.80% \u2192 4.21%"
+      },
+      {
+        "series": "treasury_10y",
+        "date": "2001-05-11",
+        "change": 0.2,
+        "z_score": 3.04,
+        "description": "10Y Treasury Yield: 5.31% \u2192 5.51%"
+      },
+      {
+        "series": "gold_price",
+        "date": "2001-05-21",
+        "change": 6.685,
+        "z_score": 9.06,
+        "description": "Gold Price: $273 \u2192 $291 (+6.7%)"
+      }
+    ]
+  },
+  {
+    "id": "draft_0070",
+    "date": "2001-08-01",
+    "significance": 31.97,
+    "what_triggered_this": [
+      "Unemployment Rate: 4.60% \u2192 4.90%",
+      "10Y Treasury Yield: 5.20% \u2192 4.99%",
+      "Fed Funds Rate: 3.65% \u2192 3.07%",
+      "Gold Price: $272 \u2192 $287 (+5.7%)"
+    ],
+    "title": "September 11 attacks",
+    "narrative": "The attacks closed US financial markets for four trading days and accelerated Fed rate cuts already underway amid the dot-com downturn.",
+    "candidates": [
+      {
+        "series": "unemployment",
+        "date": "2001-08-01",
+        "change": 0.3,
+        "z_score": 2.39,
+        "description": "Unemployment Rate: 4.60% \u2192 4.90%"
+      },
+      {
+        "series": "treasury_10y",
+        "date": "2001-08-08",
+        "change": -0.21,
+        "z_score": -4.56,
+        "description": "10Y Treasury Yield: 5.20% \u2192 4.99%"
+      },
+      {
+        "series": "fed_funds",
+        "date": "2001-09-01",
+        "change": -0.58,
+        "z_score": -2.11,
+        "description": "Fed Funds Rate: 3.65% \u2192 3.07%"
+      },
+      {
+        "series": "gold_price",
+        "date": "2001-09-11",
+        "change": 5.709,
+        "z_score": 5.47,
+        "description": "Gold Price: $272 \u2192 $287 (+5.7%)"
+      }
+    ]
+  },
+  {
+    "id": "draft_0095",
+    "date": "2006-08-01",
+    "significance": 28.67,
+    "what_triggered_this": [
+      "Fed Funds Rate: 5.24% \u2192 5.25%",
+      "CPI (YoY): 3.93% \u2192 2.01%",
+      "Real 10Y Yield: 1.06% \u2192 2.72%",
+      "Unemployment Rate: 4.70% \u2192 4.50%"
+    ],
+    "title": null,
+    "narrative": null,
+    "candidates": [
+      {
+        "series": "fed_funds",
+        "date": "2006-08-01",
+        "change": 0.01,
+        "z_score": -2.87,
+        "description": "Fed Funds Rate: 5.24% \u2192 5.25%"
+      },
+      {
+        "series": "cpi_yoy",
+        "date": "2006-09-01",
+        "change": -1.915,
+        "z_score": -4.65,
+        "description": "CPI (YoY): 3.93% \u2192 2.01%"
+      },
+      {
+        "series": "real_yield_10y",
+        "date": "2006-09-01",
+        "change": 1.655,
+        "z_score": 3.59,
+        "description": "Real 10Y Yield: 1.06% \u2192 2.72%"
+      },
+      {
+        "series": "unemployment",
+        "date": "2006-09-01",
+        "change": -0.2,
+        "z_score": -1.92,
+        "description": "Unemployment Rate: 4.70% \u2192 4.50%"
+      }
+    ]
+  },
+  {
+    "id": "draft_0091",
+    "date": "2007-09-20",
+    "significance": 30.4,
+    "what_triggered_this": [
+      "10Y Treasury Yield: 4.53% \u2192 4.69%",
+      "USD Broad Index: 92.15 \u2192 91.42",
+      "Fed Funds Rate: 4.76% \u2192 4.49%",
+      "Gold Price: $832 \u2192 $804 (-3.4%)"
+    ],
+    "title": null,
+    "narrative": null,
+    "candidates": [
+      {
+        "series": "treasury_10y",
+        "date": "2007-09-20",
+        "change": 0.16,
+        "z_score": 3.22,
+        "description": "10Y Treasury Yield: 4.53% \u2192 4.69%"
+      },
+      {
+        "series": "usd_broad_index",
+        "date": "2007-09-20",
+        "change": -0.795,
+        "z_score": -3.53,
+        "description": "USD Broad Index: 92.15 \u2192 91.42"
+      },
+      {
+        "series": "fed_funds",
+        "date": "2007-11-01",
+        "change": -0.27,
+        "z_score": -2.67,
+        "description": "Fed Funds Rate: 4.76% \u2192 4.49%"
+      },
+      {
+        "series": "gold_price",
+        "date": "2007-11-12",
+        "change": -3.367,
+        "z_score": -4.4,
+        "description": "Gold Price: $832 \u2192 $804 (-3.4%)"
+      }
+    ]
+  },
+  {
+    "id": "draft_0080",
+    "date": "2008-08-08",
+    "significance": 65.47,
+    "what_triggered_this": [
+      "USD Broad Index: 87.87 \u2192 88.89",
+      "10Y Treasury Yield: 3.74% \u2192 3.47%",
+      "Core CPI (YoY): 2.44% \u2192 2.22%",
+      "Fed Funds Rate: 1.81% \u2192 0.97%",
+      "Debt / GDP: 63.54% \u2192 69.31%"
+    ],
+    "title": null,
+    "narrative": null,
+    "candidates": [
+      {
+        "series": "usd_broad_index",
+        "date": "2008-08-08",
+        "change": 1.162,
+        "z_score": 4.33,
+        "description": "USD Broad Index: 87.87 \u2192 88.89"
+      },
+      {
+        "series": "treasury_10y",
+        "date": "2008-09-15",
+        "change": -0.27,
+        "z_score": -4.59,
+        "description": "10Y Treasury Yield: 3.74% \u2192 3.47%"
+      },
+      {
+        "series": "cpi_core_yoy",
+        "date": "2008-10-01",
+        "change": -0.218,
+        "z_score": -2.18,
+        "description": "Core CPI (YoY): 2.44% \u2192 2.22%"
+      },
+      {
+        "series": "fed_funds",
+        "date": "2008-10-01",
+        "change": -0.84,
+        "z_score": -3.22,
+        "description": "Fed Funds Rate: 1.81% \u2192 0.97%"
+      },
+      {
+        "series": "debt_to_gdp",
+        "date": "2008-10-01",
+        "change": 5.77,
+        "z_score": 10.86,
+        "description": "Debt / GDP: 63.54% \u2192 69.31%"
+      }
+    ]
+  },
+  {
+    "id": "draft_0071",
+    "date": "2008-10-13",
+    "significance": 53.09,
+    "what_triggered_this": [
+      "Gold Price: $900 \u2192 $832 (-7.7%)",
+      "USD Broad Index: 102.42 \u2192 100.10",
+      "CPI (YoY): 3.73% \u2192 1.10%",
+      "Real 10Y Yield: 0.04% \u2192 2.91%",
+      "Unemployment Rate: 6.80% \u2192 7.30%"
+    ],
+    "title": "Lehman Brothers collapse",
+    "narrative": "Lehman Brothers' bankruptcy \u2014 the largest in US history \u2014 marked the acute phase of the global financial crisis, freezing credit markets worldwide.",
+    "candidates": [
+      {
+        "series": "gold_price",
+        "date": "2008-10-13",
+        "change": -7.662,
+        "z_score": -3.92,
+        "description": "Gold Price: $900 \u2192 $832 (-7.7%)"
+      },
+      {
+        "series": "usd_broad_index",
+        "date": "2008-10-29",
+        "change": -2.272,
+        "z_score": -4.32,
+        "description": "USD Broad Index: 102.42 \u2192 100.10"
+      },
+      {
+        "series": "cpi_yoy",
+        "date": "2008-11-01",
+        "change": -2.631,
+        "z_score": -4.46,
+        "description": "CPI (YoY): 3.73% \u2192 1.10%"
+      },
+      {
+        "series": "real_yield_10y",
+        "date": "2008-11-01",
+        "change": 2.871,
+        "z_score": 5.3,
+        "description": "Real 10Y Yield: 0.04% \u2192 2.91%"
+      },
+      {
+        "series": "unemployment",
+        "date": "2008-12-01",
+        "change": 0.5,
+        "z_score": 2.42,
+        "description": "Unemployment Rate: 6.80% \u2192 7.30%"
+      }
+    ]
+  },
+  {
+    "id": "draft_0072",
+    "date": "2008-12-16",
+    "significance": null,
+    "what_triggered_this": [
+      "Manually seeded historical event, not statistically detected"
+    ],
+    "title": "The Fed cuts rates to near zero",
+    "narrative": "The Fed cut its target rate to 0-0.25% in response to the financial crisis, beginning nearly seven years of zero interest rate policy and the start of quantitative easing.",
+    "candidates": [
+      {
+        "series": "fed_funds",
+        "date": "2008-12-16",
+        "change": 0,
+        "z_score": 0,
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": "draft_0105",
+    "date": "2011-08-01",
+    "significance": 23.78,
+    "what_triggered_this": [
+      "Fed Funds Rate: 0.07% \u2192 0.10%",
+      "Gold Price: $1,876 \u2192 $1,770 (-5.7%)",
+      "USD Broad Index: 90.35 \u2192 92.08"
+    ],
+    "title": null,
+    "narrative": null,
+    "candidates": [
+      {
+        "series": "fed_funds",
+        "date": "2011-08-01",
+        "change": 0.03,
+        "z_score": 1.98,
+        "description": "Fed Funds Rate: 0.07% \u2192 0.10%"
+      },
+      {
+        "series": "gold_price",
+        "date": "2011-08-24",
+        "change": -5.65,
+        "z_score": -6.26,
+        "description": "Gold Price: $1,876 \u2192 $1,770 (-5.7%)"
+      },
+      {
+        "series": "usd_broad_index",
+        "date": "2011-09-22",
+        "change": 1.915,
+        "z_score": 4.97,
+        "description": "USD Broad Index: 90.35 \u2192 92.08"
+      }
+    ]
+  },
+  {
+    "id": "draft_0073",
+    "date": "2011-08-05",
+    "significance": null,
+    "what_triggered_this": [
+      "Manually seeded historical event, not statistically detected"
+    ],
+    "title": "US credit rating downgrade",
+    "narrative": "S&P stripped the United States of its AAA credit rating for the first time, amid a debt-ceiling standoff and the deepening European sovereign debt crisis.",
+    "candidates": [
+      {
+        "series": "treasury_10y",
+        "date": "2011-08-05",
+        "change": 0,
+        "z_score": 0,
+        "description": ""
+      },
+      {
+        "series": "debt_to_gdp",
+        "date": "2011-08-05",
+        "change": 0,
+        "z_score": 0,
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": "draft_0087",
+    "date": "2013-04-15",
+    "significance": 33.95,
+    "what_triggered_this": [
+      "Gold Price: $1,536 \u2192 $1,395 (-9.2%)",
+      "Fed Funds Rate: 0.15% \u2192 0.11%",
+      "10Y Treasury Yield: 1.66% \u2192 1.78%"
+    ],
+    "title": null,
+    "narrative": null,
+    "candidates": [
+      {
+        "series": "gold_price",
+        "date": "2013-04-15",
+        "change": -9.15,
+        "z_score": -12.3,
+        "description": "Gold Price: $1,536 \u2192 $1,395 (-9.2%)"
+      },
+      {
+        "series": "fed_funds",
+        "date": "2013-05-01",
+        "change": -0.04,
+        "z_score": -2.66,
+        "description": "Fed Funds Rate: 0.15% \u2192 0.11%"
+      },
+      {
+        "series": "treasury_10y",
+        "date": "2013-05-03",
+        "change": 0.12,
+        "z_score": 3.9,
+        "description": "10Y Treasury Yield: 1.66% \u2192 1.78%"
+      }
+    ]
+  },
+  {
+    "id": "draft_0074",
+    "date": "2013-06-20",
+    "significance": 44.37,
+    "what_triggered_this": [
+      "Gold Price: $1,373 \u2192 $1,292 (-5.8%)",
+      "USD Broad Index: 92.48 \u2192 94.12",
+      "Debt / GDP: 100.38% \u2192 98.73%",
+      "10Y Treasury Yield: 2.52% \u2192 2.73%"
+    ],
+    "title": "The taper tantrum",
+    "narrative": "Bernanke's suggestion that the Fed might slow its bond-buying program triggered a sharp, rapid rise in Treasury yields as markets repriced expectations.",
+    "candidates": [
+      {
+        "series": "gold_price",
+        "date": "2013-06-20",
+        "change": -5.846,
+        "z_score": -4.11,
+        "description": "Gold Price: $1,373 \u2192 $1,292 (-5.8%)"
+      },
+      {
+        "series": "usd_broad_index",
+        "date": "2013-06-20",
+        "change": 1.784,
+        "z_score": 7.42,
+        "description": "USD Broad Index: 92.48 \u2192 94.12"
+      },
+      {
+        "series": "debt_to_gdp",
+        "date": "2013-07-01",
+        "change": -1.65,
+        "z_score": -4.65,
+        "description": "Debt / GDP: 100.38% \u2192 98.73%"
+      },
+      {
+        "series": "treasury_10y",
+        "date": "2013-07-05",
+        "change": 0.21,
+        "z_score": 3.99,
+        "description": "10Y Treasury Yield: 2.52% \u2192 2.73%"
+      }
+    ]
+  },
+  {
+    "id": "draft_0075",
+    "date": "2015-01-01",
+    "significance": 8.4,
+    "what_triggered_this": [
+      "CPI (YoY): 0.65% \u2192 -0.23%",
+      "Gold Price: $1,206 \u2192 $1,172 (-2.8%)"
+    ],
+    "title": "The 2014-2016 oil price collapse",
+    "narrative": "OPEC's decision not to cut production amid a US shale supply boom sent oil prices down more than 70% over the following year.",
+    "candidates": [
+      {
+        "series": "cpi_yoy",
+        "date": "2015-01-01",
+        "change": -0.883,
+        "z_score": -2.74,
+        "description": "CPI (YoY): 0.65% \u2192 -0.23%"
+      },
+      {
+        "series": "gold_price",
+        "date": "2015-01-02",
+        "change": -2.819,
+        "z_score": -3.26,
+        "description": "Gold Price: $1,206 \u2192 $1,172 (-2.8%)"
+      }
+    ]
+  },
+  {
+    "id": "draft_0076",
+    "date": "2015-12-01",
+    "significance": 42.59,
+    "what_triggered_this": [
+      "Fed Funds Rate: 0.12% \u2192 0.24%",
+      "10Y Treasury Yield: 2.18% \u2192 2.33%",
+      "CPI (YoY): 0.64% \u2192 1.24%",
+      "Debt / GDP: 98.46% \u2192 102.14%"
+    ],
+    "title": "The Fed's first post-crisis rate hike",
+    "narrative": "The Fed raised rates for the first time since 2006, ending seven years of near-zero interest rates.",
+    "candidates": [
+      {
+        "series": "fed_funds",
+        "date": "2015-12-01",
+        "change": 0.12,
+        "z_score": 11.52,
+        "description": "Fed Funds Rate: 0.12% \u2192 0.24%"
+      },
+      {
+        "series": "treasury_10y",
+        "date": "2015-12-03",
+        "change": 0.15,
+        "z_score": 3.42,
+        "description": "10Y Treasury Yield: 2.18% \u2192 2.33%"
+      },
+      {
+        "series": "cpi_yoy",
+        "date": "2016-01-01",
+        "change": 0.599,
+        "z_score": 2.02,
+        "description": "CPI (YoY): 0.64% \u2192 1.24%"
+      },
+      {
+        "series": "debt_to_gdp",
+        "date": "2016-01-01",
+        "change": 3.68,
+        "z_score": 2.4,
+        "description": "Debt / GDP: 98.46% \u2192 102.14%"
+      }
+    ]
+  },
+  {
+    "id": "draft_0084",
+    "date": "2016-11-09",
+    "significance": 40.55,
+    "what_triggered_this": [
+      "10Y Treasury Yield: 1.88% \u2192 2.07%",
+      "Fed Funds Rate: 0.41% \u2192 0.54%",
+      "Gold Price: $1,162 \u2192 $1,127 (-3.0%)",
+      "USD Broad Index: 116.73 \u2192 118.81"
+    ],
+    "title": null,
+    "narrative": null,
+    "candidates": [
+      {
+        "series": "treasury_10y",
+        "date": "2016-11-09",
+        "change": 0.19,
+        "z_score": 6.03,
+        "description": "10Y Treasury Yield: 1.88% \u2192 2.07%"
+      },
+      {
+        "series": "fed_funds",
+        "date": "2016-12-01",
+        "change": 0.13,
+        "z_score": 3.66,
+        "description": "Fed Funds Rate: 0.41% \u2192 0.54%"
+      },
+      {
+        "series": "gold_price",
+        "date": "2016-12-15",
+        "change": -3.037,
+        "z_score": -3.78,
+        "description": "Gold Price: $1,162 \u2192 $1,127 (-3.0%)"
+      },
+      {
+        "series": "usd_broad_index",
+        "date": "2016-12-15",
+        "change": 1.777,
+        "z_score": 4.96,
+        "description": "USD Broad Index: 116.73 \u2192 118.81"
+      }
+    ]
+  },
+  {
+    "id": "draft_0096",
+    "date": "2018-04-01",
+    "significance": 28.53,
+    "what_triggered_this": [
+      "Fed Funds Rate: 1.51% \u2192 1.69%",
+      "Debt / GDP: 100.81% \u2192 102.62%",
+      "Gold Price: $1,320 \u2192 $1,295 (-1.9%)",
+      "10Y Treasury Yield: 2.93% \u2192 2.77%"
+    ],
+    "title": null,
+    "narrative": null,
+    "candidates": [
+      {
+        "series": "fed_funds",
+        "date": "2018-04-01",
+        "change": 0.18,
+        "z_score": 2.4,
+        "description": "Fed Funds Rate: 1.51% \u2192 1.69%"
+      },
+      {
+        "series": "debt_to_gdp",
+        "date": "2018-04-01",
+        "change": 1.81,
+        "z_score": 2.15,
+        "description": "Debt / GDP: 100.81% \u2192 102.62%"
+      },
+      {
+        "series": "gold_price",
+        "date": "2018-05-15",
+        "change": -1.883,
+        "z_score": -3.43,
+        "description": "Gold Price: $1,320 \u2192 $1,295 (-1.9%)"
+      },
+      {
+        "series": "treasury_10y",
+        "date": "2018-05-29",
+        "change": -0.16,
+        "z_score": -4.99,
+        "description": "10Y Treasury Yield: 2.93% \u2192 2.77%"
+      }
+    ]
+  },
+  {
+    "id": "draft_0103",
+    "date": "2019-06-20",
+    "significance": 24.16,
+    "what_triggered_this": [
+      "Gold Price: $1,344 \u2192 $1,380 (+2.6%)",
+      "USD Broad Index: 115.79 \u2192 114.80",
+      "Fed Funds Rate: 2.40% \u2192 2.13%"
+    ],
+    "title": null,
+    "narrative": null,
+    "candidates": [
+      {
+        "series": "gold_price",
+        "date": "2019-06-20",
+        "change": 2.638,
+        "z_score": 4.57,
+        "description": "Gold Price: $1,344 \u2192 $1,380 (+2.6%)"
+      },
+      {
+        "series": "usd_broad_index",
+        "date": "2019-06-20",
+        "change": -0.85,
+        "z_score": -4.15,
+        "description": "USD Broad Index: 115.79 \u2192 114.80"
+      },
+      {
+        "series": "fed_funds",
+        "date": "2019-08-01",
+        "change": -0.27,
+        "z_score": -4.7,
+        "description": "Fed Funds Rate: 2.40% \u2192 2.13%"
+      }
+    ]
+  },
+  {
+    "id": "draft_0077",
+    "date": "2020-03-01",
+    "significance": 418.19,
+    "what_triggered_this": [
+      "Fed Funds Rate: 1.58% \u2192 0.65%",
+      "Gold Price: $1,654 \u2192 $1,571 (-5.0%)",
+      "USD Broad Index: 118.25 \u2192 120.49",
+      "10Y Treasury Yield: 0.73% \u2192 1.02%",
+      "CPI (YoY): 1.49% \u2192 0.31%",
+      "Core CPI (YoY): 2.10% \u2192 1.43%",
+      "Real 10Y Yield: -0.39% \u2192 0.31%",
+      "Unemployment Rate: 4.40% \u2192 14.80%",
+      "Debt / GDP: 106.67% \u2192 118.76%"
+    ],
+    "title": "The COVID-19 crash and response",
+    "narrative": "Markets bottomed after a historically fast crash as COVID-19 lockdowns began; the Fed cut rates to zero and launched unprecedented asset purchases within days.",
+    "candidates": [
+      {
+        "series": "fed_funds",
+        "date": "2020-03-01",
+        "change": -0.93,
+        "z_score": -7.77,
+        "description": "Fed Funds Rate: 1.58% \u2192 0.65%"
+      },
+      {
+        "series": "gold_price",
+        "date": "2020-03-12",
+        "change": -5.022,
+        "z_score": -6.77,
+        "description": "Gold Price: $1,654 \u2192 $1,571 (-5.0%)"
+      },
+      {
+        "series": "usd_broad_index",
+        "date": "2020-03-12",
+        "change": 1.892,
+        "z_score": 9.71,
+        "description": "USD Broad Index: 118.25 \u2192 120.49"
+      },
+      {
+        "series": "treasury_10y",
+        "date": "2020-03-17",
+        "change": 0.29,
+        "z_score": 4.6,
+        "description": "10Y Treasury Yield: 0.73% \u2192 1.02%"
+      },
+      {
+        "series": "cpi_yoy",
+        "date": "2020-04-01",
+        "change": -1.181,
+        "z_score": -4.52,
+        "description": "CPI (YoY): 1.49% \u2192 0.31%"
+      },
+      {
+        "series": "cpi_core_yoy",
+        "date": "2020-04-01",
+        "change": -0.667,
+        "z_score": -6.59,
+        "description": "Core CPI (YoY): 2.10% \u2192 1.43%"
+      },
+      {
+        "series": "real_yield_10y",
+        "date": "2020-04-01",
+        "change": 0.701,
+        "z_score": 3.21,
+        "description": "Real 10Y Yield: -0.39% \u2192 0.31%"
+      },
+      {
+        "series": "unemployment",
+        "date": "2020-04-01",
+        "change": 10.4,
+        "z_score": 49.1,
+        "description": "Unemployment Rate: 4.40% \u2192 14.80%"
+      },
+      {
+        "series": "debt_to_gdp",
+        "date": "2020-04-01",
+        "change": 12.09,
+        "z_score": 7.3,
+        "description": "Debt / GDP: 106.67% \u2192 118.76%"
+      }
+    ]
+  },
+  {
+    "id": "draft_0081",
+    "date": "2021-02-25",
+    "significance": 63.67,
+    "what_triggered_this": [
+      "10Y Treasury Yield: 1.38% \u2192 1.54%",
+      "USD Broad Index: 112.70 \u2192 113.75",
+      "CPI (YoY): 2.67% \u2192 4.13%",
+      "Core CPI (YoY): 1.65% \u2192 2.98%",
+      "Real 10Y Yield: -1.22% \u2192 -2.44%"
+    ],
+    "title": null,
+    "narrative": null,
+    "candidates": [
+      {
+        "series": "treasury_10y",
+        "date": "2021-02-25",
+        "change": 0.16,
+        "z_score": 4.84,
+        "description": "10Y Treasury Yield: 1.38% \u2192 1.54%"
+      },
+      {
+        "series": "usd_broad_index",
+        "date": "2021-03-05",
+        "change": 0.927,
+        "z_score": 3.48,
+        "description": "USD Broad Index: 112.70 \u2192 113.75"
+      },
+      {
+        "series": "cpi_yoy",
+        "date": "2021-04-01",
+        "change": 1.465,
+        "z_score": 3.92,
+        "description": "CPI (YoY): 2.67% \u2192 4.13%"
+      },
+      {
+        "series": "cpi_core_yoy",
+        "date": "2021-04-01",
+        "change": 1.329,
+        "z_score": 7.74,
+        "description": "Core CPI (YoY): 1.65% \u2192 2.98%"
+      },
+      {
+        "series": "real_yield_10y",
+        "date": "2021-04-01",
+        "change": -1.225,
+        "z_score": -4.51,
+        "description": "Real 10Y Yield: -1.22% \u2192 -2.44%"
+      }
+    ]
+  },
+  {
+    "id": "draft_0101",
+    "date": "2021-06-17",
+    "significance": 24.19,
+    "what_triggered_this": [
+      "Gold Price: $1,861 \u2192 $1,779 (-4.4%)",
+      "USD Broad Index: 111.12 \u2192 112.58",
+      "10Y Treasury Yield: 1.31% \u2192 1.19%"
+    ],
+    "title": null,
+    "narrative": null,
+    "candidates": [
+      {
+        "series": "gold_price",
+        "date": "2021-06-17",
+        "change": -4.41,
+        "z_score": -5.31,
+        "description": "Gold Price: $1,861 \u2192 $1,779 (-4.4%)"
+      },
+      {
+        "series": "usd_broad_index",
+        "date": "2021-06-17",
+        "change": 1.315,
+        "z_score": 4.92,
+        "description": "USD Broad Index: 111.12 \u2192 112.58"
+      },
+      {
+        "series": "treasury_10y",
+        "date": "2021-07-19",
+        "change": -0.12,
+        "z_score": -3.21,
+        "description": "10Y Treasury Yield: 1.31% \u2192 1.19%"
+      }
+    ]
+  },
+  {
+    "id": "draft_0090",
+    "date": "2022-02-24",
+    "significance": 31.53,
+    "what_triggered_this": [
+      "USD Broad Index: 114.67 \u2192 115.94",
+      "Gold Price: $1,936 \u2192 $1,885 (-2.7%)",
+      "10Y Treasury Yield: 1.97% \u2192 1.83%",
+      "Real 10Y Yield: -6.85% \u2192 -5.84%"
+    ],
+    "title": null,
+    "narrative": null,
+    "candidates": [
+      {
+        "series": "usd_broad_index",
+        "date": "2022-02-24",
+        "change": 1.112,
+        "z_score": 4.64,
+        "description": "USD Broad Index: 114.67 \u2192 115.94"
+      },
+      {
+        "series": "gold_price",
+        "date": "2022-02-25",
+        "change": -2.66,
+        "z_score": -3.19,
+        "description": "Gold Price: $1,936 \u2192 $1,885 (-2.7%)"
+      },
+      {
+        "series": "treasury_10y",
+        "date": "2022-02-28",
+        "change": -0.14,
+        "z_score": -3.1,
+        "description": "10Y Treasury Yield: 1.97% \u2192 1.83%"
+      },
+      {
+        "series": "real_yield_10y",
+        "date": "2022-04-01",
+        "change": 1.01,
+        "z_score": 3.4,
+        "description": "Real 10Y Yield: -6.85% \u2192 -5.84%"
+      }
+    ]
+  },
+  {
+    "id": "draft_0078",
+    "date": "2022-03-16",
+    "significance": null,
+    "what_triggered_this": [
+      "Manually seeded historical event, not statistically detected"
+    ],
+    "title": "The Fed begins its 2022 hiking cycle",
+    "narrative": "The Fed raised rates for the first time since 2018, the start of its fastest tightening cycle in decades as inflation ran at 40-year highs.",
+    "candidates": [
+      {
+        "series": "fed_funds",
+        "date": "2022-03-16",
+        "change": 0,
+        "z_score": 0,
+        "description": ""
+      },
+      {
+        "series": "cpi_yoy",
+        "date": "2022-03-16",
+        "change": 0,
+        "z_score": 0,
+        "description": ""
+      }
+    ]
+  },
+  {
+    "id": "draft_0092",
+    "date": "2022-10-01",
+    "significance": 30.25,
+    "what_triggered_this": [
+      "Real 10Y Yield: -4.93% \u2192 -3.93%",
+      "Gold Price: $1,668 \u2192 $1,715 (+2.8%)",
+      "Fed Funds Rate: 3.08% \u2192 3.78%",
+      "10Y Treasury Yield: 4.12% \u2192 3.82%"
+    ],
+    "title": null,
+    "narrative": null,
+    "candidates": [
+      {
+        "series": "real_yield_10y",
+        "date": "2022-10-01",
+        "change": 1.003,
+        "z_score": 2.85,
+        "description": "Real 10Y Yield: -4.93% \u2192 -3.93%"
+      },
+      {
+        "series": "gold_price",
+        "date": "2022-10-04",
+        "change": 2.784,
+        "z_score": 3.95,
+        "description": "Gold Price: $1,668 \u2192 $1,715 (+2.8%)"
+      },
+      {
+        "series": "fed_funds",
+        "date": "2022-11-01",
+        "change": 0.7,
+        "z_score": 2.8,
+        "description": "Fed Funds Rate: 3.08% \u2192 3.78%"
+      },
+      {
+        "series": "treasury_10y",
+        "date": "2022-11-10",
+        "change": -0.3,
+        "z_score": -4.15,
+        "description": "10Y Treasury Yield: 4.12% \u2192 3.82%"
+      }
+    ]
+  },
+  {
+    "id": "draft_0079",
+    "date": "2023-03-01",
+    "significance": 10.42,
+    "what_triggered_this": [
+      "Real 10Y Yield: -2.57% \u2192 -0.91%",
+      "10Y Treasury Yield: 3.93% \u2192 3.70%"
+    ],
+    "title": "Silicon Valley Bank collapse",
+    "narrative": "SVB's failure \u2014 the second-largest bank failure in US history at the time \u2014 was triggered in part by losses on long-dated bonds as the Fed's rapid rate hikes eroded their value.",
+    "candidates": [
+      {
+        "series": "real_yield_10y",
+        "date": "2023-03-01",
+        "change": 1.66,
+        "z_score": 4.04,
+        "description": "Real 10Y Yield: -2.57% \u2192 -0.91%"
+      },
+      {
+        "series": "treasury_10y",
+        "date": "2023-03-10",
+        "change": -0.23,
+        "z_score": -3.4,
+        "description": "10Y Treasury Yield: 3.93% \u2192 3.70%"
+      }
+    ]
+  },
+  {
+    "id": "draft_0093",
+    "date": "2024-10-01",
+    "significance": 28.8,
+    "what_triggered_this": [
+      "Fed Funds Rate: 5.13% \u2192 4.83%",
+      "10Y Treasury Yield: 4.26% \u2192 4.42%",
+      "Gold Price: $2,743 \u2192 $2,660 (-3.0%)",
+      "USD Broad Index: 124.55 \u2192 125.70"
+    ],
+    "title": null,
+    "narrative": null,
+    "candidates": [
+      {
+        "series": "fed_funds",
+        "date": "2024-10-01",
+        "change": -0.3,
+        "z_score": -2.13,
+        "description": "Fed Funds Rate: 5.13% \u2192 4.83%"
+      },
+      {
+        "series": "treasury_10y",
+        "date": "2024-11-06",
+        "change": 0.16,
+        "z_score": 3.39,
+        "description": "10Y Treasury Yield: 4.26% \u2192 4.42%"
+      },
+      {
+        "series": "gold_price",
+        "date": "2024-11-06",
+        "change": -3.003,
+        "z_score": -3.75,
+        "description": "Gold Price: $2,743 \u2192 $2,660 (-3.0%)"
+      },
+      {
+        "series": "usd_broad_index",
+        "date": "2024-11-06",
+        "change": 0.924,
+        "z_score": 3.82,
+        "description": "USD Broad Index: 124.55 \u2192 125.70"
+      }
+    ]
+  },
+  {
+    "id": "draft_0086",
+    "date": "2026-01-26",
+    "significance": 34.25,
+    "what_triggered_this": [
+      "USD Broad Index: 118.90 \u2192 118.05",
+      "Gold Price: $5,405 \u2192 $4,982 (-7.8%)",
+      "CPI (YoY): 2.67% \u2192 3.32%",
+      "10Y Treasury Yield: 4.25% \u2192 4.39%"
+    ],
+    "title": null,
+    "narrative": null,
+    "candidates": [
+      {
+        "series": "usd_broad_index",
+        "date": "2026-01-26",
+        "change": -0.711,
+        "z_score": -3.44,
+        "description": "USD Broad Index: 118.90 \u2192 118.05"
+      },
+      {
+        "series": "gold_price",
+        "date": "2026-01-30",
+        "change": -7.829,
+        "z_score": -5.99,
+        "description": "Gold Price: $5,405 \u2192 $4,982 (-7.8%)"
+      },
+      {
+        "series": "cpi_yoy",
+        "date": "2026-03-01",
+        "change": 0.655,
+        "z_score": 2.26,
+        "description": "CPI (YoY): 2.67% \u2192 3.32%"
+      },
+      {
+        "series": "treasury_10y",
+        "date": "2026-03-20",
+        "change": 0.14,
+        "z_score": 3.88,
+        "description": "10Y Treasury Yield: 4.25% \u2192 4.39%"
+      }
+    ]
+  }
+]

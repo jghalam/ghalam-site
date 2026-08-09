@@ -36,6 +36,20 @@ jobs:
       - name: Fetch LBMA gold price
         run: python3 fetch_lbma.py
 
+      - name: Fetch IMF COFER reserve shares
+        run: python3 fetch_cofer.py
+
+      - name: Compute derived metrics
+        run: python3 calculate.py
+
+      - name: Generate forecasts
+        run: python3 forecast.py
+
+      - name: Detect and publish events
+        run: |
+          python3 detect_events.py
+          python3 publish_events.py
+
       - name: Commit and push if data changed
         run: |
           git config user.name "github-actions[bot]"
