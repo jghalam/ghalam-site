@@ -48,14 +48,6 @@
       <p><strong>About this indicator:</strong> a modeled estimate (Estrella-Mishkin yield curve model, 1998) of the probability of a recession within 12 months, based on the 10-year minus 3-month Treasury spread. It is not a guaranteed prediction &mdash; the model has historically missed some recessions and produced false signals for others. The coefficients used here are corroborated by multiple independent sources and cross-checked against real recent data, but not verified to the exact decimal against the <a href="https://www.newyorkfed.org/research/capital_markets/ycfaq" target="_blank" rel="noopener">New York Fed's own published figure</a>, which renders via JavaScript and couldn't be pulled directly &mdash; treat this as a well-sourced approximation, and compare against their page for the authoritative live number.</p>
     </section>
 
-    <section class="event-panel" id="eventPanel" hidden aria-label="Nearby event">
-      <button type="button" class="event-close" id="eventClose" aria-label="Dismiss">&times;</button>
-      <p class="event-date" id="eventDate">&mdash;</p>
-      <h2 class="event-title" id="eventTitle">&mdash;</h2>
-      <p class="event-narrative" id="eventNarrative">&mdash;</p>
-      <p class="event-linked" id="eventLinked">&mdash;</p>
-    </section>
-
     <section class="chart-section" aria-label="Chart">
       <div class="chart-zoom" id="chartZoom" role="group" aria-label="Chart time range">
         <button type="button" class="zoom-btn" data-years="1">1Y</button>
@@ -65,32 +57,37 @@
       </div>
       <div class="chart-wrap">
         <canvas id="mainChart" height="380"></canvas>
+        <div class="event-popup" id="eventPanel" hidden aria-label="Event details">
+          <button type="button" class="event-close" id="eventClose" aria-label="Dismiss">&times;</button>
+          <p class="event-date" id="eventDate">&mdash;</p>
+          <h2 class="event-title" id="eventTitle">&mdash;</h2>
+          <p class="event-narrative" id="eventNarrative">&mdash;</p>
+          <p class="event-linked" id="eventLinked">&mdash;</p>
+          <div class="event-popup-tail" id="eventPopupTail"></div>
+        </div>
+      </div>
+      <div class="scrubber-inline" aria-label="Timeline">
+        <input
+          type="range"
+          id="timelineSlider"
+          class="scrubber-track scrubber-track-thin"
+          min="0"
+          max="0"
+          value="0"
+          step="1"
+          aria-label="Select a date on the timeline"
+        >
+        <p class="scrubber-hint">Click near a date, then use &larr; &rarr; to move one day at a time</p>
+        <div class="scrubber-bounds">
+          <span id="boundStart">&mdash;</span>
+          <span id="boundEnd">&mdash;</span>
+        </div>
       </div>
     </section>
 
     <section class="snapshot-section" aria-label="Snapshot for selected date">
       <h2 class="snapshot-title">Snapshot &mdash; <span id="snapshotDate">&mdash;</span></h2>
       <dl class="snapshot-grid" id="snapshotGrid"></dl>
-    </section>
-
-    <section class="scrubber-section" aria-label="Timeline">
-      <div class="scrubber-readout" id="dateReadout">&mdash;</div>
-      <input
-        type="range"
-        id="timelineSlider"
-        class="scrubber-track"
-        min="0"
-        max="0"
-        value="0"
-        step="1"
-        aria-label="Select a date on the timeline"
-      >
-      <div class="event-markers" id="eventMarkers"></div>
-      <p class="scrubber-hint">Click near a date, then use &larr; &rarr; to move one day at a time</p>
-      <div class="scrubber-bounds">
-        <span id="boundStart">&mdash;</span>
-        <span id="boundEnd">&mdash;</span>
-      </div>
     </section>
 
   </div>

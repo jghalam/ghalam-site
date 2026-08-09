@@ -1,3 +1,20 @@
+/* Custom tooltip positioner: keeps horizontal tracking (so you can still
+   tell which date's tooltip you're looking at) but fixes the vertical
+   position to the chart's vertical center, always. Chart.js's default
+   positions the tooltip right at the hovered point, which means it can
+   sit directly on top of the exact bubble or line point you're trying
+   to click — this avoids that by keeping the tooltip out of the way of
+   the data itself. */
+if (typeof Chart !== 'undefined') {
+  Chart.Tooltip.positioners.centerY = function (elements, eventPosition) {
+    const chart = this.chart;
+    return {
+      x: eventPosition.x,
+      y: chart.chartArea.top + (chart.chartArea.bottom - chart.chartArea.top) / 2,
+    };
+  };
+}
+
 /* ============================================================
    EasyView — indicator registry
    Curated list of chart-ready series (id must match a data/<id>.json
@@ -69,8 +86,8 @@ const state = {
   chart: null,
   chartZoomYears: 10,         // 'all' or a number of years — chart display only,
                                // independent of the slider's full-history bounds
-  dismissedEventId: null,     // id of an event panel the user manually closed — cleared
-                               // whenever the scrubbed position actually changes
+  shownEventId: null,         // id of the event currently shown in the panel — only ever
+                               // set by explicitly clicking a bubble, never by scrubbing
 };
 
 /* ---------- helpers ---------- */
@@ -80,7 +97,7 @@ function tsFromDateStr(s) {
 }
 
 function formatDate(ts) {
-  return new Date(ts).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+  return new Date(ts).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
 }
 
 function formatValue(indicator, value) {
@@ -260,7 +277,6 @@ async function toggleForecastIndicator(id, chipEl) {
 /* ---------- slider ---------- */
 
 const DAY_MS = 86400000;
-const NEAR_EVENT_WINDOW_DAYS = 15;   // how close the scrubber must be to an event's date to surface it
 
 function syncSliderBounds() {
   const slider = document.getElementById('timelineSlider');
@@ -269,7 +285,6 @@ function syncSliderBounds() {
   slider.value = Math.floor(state.selectedTs / DAY_MS);
   updateSliderFill();
   updateDateReadout();
-  renderEventMarkers();
 }
 
 function updateSliderFill() {
@@ -281,7 +296,6 @@ function updateSliderFill() {
 }
 
 function updateDateReadout() {
-  document.getElementById('dateReadout').textContent = formatDate(state.selectedTs);
   document.getElementById('boundStart').textContent = formatDate(state.minTs);
   document.getElementById('boundEnd').textContent = formatDate(state.maxTs);
   document.getElementById('snapshotDate').textContent = formatDate(state.selectedTs);
@@ -291,12 +305,12 @@ function initSlider() {
   const slider = document.getElementById('timelineSlider');
   slider.addEventListener('input', () => {
     state.selectedTs = Number(slider.value) * DAY_MS;
-    state.dismissedEventId = null;
     updateSliderFill();
     updateDateReadout();
     renderChart();   // redraw crosshair position
     renderSnapshot();
-    renderEventPanel();
+    // deliberately NOT touching the event panel here — scrubbing should
+    // never show, hide, or otherwise affect it; only clicking a bubble does
   });
 }
 
@@ -304,12 +318,41 @@ function initSlider() {
 
 const YEAR_MS = 365.25 * DAY_MS;
 
-function chartZoomMinTs() {
+/* Computes the chart's visible [min, max] window for the current zoom
+   level. Normally this is just "the most recent N years" (unchanged
+   behavior), but if the currently selected/scrubbed date falls OUTSIDE
+   that default window, the window pans to center on the selected date
+   instead — so picking an old date on the slider while zoomed to e.g.
+   1Y doesn't leave the crosshair off-screen. Forecast extension only
+   applies to the natural (unpanned, "current") view — panning back to
+   view a past date has no reason to also show the projection. */
+function computeChartWindow(forecastMaxTs) {
+  const naturalMax = forecastMaxTs !== null ? Math.max(state.maxTs, forecastMaxTs) : state.maxTs;
+
   if (state.chartZoomYears === 'all' || state.minTs === null || state.maxTs === null) {
-    return state.minTs;
+    return { min: state.minTs, max: naturalMax };
   }
-  const windowStart = state.maxTs - state.chartZoomYears * YEAR_MS;
-  return Math.max(state.minTs, windowStart);   // never zoom before real data actually starts
+
+  const spanMs = state.chartZoomYears * YEAR_MS;
+  const defaultMin = Math.max(state.minTs, state.maxTs - spanMs);
+
+  if (state.selectedTs === null || state.selectedTs >= defaultMin) {
+    return { min: defaultMin, max: naturalMax };   // default "recent" view, forecast included
+  }
+
+  // Selected date is older than the default window — pan to show it,
+  // centered within the same zoom span, clamped to real data bounds.
+  let panMin = state.selectedTs - spanMs / 2;
+  let panMax = panMin + spanMs;
+  if (panMin < state.minTs) {
+    panMin = state.minTs;
+    panMax = panMin + spanMs;
+  }
+  if (panMax > state.maxTs) {
+    panMax = state.maxTs;
+    panMin = Math.max(state.minTs, panMax - spanMs);
+  }
+  return { min: panMin, max: panMax };
 }
 
 function initChartZoom() {
@@ -343,81 +386,36 @@ async function loadEvents() {
   }
 }
 
-function renderEventMarkers() {
-  const container = document.getElementById('eventMarkers');
-  container.innerHTML = '';
-  if (state.minTs === null || state.maxTs === null || state.maxTs === state.minTs) return;
-
-  const containerWidth = container.clientWidth || 900;
-  const MIN_PX_GAP = 10;   // minimum pixel spacing between two rendered markers
-
-  const visible = state.events.filter(ev => ev.ts >= state.minTs && ev.ts <= state.maxTs);
-  const curated = visible.filter(ev => ev.curated);
-  const auto = visible.filter(ev => !ev.curated);
-
-  const pxFor = ev => ((ev.ts - state.minTs) / (state.maxTs - state.minTs)) * containerWidth;
-  const placedPx = [];
-  const tooClose = px => placedPx.some(p => Math.abs(p - px) < MIN_PX_GAP);
-
-  // curated (real-named) events always render — a hand-verified historical
-  // event should never be hidden just because another one sits nearby.
-  // Their positions still block nearby auto markers from crowding around them.
-  const toRender = [...curated];
-  for (const ev of curated) placedPx.push(pxFor(ev));
-
-  for (const ev of auto) {
-    const px = pxFor(ev);
-    if (tooClose(px)) continue;
-    placedPx.push(px);
-    toRender.push(ev);
-  }
-
-  for (const ev of toRender) {
-    const pct = ((ev.ts - state.minTs) / (state.maxTs - state.minTs)) * 100;
-    const marker = document.createElement('button');
-    marker.type = 'button';
-    marker.className = 'event-marker' + (ev.curated ? ' curated' : '');
-    marker.style.left = `${pct}%`;
-    marker.title = ev.title;
-    marker.setAttribute('aria-label', `Jump to ${ev.title} (${ev.date})`);
-    marker.addEventListener('click', () => jumpToDate(ev.ts));
-    container.appendChild(marker);
-  }
-}
-
 function jumpToDate(ts) {
   state.selectedTs = ts;
-  state.dismissedEventId = null;
   const slider = document.getElementById('timelineSlider');
   slider.value = Math.floor(ts / DAY_MS);
   updateSliderFill();
   updateDateReadout();
   renderChart();
   renderSnapshot();
-  renderEventPanel();
+  renderEventPanel();   // shows whatever shownEventId the caller set, if any
 }
 
-function nearestEvent(ts, maxDays) {
-  let best = null;
-  let bestDiffDays = null;
-  for (const ev of state.events) {
-    const diffDays = Math.abs(ev.ts - ts) / DAY_MS;
-    if (diffDays > maxDays) continue;
-    if (bestDiffDays === null || diffDays < bestDiffDays) {
-      best = ev;
-      bestDiffDays = diffDays;
-    }
-  }
-  return best;
+/* Used while dragging on the chart — the underlying line data hasn't
+   changed, only the crosshair position, so this skips buildDatasets()
+   entirely and just asks Chart.js to redraw (which re-runs crosshairPlugin
+   with the new state.selectedTs). Much cheaper than jumpToDate() for
+   something that can fire many times per second during a drag. */
+function updateSelectedDateLight(ts) {
+  state.selectedTs = Math.max(state.minTs, Math.min(state.maxTs, ts));
+  const slider = document.getElementById('timelineSlider');
+  slider.value = Math.floor(state.selectedTs / DAY_MS);
+  updateSliderFill();
+  updateDateReadout();
+  if (state.chart) state.chart.update('none');
+  renderSnapshot();
+  // deliberately NOT touching the event panel here — same reasoning as the slider
 }
 
 function renderEventPanel() {
   const panel = document.getElementById('eventPanel');
-  let ev = nearestEvent(state.selectedTs, NEAR_EVENT_WINDOW_DAYS);
-
-  if (ev && ev.id === state.dismissedEventId) {
-    ev = null;   // manually dismissed for this position — stays hidden until the scrubber moves
-  }
+  const ev = state.shownEventId ? state.events.find(e => e.id === state.shownEventId) : null;
 
   if (!ev) {
     panel.hidden = true;
@@ -425,7 +423,6 @@ function renderEventPanel() {
   }
 
   panel.hidden = false;
-  panel.dataset.currentEventId = ev.id;
   document.getElementById('eventDate').textContent = formatDate(ev.ts);
   document.getElementById('eventTitle').textContent = ev.title;
   document.getElementById('eventNarrative').textContent = ev.narrative;
@@ -434,12 +431,49 @@ function renderEventPanel() {
   document.getElementById('eventLinked').textContent = linkedLabels.length
     ? `Evidence: ${linkedLabels.join(', ')}`
     : '';
+
+  positionEventPanel();
+}
+
+/* Positions the popup so its tail points at the event's actual bubble on
+   the chart. Called both when the popup first opens and after every full
+   chart re-render (zoom change, scrub-triggered pan, etc.) so the tail
+   stays accurate — this only ever moves the popup, never changes whether
+   it's shown, keeping the earlier "scrubbing doesn't affect the popup"
+   behavior intact. */
+function positionEventPanel() {
+  const panel = document.getElementById('eventPanel');
+  if (panel.hidden || !state.shownEventId) return;
+
+  const wrap = document.querySelector('#tabHistorical .chart-wrap');
+  const bubble = drawnEventBubbles.find(b => b.event.id === state.shownEventId);
+  if (!wrap || !bubble) return;   // event isn't currently drawn (e.g. no longer in an active series) — leave position as-is
+
+  const PADDING = 8;
+  const GAP = 12;   // space between the tail tip and the bubble itself
+  const popupWidth = panel.offsetWidth || 320;
+  const wrapWidth = wrap.clientWidth;
+  const wrapHeight = wrap.clientHeight;
+
+  let left = bubble.px - popupWidth / 2;
+  left = Math.max(PADDING, Math.min(left, wrapWidth - popupWidth - PADDING));
+
+  const tailLeft = Math.max(16, Math.min(bubble.px - left, popupWidth - 16));
+
+  const bottom = (wrapHeight - bubble.py) + GAP;
+
+  panel.style.left = `${left}px`;
+  panel.style.bottom = `${bottom}px`;
+  panel.style.setProperty('--tail-left', `${tailLeft}px`);
+}
+
+function showEvent(ev) {
+  state.shownEventId = ev.id;
+  jumpToDate(ev.ts);   // also moves the crosshair/snapshot to match, since you clicked a specific point
 }
 
 function dismissEventPanel() {
-  const panel = document.getElementById('eventPanel');
-  if (panel.hidden) return;
-  state.dismissedEventId = panel.dataset.currentEventId || null;
+  state.shownEventId = null;
   renderEventPanel();
 }
 
@@ -473,6 +507,14 @@ let drawnEventBubbles = [];
    curated ("major") event linked to that specific indicator. Only curated
    events, deliberately — auto-detected candidates would clutter the chart
    with statistical noise rather than genuinely notable moments. */
+/* Event bubble radius scales gently with zoom level — bigger as you zoom
+   in, small enough steps that it reads as "the view is zooming" rather
+   than the markers suddenly demanding attention or crowding the chart. */
+const EVENT_BUBBLE_RADII = { all: 4, 10: 7, 5: 10, 1: 13 };
+function eventBubbleRadius() {
+  return EVENT_BUBBLE_RADII[state.chartZoomYears] ?? 6;
+}
+
 const eventBubblePlugin = {
   id: 'eventBubbles',
   afterDatasetsDraw(chart) {
@@ -480,41 +522,31 @@ const eventBubblePlugin = {
     if (!state.events || !state.events.length || !chart.scales.x) return;
     const xScale = chart.scales.x;
 
-    for (const dataset of chart.data.datasets) {
-      const indicatorId = dataset._indicatorId;
-      if (!indicatorId) continue;   // skips forecast band/line datasets, which aren't tagged
-      const yScale = chart.scales[dataset.yAxisID];
-      if (!yScale || !dataset.data.length) continue;
+    const activeIndicatorIds = new Set(
+      chart.data.datasets.map(d => d._indicatorId).filter(Boolean)
+    );
+    if (!activeIndicatorIds.size) return;
 
-      for (const ev of state.events) {
-        if (!ev.curated) continue;
-        if (!ev.linked_series || !ev.linked_series.includes(indicatorId)) continue;
-        if (ev.ts < xScale.min || ev.ts > xScale.max) continue;
+    const y = chart.chartArea.bottom - 14;   // one fixed row, just above the x-axis labels
 
-        let nearest = null, nearestDiff = null;
-        for (const point of dataset.data) {
-          const diff = Math.abs(point.x - ev.ts);
-          if (nearestDiff === null || diff < nearestDiff) {
-            nearest = point;
-            nearestDiff = diff;
-          }
-        }
-        if (!nearest) continue;
+    for (const ev of state.events) {
+      if (!ev.curated) continue;
+      if (!ev.linked_series || !ev.linked_series.some(id => activeIndicatorIds.has(id))) continue;
+      if (ev.ts < xScale.min || ev.ts > xScale.max) continue;
 
-        const px = xScale.getPixelForValue(nearest.x);
-        const py = yScale.getPixelForValue(nearest.y);
-        drawnEventBubbles.push({ px, py, event: ev });
+      const px = xScale.getPixelForValue(ev.ts);
+      const radius = eventBubbleRadius();
+      drawnEventBubbles.push({ px, py: y, radius, event: ev });
 
-        chart.ctx.save();
-        chart.ctx.beginPath();
-        chart.ctx.arc(px, py, 6, 0, Math.PI * 2);
-        chart.ctx.fillStyle = '#0d0f14';
-        chart.ctx.fill();
-        chart.ctx.lineWidth = 2;
-        chart.ctx.strokeStyle = '#e0bd4a';
-        chart.ctx.stroke();
-        chart.ctx.restore();
-      }
+      chart.ctx.save();
+      chart.ctx.beginPath();
+      chart.ctx.arc(px, y, radius, 0, Math.PI * 2);
+      chart.ctx.fillStyle = '#e0bd4a';
+      chart.ctx.fill();
+      chart.ctx.lineWidth = 1.5;
+      chart.ctx.strokeStyle = '#0d0f14';
+      chart.ctx.stroke();
+      chart.ctx.restore();
     }
   },
 };
@@ -616,8 +648,7 @@ function renderChart() {
 
   const ctx = document.getElementById('mainChart').getContext('2d');
   const { datasets, usesPct, usesOther, maxForecastTs } = buildDatasets();
-  const chartMaxTs = maxForecastTs !== null ? Math.max(state.maxTs, maxForecastTs) : state.maxTs;
-  const chartMinTs = chartZoomMinTs();
+  const { min: chartMinTs, max: chartMaxTs } = computeChartWindow(maxForecastTs);
 
   const scales = {
     x: {
@@ -627,7 +658,7 @@ function renderChart() {
       ticks: {
         color: '#8b90a0',
         font: { family: 'JetBrains Mono', size: 10 },
-        callback: (val) => new Date(val).toLocaleDateString('en-US', { year: 'numeric', month: 'short' }),
+        callback: (val) => new Date(val).toLocaleDateString('en-US', { year: 'numeric', month: 'short', timeZone: 'UTC' }),
         maxRotation: 0,
         autoSkip: true,
         autoSkipPadding: 24,
@@ -654,6 +685,7 @@ function renderChart() {
     state.chart.data.datasets = datasets;
     state.chart.options.scales = scales;
     state.chart.update('none');
+    positionEventPanel();   // keep the tail accurate if the view just panned/zoomed
     return;
   }
 
@@ -681,8 +713,12 @@ function renderChart() {
           backgroundColor: '#191d27',
           borderColor: '#262b38',
           borderWidth: 1,
-          titleFont: { family: 'JetBrains Mono', size: 11 },
+          titleFont: { family: 'JetBrains Mono', size: 14, weight: '700' },
           bodyFont: { family: 'JetBrains Mono', size: 11 },
+          position: 'centerY',
+          callbacks: {
+            title: (items) => (items.length ? formatDate(items[0].parsed.x) : ''),
+          },
           filter: (item) => !item.dataset.label.includes('(forecast band)'),
         },
       },
@@ -690,29 +726,89 @@ function renderChart() {
     },
     plugins: [crosshairPlugin, eventBubblePlugin, emptyStatePlugin],
   });
+  positionEventPanel();
 
-  const BUBBLE_HIT_RADIUS = 10;
+  const HIT_MARGIN = 4;   // extra tap tolerance beyond the drawn radius, for comfortable clicking
   function findBubbleAt(clientX, clientY) {
     const rect = state.chart.canvas.getBoundingClientRect();
     const x = clientX - rect.left;
     const y = clientY - rect.top;
     for (const b of drawnEventBubbles) {
-      if (Math.hypot(b.px - x, b.py - y) <= BUBBLE_HIT_RADIUS) return b;
+      if (Math.hypot(b.px - x, b.py - y) <= b.radius + HIT_MARGIN) return b;
     }
     return null;
   }
 
-  state.chart.canvas.addEventListener('click', (e) => {
+  function pixelToTs(clientX) {
+    const rect = state.chart.canvas.getBoundingClientRect();
+    const canvasX = clientX - rect.left;
+    return state.chart.scales.x.getValueForPixel(canvasX);
+  }
+
+  let isDraggingChart = false;
+  let latestDragClientX = null;
+  let dragRAFPending = false;
+
+  function processDragFrame() {
+    dragRAFPending = false;
+    if (!isDraggingChart || latestDragClientX === null) return;
+    updateSelectedDateLight(pixelToTs(latestDragClientX));
+  }
+
+  state.chart.canvas.addEventListener('mousedown', (e) => {
     const hit = findBubbleAt(e.clientX, e.clientY);
     if (hit) {
-      jumpToDate(hit.event.ts);
-    } else {
-      dismissEventPanel();
+      showEvent(hit.event);   // discrete jump to a specific event — not a drag
+      return;
     }
+    isDraggingChart = true;
+    updateSelectedDateLight(pixelToTs(e.clientX));
   });
 
-  state.chart.canvas.addEventListener('mousemove', (e) => {
-    state.chart.canvas.style.cursor = findBubbleAt(e.clientX, e.clientY) ? 'pointer' : '';
+  window.addEventListener('mousemove', (e) => {
+    if (isDraggingChart) {
+      latestDragClientX = e.clientX;
+      if (!dragRAFPending) {
+        dragRAFPending = true;
+        requestAnimationFrame(processDragFrame);
+      }
+      return;
+    }
+    // not dragging — just show pointer cursor when hovering a bubble or the plot area
+    const rect = state.chart.canvas.getBoundingClientRect();
+    const withinChart = e.clientX >= rect.left && e.clientX <= rect.right
+      && e.clientY >= rect.top && e.clientY <= rect.bottom;
+    state.chart.canvas.style.cursor = withinChart ? (findBubbleAt(e.clientX, e.clientY) ? 'pointer' : 'crosshair') : '';
+  });
+
+  window.addEventListener('mouseup', () => {
+    isDraggingChart = false;
+  });
+
+  state.chart.canvas.addEventListener('touchstart', (e) => {
+    const touch = e.touches[0];
+    const hit = findBubbleAt(touch.clientX, touch.clientY);
+    if (hit) {
+      showEvent(hit.event);
+      return;
+    }
+    isDraggingChart = true;
+    updateSelectedDateLight(pixelToTs(touch.clientX));
+    e.preventDefault();   // prevents the page from scrolling while dragging the chart
+  }, { passive: false });
+
+  state.chart.canvas.addEventListener('touchmove', (e) => {
+    if (!isDraggingChart) return;
+    latestDragClientX = e.touches[0].clientX;
+    if (!dragRAFPending) {
+      dragRAFPending = true;
+      requestAnimationFrame(processDragFrame);
+    }
+    e.preventDefault();
+  }, { passive: false });
+
+  state.chart.canvas.addEventListener('touchend', () => {
+    isDraggingChart = false;
   });
 }
 
@@ -788,7 +884,7 @@ function renderForecastChart() {
       ticks: {
         color: '#8b90a0',
         font: { family: 'JetBrains Mono', size: 10 },
-        callback: (val) => new Date(val).toLocaleDateString('en-US', { year: 'numeric', month: 'short' }),
+        callback: (val) => new Date(val).toLocaleDateString('en-US', { year: 'numeric', month: 'short', timeZone: 'UTC' }),
         maxRotation: 0,
         autoSkip: true,
         autoSkipPadding: 24,
@@ -827,8 +923,12 @@ function renderForecastChart() {
           backgroundColor: '#191d27',
           borderColor: '#262b38',
           borderWidth: 1,
-          titleFont: { family: 'JetBrains Mono', size: 11 },
+          titleFont: { family: 'JetBrains Mono', size: 14, weight: '700' },
           bodyFont: { family: 'JetBrains Mono', size: 11 },
+          position: 'centerY',
+          callbacks: {
+            title: (items) => (items.length ? formatDate(items[0].parsed.x) : ''),
+          },
           filter: (item) => !item.dataset.label.includes('(forecast band)'),
         },
       },
@@ -909,8 +1009,12 @@ function renderReservesChart() {
           backgroundColor: '#191d27',
           borderColor: '#262b38',
           borderWidth: 1,
-          titleFont: { family: 'JetBrains Mono', size: 11 },
+          titleFont: { family: 'JetBrains Mono', size: 14, weight: '700' },
           bodyFont: { family: 'JetBrains Mono', size: 11 },
+          position: 'centerY',
+          callbacks: {
+            title: (items) => (items.length ? formatDate(items[0].parsed.x) : ''),
+          },
         },
       },
       scales: {
@@ -921,7 +1025,7 @@ function renderReservesChart() {
           ticks: {
             color: '#8b90a0',
             font: { family: 'JetBrains Mono', size: 10 },
-            callback: (val) => new Date(val).toLocaleDateString('en-US', { year: 'numeric', month: 'short' }),
+            callback: (val) => new Date(val).toLocaleDateString('en-US', { year: 'numeric', month: 'short', timeZone: 'UTC' }),
             maxRotation: 0,
             autoSkip: true,
             autoSkipPadding: 24,
@@ -1041,7 +1145,7 @@ async function loadManifestStatus() {
     const timestamps = Object.values(manifest).map(m => new Date(m.updated).getTime()).filter(Boolean);
     if (timestamps.length) {
       const latest = new Date(Math.max(...timestamps));
-      setStatus(`data as of ${latest.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}`, 'ready');
+      setStatus(`data as of ${latest.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' })}`, 'ready');
     } else {
       setStatus('data loaded', 'ready');
     }
@@ -1060,6 +1164,7 @@ async function init() {
   initChartZoom();
   initTabs();
   document.getElementById('eventClose').addEventListener('click', dismissEventPanel);
+  window.addEventListener('resize', positionEventPanel);
   loadManifestStatus();
   await loadEvents();
 
