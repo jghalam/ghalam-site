@@ -24,26 +24,26 @@ if (typeof Chart !== 'undefined') {
    (e.g. debt_to_gdp) — until they get their own chart treatment.
    ============================================================ */
 const INDICATORS = [
-  { id: 'cpi_yoy',           label: 'CPI (YoY)',            group: 'Inflation & Rates', unit: '%', color: '#c9a227' },
-  { id: 'cpi_core_yoy',      label: 'Core CPI (YoY)',       group: 'Inflation & Rates', unit: '%', color: '#e0bd4a' },
-  { id: 'fed_funds',         label: 'Fed Funds Rate',       group: 'Inflation & Rates', unit: '%', color: '#7fb3d5' },
-  { id: 'treasury_3mo',      label: '3M Treasury Yield',    group: 'Inflation & Rates', unit: '%', color: '#8b6bb0' },
-  { id: 'treasury_10y',      label: '10Y Treasury Yield',   group: 'Inflation & Rates', unit: '%', color: '#5b9bd5' },
-  { id: 'real_yield_10y',    label: 'Real 10Y Yield',       group: 'Inflation & Rates', unit: '%', color: '#4f9d69' },
-  { id: 'unemployment',      label: 'Unemployment Rate',    group: 'Inflation & Rates', unit: '%', color: '#a389d4' },
-  { id: 'debt_to_gdp',       label: 'Debt / GDP',           group: 'Debt & Fiscal',     unit: '%', color: '#c9a227' },
-  { id: 'total_debt',        label: 'Total Public Debt',    group: 'Debt & Fiscal',     unit: '$', color: '#e0bd4a' },
-  { id: 'deficit',           label: 'Monthly Deficit (+) / Surplus (\u2212)', group: 'Debt & Fiscal', unit: '$', color: '#b34a42' },
-  { id: 'sp500',             label: 'S&P 500',              group: 'Markets',           unit: '',  color: '#c9a227' },
-  { id: 'djia',              label: 'Dow Jones Industrial', group: 'Markets',           unit: '',  color: '#5b9bd5' },
-  { id: 'nasdaq_composite',  label: 'Nasdaq Composite',     group: 'Markets',           unit: '',  color: '#4f9d69' },
-  { id: 'usd_broad_index',   label: 'USD Broad Index',      group: 'Currency',          unit: '',  color: '#7fb3d5' },
-  { id: 'usd_vs_eur',        label: 'USD / EUR',            group: 'Currency',          unit: '',  color: '#e0bd4a' },
-  { id: 'usd_vs_jpy',        label: 'USD / JPY',            group: 'Currency',          unit: '',  color: '#4f9d69' },
-  { id: 'usd_vs_gbp',        label: 'USD / GBP',            group: 'Currency',          unit: '',  color: '#a389d4' },
-  { id: 'usd_vs_cny',        label: 'USD / CNY',            group: 'Currency',          unit: '',  color: '#b34a42' },
-  { id: 'gold_price',        label: 'Gold Price (USD/oz)',  group: 'Gold',              unit: '$', color: '#c9a227' },
-  { id: 'recession_probability', label: 'Recession Probability (12mo, model est.)', group: 'Recession Model', unit: '%', color: '#b34a42' },
+  { id: 'cpi_yoy',           label: 'CPI (YoY)',            group: 'Inflation & Rates', unit: '%', color: '#c9a227', description: 'The Consumer Price Index — how much more expensive a typical basket of goods and services is than a year ago. The most widely cited measure of inflation.' },
+  { id: 'cpi_core_yoy',      label: 'Core CPI (YoY)',       group: 'Inflation & Rates', unit: '%', color: '#e0bd4a', description: 'CPI excluding food and energy, whose prices swing a lot month to month. The Fed watches this closely to see the underlying inflation trend.' },
+  { id: 'fed_funds',         label: 'Fed Funds Rate',       group: 'Inflation & Rates', unit: '%', color: '#7fb3d5', description: "The interest rate banks charge each other for overnight loans, set by the Federal Reserve. The Fed's main lever for tightening or loosening monetary policy." },
+  { id: 'treasury_3mo',      label: '3M Treasury Yield',    group: 'Inflation & Rates', unit: '%', color: '#8b6bb0', description: 'Yield on U.S. government debt maturing in 3 months. Tracks the Fed Funds Rate closely and feeds into the recession probability model.' },
+  { id: 'treasury_10y',      label: '10Y Treasury Yield',   group: 'Inflation & Rates', unit: '%', color: '#5b9bd5', description: 'Yield on U.S. government debt maturing in 10 years. A benchmark for mortgage rates and a gauge of investor expectations for growth and inflation.' },
+  { id: 'real_yield_10y',    label: 'Real 10Y Yield',       group: 'Inflation & Rates', unit: '%', color: '#4f9d69', description: 'The 10-year Treasury yield minus CPI inflation — what lenders actually earn after inflation. Negative means lending money loses purchasing power.' },
+  { id: 'unemployment',      label: 'Unemployment Rate',    group: 'Inflation & Rates', unit: '%', color: '#a389d4', description: "The U-3 rate — the share of the labor force that's jobless and actively looking for work." },
+  { id: 'debt_to_gdp',       label: 'Debt / GDP',           group: 'Debt & Fiscal',     unit: '%', color: '#c9a227', description: "Total federal debt as a percentage of the economy's annual output. A common gauge of how sustainable a country's debt load is relative to its size." },
+  { id: 'total_debt',        label: 'Total Public Debt',    group: 'Debt & Fiscal',     unit: '$', color: '#e0bd4a', description: 'The total amount the U.S. federal government currently owes, across all forms of debt.' },
+  { id: 'deficit',           label: 'Monthly Deficit (+) / Surplus (\u2212)', group: 'Debt & Fiscal', unit: '$', color: '#b34a42', description: 'How much more (or less) the government spent than it collected that month. Positive = deficit, negative = surplus — the Treasury\u2019s own sign convention.' },
+  { id: 'sp500',             label: 'S&P 500',              group: 'Markets',           unit: '',  color: '#c9a227', description: 'An index of 500 large U.S. companies, the standard benchmark for the overall U.S. stock market.' },
+  { id: 'djia',              label: 'Dow Jones Industrial', group: 'Markets',           unit: '',  color: '#5b9bd5', description: 'An index of 30 large, established U.S. companies. Narrower and older than the S&P 500, but still widely watched.' },
+  { id: 'nasdaq_composite',  label: 'Nasdaq Composite',     group: 'Markets',           unit: '',  color: '#4f9d69', description: 'An index of every company listed on the Nasdaq exchange, heavily weighted toward technology stocks.' },
+  { id: 'usd_broad_index',   label: 'USD Broad Index',      group: 'Currency',          unit: '',  color: '#7fb3d5', description: "The Federal Reserve's trade-weighted measure of the dollar's value against a broad basket of foreign currencies." },
+  { id: 'usd_vs_eur',        label: 'USD / EUR',            group: 'Currency',          unit: '',  color: '#e0bd4a', description: 'How many U.S. dollars it takes to buy one euro.' },
+  { id: 'usd_vs_jpy',        label: 'USD / JPY',            group: 'Currency',          unit: '',  color: '#4f9d69', description: 'How many Japanese yen it takes to buy one U.S. dollar.' },
+  { id: 'usd_vs_gbp',        label: 'USD / GBP',            group: 'Currency',          unit: '',  color: '#a389d4', description: 'How many U.S. dollars it takes to buy one British pound.' },
+  { id: 'usd_vs_cny',        label: 'USD / CNY',            group: 'Currency',          unit: '',  color: '#b34a42', description: 'How many Chinese yuan it takes to buy one U.S. dollar.' },
+  { id: 'gold_price',        label: 'Gold Price (USD/oz)',  group: 'Gold',              unit: '$', color: '#c9a227', description: "The price of one troy ounce of gold in U.S. dollars, from the LBMA's daily benchmark." },
+  { id: 'recession_probability', label: 'Recession Probability (12mo, model est.)', group: 'Recession Model', unit: '%', color: '#b34a42', description: 'A modeled estimate of the odds of a recession within 12 months, based on the gap between long- and short-term Treasury yields. See the note below the chart for its real limitations.' },
 ];
 
 const DEFAULT_ACTIVE = ['cpi_yoy', 'fed_funds', 'gold_price'];
@@ -185,6 +185,50 @@ function recomputeBounds() {
 
 /* ---------- picker UI ---------- */
 
+/* ---------- chip help tooltip ---------- */
+
+let chipTooltipEl = null;
+
+function getChipTooltipEl() {
+  if (!chipTooltipEl) {
+    chipTooltipEl = document.createElement('div');
+    chipTooltipEl.className = 'chip-tooltip';
+    chipTooltipEl.hidden = true;
+    document.body.appendChild(chipTooltipEl);
+  }
+  return chipTooltipEl;
+}
+
+function showChipTooltip(anchor, text) {
+  const tooltip = getChipTooltipEl();
+  tooltip.textContent = text;
+  tooltip.hidden = false;
+  tooltip.classList.remove('visible');
+
+  const rect = anchor.getBoundingClientRect();
+  const tooltipWidth = tooltip.offsetWidth;
+  const tooltipHeight = tooltip.offsetHeight;
+
+  let left = rect.left + rect.width / 2 - tooltipWidth / 2;
+  left = Math.max(8, Math.min(left, window.innerWidth - tooltipWidth - 8));
+
+  let top = rect.top - tooltipHeight - 8;
+  if (top < 8) top = rect.bottom + 8;   // not enough room above — show below instead
+
+  tooltip.style.left = `${left}px`;
+  tooltip.style.top = `${top}px`;
+  requestAnimationFrame(() => tooltip.classList.add('visible'));
+}
+
+function hideChipTooltip() {
+  if (chipTooltipEl) {
+    chipTooltipEl.classList.remove('visible');
+    chipTooltipEl.hidden = true;
+  }
+}
+
+window.addEventListener('scroll', hideChipTooltip, true);
+
 function buildPickerInto(containerId, indicatorList, onToggle) {
   const groups = {};
   for (const ind of indicatorList) {
@@ -209,6 +253,12 @@ function buildPickerInto(containerId, indicatorList, onToggle) {
       chip.dataset.id = ind.id;
       chip.innerHTML = `<span class="chip-swatch" style="background:${ind.color}"></span>${ind.label}`;
       chip.addEventListener('click', () => onToggle(ind.id, chip));
+      if (ind.description) {
+        chip.addEventListener('mouseenter', () => showChipTooltip(chip, ind.description));
+        chip.addEventListener('mouseleave', hideChipTooltip);
+        chip.addEventListener('focus', () => showChipTooltip(chip, ind.description));
+        chip.addEventListener('blur', hideChipTooltip);
+      }
       row.appendChild(chip);
     }
     container.appendChild(row);

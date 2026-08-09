@@ -290,6 +290,28 @@ body {
 
 /* ---------- Indicator picker ---------- */
 
+.chip-tooltip {
+  position: fixed;
+  z-index: 60;
+  max-width: 260px;
+  padding: 8px 12px;
+  background: #14171f;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-family: var(--font-body);
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  line-height: 1.45;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.12s ease;
+}
+
+.chip-tooltip.visible {
+  opacity: 1;
+}
+
 .picker-section {
   margin-bottom: 24px;
 }
