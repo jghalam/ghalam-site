@@ -2,6 +2,7 @@ name: Update KEV data
 
 on:
   schedule:
+    # Runs daily at 06:00 UTC. CISA typically publishes updates on business days.
     - cron: '0 6 * * *'
   workflow_dispatch: {}
 
@@ -28,6 +29,8 @@ jobs:
           head -c 200 easycve/data/kev.json.tmp
           echo ""
 
+          # Validate via JSON.parse + readFileSync so this works regardless of
+          # the .tmp extension (require() would wrongly try to parse it as JS).
           if node -e "
             const fs = require('fs');
             const d = JSON.parse(fs.readFileSync('easycve/data/kev.json.tmp', 'utf8'));
@@ -41,14 +44,30 @@ jobs:
             exit 1
           fi
 
+      - name: Record sync status
+        run: |
+          CHECKED_AT=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          node -e "
+            const fs = require('fs');
+            const kev = JSON.parse(fs.readFileSync('easycve/data/kev.json', 'utf8'));
+            const status = {
+              lastChecked: '$CHECKED_AT',
+              catalogVersion: kev.catalogVersion,
+              catalogDateReleased: kev.dateReleased,
+              count: kev.count
+            };
+            fs.writeFileSync('easycve/data/sync-status.json', JSON.stringify(status, null, 2) + '\n');
+          "
+          cat easycve/data/sync-status.json
+
       - name: Commit and push if changed
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add easycve/data/kev.json
+          git add easycve/data/kev.json easycve/data/sync-status.json
           if git diff --cached --quiet; then
             echo "No changes to commit."
           else
-            git commit -m "chore: sync KEV catalog $(date -u +%Y-%m-%d)"
+            git commit -m "chore: sync KEV catalog check $(date -u +%Y-%m-%d)"
             git push
           fi
