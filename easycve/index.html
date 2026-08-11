@@ -470,27 +470,31 @@
     var checkedHours = lastChecked ? (Date.now() - new Date(lastChecked).getTime()) / 3600000 : null;
     var STALE_HOURS = 36; // give slack past the daily schedule for weekends/delays.
 
-    // Prefer basing staleness on "when did the workflow last actually check
-    // in", since an unchanged dateReleased is expected whenever CISA hasn't
-    // published anything new — it doesn't mean the sync is broken. Fall back
-    // to dateReleased age only if sync-status.json isn't available yet.
-    var ageHours = checkedHours != null ? checkedHours
-      : (releasedRaw ? (Date.now() - new Date(releasedRaw).getTime()) / 3600000 : null);
-    var checkedSuffix = lastChecked ? " · last checked " + timeAgo(lastChecked) : "";
+    var releasedAgeHours = releasedRaw ? (Date.now() - new Date(releasedRaw).getTime()) / 3600000 : null;
+    var releasedAgeDays = releasedAgeHours != null ? (releasedAgeHours / 24).toFixed(1) : null;
 
     if(isPlaceholder){
       els.syncDot.className = "dot error";
       els.syncText.innerHTML = "No data yet — the sync workflow hasn't populated this file. "
         + '<button class="ghost link-btn" id="btnForceRefresh" type="button">Try fetching from CISA now</button>';
-    } else if(ageHours != null && ageHours > STALE_HOURS){
-      var ageLabel = lastChecked ? timeAgo(lastChecked) : (ageHours / 24).toFixed(1) + " days old";
+    } else if(lastChecked == null){
+      // sync-status.json isn't available — either the workflow hasn't been
+      // updated to write it yet, or this run predates that change. Be
+      // explicit that we DON'T actually know when it was last checked;
+      // never claim a "check" happened when we have no evidence of one.
       els.syncDot.className = "dot stale";
       els.syncText.innerHTML = count + " CVEs · catalog released " + released
-        + " (checks may be stalled — last successful check " + ageLabel + ") · "
+        + " (" + releasedAgeDays + " days old — check-tracking unavailable, so this may just mean CISA hasn't published anything new) · "
+        + '<button class="ghost link-btn" id="btnForceRefresh" type="button">Try fetching from CISA now</button>';
+    } else if(checkedHours > STALE_HOURS){
+      els.syncDot.className = "dot stale";
+      els.syncText.innerHTML = count + " CVEs · catalog released " + released
+        + " (checks may be stalled — last successful check " + timeAgo(lastChecked) + ") · "
         + '<button class="ghost link-btn" id="btnForceRefresh" type="button">Try fetching from CISA now</button>';
     } else {
       els.syncDot.className = "dot";
-      els.syncText.textContent = count + " CVEs · catalog released " + released + checkedSuffix + " (" + sourceLabel + ")";
+      els.syncText.textContent = count + " CVEs · catalog released " + released
+        + " · last checked " + timeAgo(lastChecked) + " (" + sourceLabel + ")";
     }
 
     var refreshBtn = document.getElementById("btnForceRefresh");
