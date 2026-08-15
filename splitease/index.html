@@ -152,6 +152,15 @@
   .my-event-name { font-weight: 600; font-size: 14px; }
   .my-event-meta { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
   .my-event-arrow { color: var(--text-dim); font-size: 16px; }
+  .my-events-group-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-dim);
+    margin: 16px 0 8px;
+  }
+  .my-events-group-label:first-child { margin-top: 4px; }
+  .my-event-row-main { flex: 1; cursor: pointer; min-width: 0; }
 
   /* ---------- event header ---------- */
   .event-topbar {
@@ -429,7 +438,10 @@
 <body>
 
 <header>
-  <div class="wordmark">Split<span class="ease">Ease</span></div>
+  <div class="wordmark" id="home-link" style="cursor:pointer; display:inline-flex; align-items:center; gap:10px;">
+    <img src="icons/logo.png" alt="" style="height:34px; width:auto;">
+    <span>Split<span class="ease">Ease</span></span>
+  </div>
   <div class="tagline">Share Together. Settle Smarter.</div>
   <button class="btn-ghost" id="help-btn" style="margin-top:12px; font-size:12.5px; padding:7px 14px;">How it works</button>
 </header>
@@ -511,6 +523,7 @@
         <div class="event-code">Invite link: <span id="event-id-display">—</span></div>
       </div>
       <div class="invite-link">
+        <button class="btn-ghost" id="home-btn">← Home</button>
         <button class="btn-ghost" id="copy-link-btn">Copy invite link</button>
         <button class="btn-ghost hidden" id="delete-event-btn" style="border-color: var(--coral); color: var(--coral);">Delete event</button>
       </div>
@@ -600,7 +613,7 @@
     getAuth, signInAnonymously, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
-  const APP_VERSION = "1.1.0";
+  const APP_VERSION = "1.2.0";
   document.getElementById("app-footer").textContent =
     `SplitEase v${APP_VERSION} — Share Together. Settle Smarter.`;
   console.log(`%cSplitEase v${APP_VERSION}`, "color:#3d8bfd;font-weight:bold;");
@@ -663,6 +676,7 @@
 
   // ---------- "your events" (per-browser history, no account needed) ----------
   const MY_EVENTS_KEY = "splitease:myEvents";
+  let unsubscribers = [];
 
   function getMyEvents() {
     try {
@@ -672,10 +686,10 @@
     }
   }
 
-  function rememberEvent(id, name) {
+  function rememberEvent(id, name, isCreator) {
     let list = getMyEvents().filter((e) => e.id !== id);
-    list.unshift({ id, name, lastVisitedAt: Date.now() });
-    list = list.slice(0, 15);
+    list.unshift({ id, name, role: isCreator ? "creator" : "participant", lastVisitedAt: Date.now() });
+    list = list.slice(0, 20);
     localStorage.setItem(MY_EVENTS_KEY, JSON.stringify(list));
   }
 
@@ -684,24 +698,115 @@
     localStorage.setItem(MY_EVENTS_KEY, JSON.stringify(list));
   }
 
-  function renderMyEvents() {
-    const card = document.getElementById("my-events-card");
-    const list = getMyEvents();
-    if (list.length === 0) { card.classList.add("hidden"); return; }
-    card.classList.remove("hidden");
-    document.getElementById("my-events-list").innerHTML = list.map((e) => `
-      <div class="my-event-row" data-event-id="${e.id}">
-        <div>
-          <div class="my-event-name">${escapeHtml(e.name)}</div>
-          <div class="my-event-meta">Last opened ${timeAgo({ seconds: Math.floor(e.lastVisitedAt / 1000) })}</div>
+  function renderMyEventGroup(title, items, actionLabel, actionType) {
+    if (items.length === 0) return "";
+    return `
+      <div class="my-events-group-label">${title}</div>
+      ${items.map((e) => `
+        <div class="my-event-row">
+          <div class="my-event-row-main" data-event-id="${e.id}">
+            <div class="my-event-name">${escapeHtml(e.name)}</div>
+            <div class="my-event-meta">Last opened ${timeAgo({ seconds: Math.floor(e.lastVisitedAt / 1000) })}</div>
+          </div>
+          <button class="btn-ghost my-event-action" data-event-id="${e.id}" data-action="${actionType}"
+            style="padding:6px 12px; font-size:12px; flex-shrink:0; ${actionType === "delete" ? "border-color: var(--coral); color: var(--coral);" : ""}">
+            ${actionLabel}
+          </button>
         </div>
-        <span class="my-event-arrow">→</span>
-      </div>
-    `).join("");
+      `).join("")}
+    `;
   }
 
+  function renderMyEvents() {
+    const card = document.getElementById("my-events-card");
+    const all = getMyEvents();
+    if (all.length === 0) { card.classList.add("hidden"); return; }
+    card.classList.remove("hidden");
+
+    const created = all.filter((e) => e.role === "creator").sort((a, b) => b.lastVisitedAt - a.lastVisitedAt);
+    const joined = all.filter((e) => e.role !== "creator").sort((a, b) => b.lastVisitedAt - a.lastVisitedAt);
+
+    document.getElementById("my-events-list").innerHTML =
+      renderMyEventGroup("Created by you", created, "Delete", "delete") +
+      renderMyEventGroup("Joined", joined, "Leave", "leave");
+  }
+
+  async function deleteEventCompletely(id) {
+    const [participantsSnap, expensesSnap, activitySnap] = await Promise.all([
+      getDocs(collection(db, "events", id, "participants")),
+      getDocs(collection(db, "events", id, "expenses")),
+      getDocs(collection(db, "events", id, "activity"))
+    ]);
+    await Promise.all([
+      ...participantsSnap.docs.map((d) => deleteDoc(d.ref)),
+      ...expensesSnap.docs.map((d) => deleteDoc(d.ref)),
+      ...activitySnap.docs.map((d) => deleteDoc(d.ref))
+    ]);
+    await deleteDoc(doc(db, "events", id));
+    localStorage.removeItem(`splitease:${id}:participantId`);
+    forgetEvent(id);
+  }
+
+  async function leaveEventById(id) {
+    const participantId = localStorage.getItem(`splitease:${id}:participantId`);
+    if (participantId) {
+      const expensesSnap = await getDocs(collection(db, "events", id, "expenses"));
+      const mine = expensesSnap.docs.filter((d) => d.data().createdBy === participantId);
+      await Promise.all(mine.map((d) => deleteDoc(d.ref)));
+      await deleteDoc(doc(db, "events", id, "participants", participantId));
+      localStorage.removeItem(`splitease:${id}:participantId`);
+    }
+    forgetEvent(id);
+  }
+
+  function goHome() {
+    unsubscribers.forEach((fn) => fn());
+    unsubscribers = [];
+    eventId = null;
+    currentParticipantId = null;
+    currentParticipants = [];
+    currentExpenses = [];
+    editingExpenseId = null;
+    window.history.pushState({}, "", window.location.pathname);
+    document.getElementById("event-screen").classList.add("hidden");
+    document.getElementById("loading-state").classList.add("hidden");
+    document.getElementById("landing-screen").classList.remove("hidden");
+    renderMyEvents();
+  }
+  document.getElementById("home-link").addEventListener("click", goHome);
+  document.getElementById("home-btn").addEventListener("click", goHome);
+
   document.getElementById("my-events-list").addEventListener("click", async (e) => {
-    const row = e.target.closest(".my-event-row");
+    const actionBtn = e.target.closest(".my-event-action");
+    if (actionBtn) {
+      e.stopPropagation();
+      const id = actionBtn.dataset.eventId;
+      const action = actionBtn.dataset.action;
+      if (action === "delete") {
+        if (!confirm("Delete this event? This permanently removes it and every participant's and expense record inside it — for everyone. This can't be undone.")) return;
+        try {
+          await deleteEventCompletely(id);
+          renderMyEvents();
+          showToast("Event deleted");
+        } catch (err) {
+          console.error(err);
+          showToast("Couldn't delete that event — try again");
+        }
+      } else {
+        if (!confirm("Leave this event? This removes your name and deletes any expenses you added.")) return;
+        try {
+          await leaveEventById(id);
+          renderMyEvents();
+          showToast("You've left the event");
+        } catch (err) {
+          console.error(err);
+          showToast("Couldn't leave that event — try again");
+        }
+      }
+      return;
+    }
+
+    const row = e.target.closest(".my-event-row-main");
     if (!row) return;
     const id = row.dataset.eventId;
     const snap = await getDoc(doc(db, "events", id));
@@ -789,25 +894,28 @@
 
   // ---------- event screen ----------
   async function openEvent(id) {
+    unsubscribers.forEach((fn) => fn());
+    unsubscribers = [];
+
     const eventSnap = await getDoc(doc(db, "events", id));
     if (!eventSnap.exists()) {
       document.getElementById("landing-error").textContent = "That event doesn't exist.";
       return;
     }
 
+    const isCreator = eventSnap.data().creatorUid === auth.currentUser?.uid;
+
     document.getElementById("landing-screen").classList.add("hidden");
     document.getElementById("loading-state").classList.add("hidden");
     document.getElementById("event-screen").classList.remove("hidden");
     document.getElementById("event-name-display").textContent = eventSnap.data().name;
     document.getElementById("event-id-display").textContent = `${location.origin}${location.pathname}?event=${id}`;
-    document.getElementById("delete-event-btn").classList.toggle(
-      "hidden", eventSnap.data().creatorUid !== auth.currentUser?.uid
-    );
-    rememberEvent(id, eventSnap.data().name);
+    document.getElementById("delete-event-btn").classList.toggle("hidden", !isCreator);
+    rememberEvent(id, eventSnap.data().name, isCreator);
 
     currentParticipantId = localStorage.getItem(`splitease:${id}:participantId`);
 
-    onSnapshot(collection(db, "events", id, "participants"), (snap) => {
+    unsubscribers.push(onSnapshot(collection(db, "events", id, "participants"), (snap) => {
       const wasKnown = currentParticipantId && currentParticipants.some((p) => p.id === currentParticipantId);
       currentParticipants = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
       const stillKnown = currentParticipantId && currentParticipants.some((p) => p.id === currentParticipantId);
@@ -820,20 +928,20 @@
       renderExpenses();
       renderSettleUp();
       checkWhoAmI();
-    });
+    }));
 
-    onSnapshot(collection(db, "events", id, "expenses"), (snap) => {
+    unsubscribers.push(onSnapshot(collection(db, "events", id, "expenses"), (snap) => {
       currentExpenses = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
       renderExpenses();
       renderSettleUp();
-    });
+    }));
 
-    onSnapshot(
+    unsubscribers.push(onSnapshot(
       query(collection(db, "events", id, "activity"), orderBy("createdAt", "desc"), limit(20)),
       (snap) => {
         renderActivity(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
       }
-    );
+    ));
 
     checkWhoAmI();
   }
@@ -883,17 +991,7 @@
     const btn = document.getElementById("delete-event-btn");
     btn.disabled = true;
     try {
-      const [participantsSnap, expensesSnap] = await Promise.all([
-        getDocs(collection(db, "events", eventId, "participants")),
-        getDocs(collection(db, "events", eventId, "expenses"))
-      ]);
-      await Promise.all([
-        ...participantsSnap.docs.map((d) => deleteDoc(d.ref)),
-        ...expensesSnap.docs.map((d) => deleteDoc(d.ref))
-      ]);
-      await deleteDoc(doc(db, "events", eventId));
-      localStorage.removeItem(`splitease:${eventId}:participantId`);
-      forgetEvent(eventId);
+      await deleteEventCompletely(eventId);
       window.location.href = window.location.pathname;
     } catch (err) {
       console.error(err);
@@ -907,21 +1005,32 @@
     if (!removeBtn) return;
     const id = removeBtn.dataset.participantId;
     const name = participantName(id);
-    if (!confirm(`Remove ${name} from this event?`)) return;
+    const isSelf = id === currentParticipantId;
+    const confirmMsg = isSelf
+      ? "Leave this event? This removes your name and deletes any expenses you added."
+      : `Remove ${name} from this event?`;
+    if (!confirm(confirmMsg)) return;
     try {
+      if (isSelf) {
+        const mine = currentExpenses.filter((exp) => exp.createdBy === id);
+        await Promise.all(mine.map((exp) => deleteDoc(doc(db, "events", eventId, "expenses", exp.id))));
+      }
       await deleteDoc(doc(db, "events", eventId, "participants", id));
       currentParticipants = currentParticipants.filter((p) => p.id !== id);
-      if (id === currentParticipantId) {
+      if (isSelf) {
         currentParticipantId = null;
         localStorage.removeItem(`splitease:${eventId}:participantId`);
+        forgetEvent(eventId);
       }
       renderParticipants();
       checkWhoAmI();
-      showToast(`${name} removed`);
-      logActivity("participant_removed", `<b>${escapeHtml(name)}</b> was removed`);
+      showToast(isSelf ? "You've left the event" : `${name} removed`);
+      logActivity("participant_removed", isSelf
+        ? `<b>${escapeHtml(name)}</b> left`
+        : `<b>${escapeHtml(name)}</b> was removed`);
     } catch (err) {
       console.error(err);
-      showToast("Couldn't remove that person — try again");
+      showToast("Couldn't complete that — try again");
     }
   });
 

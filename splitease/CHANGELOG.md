@@ -1,5 +1,15 @@
 # SplitEase changelog
 
+## 1.2.0
+
+- Added the SplitEase logo to the header, clickable to return to the home screen; added an explicit "← Home" button inside events too
+- "Your events" is now split into "Created by you" and "Joined" groups, each sorted by most recently opened
+- Events you created can be deleted directly from the home list (with a warning), no need to open them first
+- Events you joined can be left directly from the home list — removes your name and deletes any expenses you added in that event
+- Leaving an event from inside it (the × on your own name) now also deletes your own expenses, matching the home-list "Leave" behavior
+- Fixed: deleting an event now also cleans up its activity log entries (previously left orphaned in Firestore)
+- Fixed: navigating between events no longer stacks up duplicate real-time listeners
+
 ## 1.1.0
 
 - Landing screen now shows "Your events" — a list of events you've created or joined before on this browser, so you don't need the original link to get back in
