@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SplitEase — Share Together. Settle Smarter.</title>
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
+<link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0d0f14">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
@@ -129,6 +135,23 @@
   }
   .row { display: flex; gap: 10px; }
   .row input { flex: 1; }
+
+  .my-event-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 14px;
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: border-color 0.15s ease;
+  }
+  .my-event-row:hover { border-color: var(--blue); }
+  .my-event-name { font-weight: 600; font-size: 14px; }
+  .my-event-meta { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+  .my-event-arrow { color: var(--text-dim); font-size: 16px; }
 
   /* ---------- event header ---------- */
   .event-topbar {
@@ -328,6 +351,79 @@
     transition: all 0.25s ease;
   }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* help modal */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.55);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 50;
+  }
+  .modal-panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    max-width: 460px;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    padding: 26px 26px 22px;
+  }
+  .modal-panel h2 {
+    font-family: 'DM Serif Display', serif;
+    font-weight: 400;
+    font-size: 22px;
+    margin: 0 0 16px;
+  }
+  .help-item { margin-bottom: 16px; }
+  .help-item:last-child { margin-bottom: 0; }
+  .help-item h3 {
+    font-size: 14px;
+    margin: 0 0 4px;
+    color: var(--text);
+  }
+  .help-item p {
+    font-size: 13.5px;
+    color: var(--text-dim);
+    margin: 0;
+    line-height: 1.5;
+  }
+  .modal-close-row { text-align: right; margin-top: 20px; }
+
+  /* activity log */
+  .activity-toggle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    user-select: none;
+  }
+  .activity-list { margin-top: 10px; }
+  .activity-row {
+    display: flex;
+    gap: 10px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    color: var(--text-dim);
+    animation: fadein 0.25s ease;
+  }
+  .activity-row:last-child { border-bottom: none; }
+  .activity-row .activity-time { flex-shrink: 0; color: var(--text-dim); opacity: 0.7; }
+  .activity-row .activity-text { color: var(--text); }
+  .activity-row .activity-text b { color: var(--text); font-weight: 600; }
+
+  footer {
+    text-align: center;
+    color: var(--text-dim);
+    font-size: 12px;
+    padding: 30px 20px 40px;
+    opacity: 0.6;
+  }
 </style>
 </head>
 <body>
@@ -335,7 +431,43 @@
 <header>
   <div class="wordmark">Split<span class="ease">Ease</span></div>
   <div class="tagline">Share Together. Settle Smarter.</div>
+  <button class="btn-ghost" id="help-btn" style="margin-top:12px; font-size:12.5px; padding:7px 14px;">How it works</button>
 </header>
+
+<div class="modal-overlay hidden" id="help-overlay">
+  <div class="modal-panel">
+    <h2>How SplitEase works</h2>
+
+    <div class="help-item">
+      <h3>No accounts, just links</h3>
+      <p>Whoever starts an event gets a link. Anyone with that link can join by entering their name — nothing to sign up for.</p>
+    </div>
+    <div class="help-item">
+      <h3>Split only who was actually there</h3>
+      <p>When you log an expense, check off exactly who it was shared with. Nothing splits evenly among everyone by default.</p>
+    </div>
+    <div class="help-item">
+      <h3>Editing an expense</h3>
+      <p>You can edit or delete expenses you added. The payer can't be changed after the fact — delete the expense and re-add it instead.</p>
+    </div>
+    <div class="help-item">
+      <h3>Settle up</h3>
+      <p>The settle-up list updates live and is calculated to minimize the number of payments needed — not everyone pays everyone, just enough transactions to net out.</p>
+    </div>
+    <div class="help-item">
+      <h3>Leaving or removing someone</h3>
+      <p>Anyone can remove a participant from the event. If you're removed, you're taken back to the join screen automatically.</p>
+    </div>
+    <div class="help-item">
+      <h3>Deleting the event</h3>
+      <p>Only the person who created the event can delete it. Deleting removes everyone and everything in it — there's no undo.</p>
+    </div>
+
+    <div class="modal-close-row">
+      <button class="btn-primary" id="help-close-btn">Got it</button>
+    </div>
+  </div>
+</div>
 
 <main>
 
@@ -343,6 +475,12 @@
 
   <!-- ===================== LANDING ===================== -->
   <section id="landing-screen">
+    <div class="card hidden" id="my-events-card" style="margin-bottom:16px;">
+      <h2>Your events</h2>
+      <p>Pick up where you left off.</p>
+      <div id="my-events-list"></div>
+    </div>
+
     <div class="landing-cards">
       <div class="card">
         <h2>Start a new event</h2>
@@ -407,6 +545,9 @@
           <div class="field">
             <label class="field-label">Paid by</label>
             <select id="expense-paid-by"></select>
+            <p id="payer-lock-hint" class="hidden" style="font-size:12px;color:var(--text-dim);margin-top:6px;">
+              Payer can't be changed here — delete and re-add the expense instead.
+            </p>
           </div>
 
           <div class="field">
@@ -433,10 +574,18 @@
       <div class="section-label">Settle up</div>
       <div id="settle-up"></div>
 
+      <div class="section-label activity-toggle" id="activity-toggle">
+        <span>Activity</span>
+        <span id="activity-chevron" style="font-size:11px;">▾</span>
+      </div>
+      <div id="activity-list" class="activity-list"></div>
+
     </div>
   </section>
 
 </main>
+
+<footer id="app-footer">SplitEase — Share Together. Settle Smarter.</footer>
 
 <div class="toast" id="toast"></div>
 
@@ -444,11 +593,17 @@
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
   import {
     getFirestore, doc, setDoc, addDoc, getDoc, getDocs, updateDoc,
-    collection, onSnapshot, serverTimestamp, deleteDoc
+    collection, onSnapshot, serverTimestamp, deleteDoc,
+    query, orderBy, limit
   } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
   import {
     getAuth, signInAnonymously, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
+
+  const APP_VERSION = "1.1.0";
+  document.getElementById("app-footer").textContent =
+    `SplitEase v${APP_VERSION} — Share Together. Settle Smarter.`;
+  console.log(`%cSplitEase v${APP_VERSION}`, "color:#3d8bfd;font-weight:bold;");
 
   const firebaseConfig = {
     apiKey: "AIzaSyAjHkMxN9iwTSbAfN5DdE4Y7HcjmQODdiI",
@@ -479,6 +634,90 @@
     setTimeout(() => t.classList.remove("show"), 2200);
   }
 
+  async function logActivity(type, text) {
+    try {
+      await addDoc(collection(db, "events", eventId, "activity"), {
+        type, text, createdAt: serverTimestamp()
+      });
+    } catch (err) {
+      console.error("Activity log failed:", err);
+    }
+  }
+
+  document.getElementById("help-btn").addEventListener("click", () => {
+    document.getElementById("help-overlay").classList.remove("hidden");
+  });
+  document.getElementById("help-close-btn").addEventListener("click", () => {
+    document.getElementById("help-overlay").classList.add("hidden");
+  });
+  document.getElementById("help-overlay").addEventListener("click", (e) => {
+    if (e.target.id === "help-overlay") e.target.classList.add("hidden");
+  });
+
+  document.getElementById("activity-toggle").addEventListener("click", () => {
+    const list = document.getElementById("activity-list");
+    const chevron = document.getElementById("activity-chevron");
+    const collapsed = list.classList.toggle("hidden");
+    chevron.textContent = collapsed ? "▸" : "▾";
+  });
+
+  // ---------- "your events" (per-browser history, no account needed) ----------
+  const MY_EVENTS_KEY = "splitease:myEvents";
+
+  function getMyEvents() {
+    try {
+      return JSON.parse(localStorage.getItem(MY_EVENTS_KEY)) || [];
+    } catch {
+      return [];
+    }
+  }
+
+  function rememberEvent(id, name) {
+    let list = getMyEvents().filter((e) => e.id !== id);
+    list.unshift({ id, name, lastVisitedAt: Date.now() });
+    list = list.slice(0, 15);
+    localStorage.setItem(MY_EVENTS_KEY, JSON.stringify(list));
+  }
+
+  function forgetEvent(id) {
+    const list = getMyEvents().filter((e) => e.id !== id);
+    localStorage.setItem(MY_EVENTS_KEY, JSON.stringify(list));
+  }
+
+  function renderMyEvents() {
+    const card = document.getElementById("my-events-card");
+    const list = getMyEvents();
+    if (list.length === 0) { card.classList.add("hidden"); return; }
+    card.classList.remove("hidden");
+    document.getElementById("my-events-list").innerHTML = list.map((e) => `
+      <div class="my-event-row" data-event-id="${e.id}">
+        <div>
+          <div class="my-event-name">${escapeHtml(e.name)}</div>
+          <div class="my-event-meta">Last opened ${timeAgo({ seconds: Math.floor(e.lastVisitedAt / 1000) })}</div>
+        </div>
+        <span class="my-event-arrow">→</span>
+      </div>
+    `).join("");
+  }
+
+  document.getElementById("my-events-list").addEventListener("click", async (e) => {
+    const row = e.target.closest(".my-event-row");
+    if (!row) return;
+    const id = row.dataset.eventId;
+    const snap = await getDoc(doc(db, "events", id));
+    if (!snap.exists()) {
+      forgetEvent(id);
+      renderMyEvents();
+      showToast("That event no longer exists");
+      return;
+    }
+    window.history.pushState({}, "", `?event=${id}`);
+    eventId = id;
+    document.getElementById("landing-screen").classList.add("hidden");
+    document.getElementById("loading-state").classList.remove("hidden");
+    await openEvent(id);
+  });
+
   // ---------- routing ----------
   const params = new URLSearchParams(window.location.search);
   let eventId = params.get("event");
@@ -486,6 +725,8 @@
   if (eventId) {
     document.getElementById("landing-screen").classList.add("hidden");
     document.getElementById("loading-state").classList.remove("hidden");
+  } else {
+    renderMyEvents();
   }
 
   let currentParticipantId = null;
@@ -562,6 +803,7 @@
     document.getElementById("delete-event-btn").classList.toggle(
       "hidden", eventSnap.data().creatorUid !== auth.currentUser?.uid
     );
+    rememberEvent(id, eventSnap.data().name);
 
     currentParticipantId = localStorage.getItem(`splitease:${id}:participantId`);
 
@@ -585,6 +827,13 @@
       renderExpenses();
       renderSettleUp();
     });
+
+    onSnapshot(
+      query(collection(db, "events", id, "activity"), orderBy("createdAt", "desc"), limit(20)),
+      (snap) => {
+        renderActivity(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
+      }
+    );
 
     checkWhoAmI();
   }
@@ -615,6 +864,7 @@
       checkWhoAmI();
       renderParticipants();
       showToast(`Welcome, ${name}`);
+      logActivity("join", `<b>${escapeHtml(name)}</b> joined`);
     } catch (err) {
       console.error(err);
       showToast("Couldn't join — try again");
@@ -643,6 +893,7 @@
       ]);
       await deleteDoc(doc(db, "events", eventId));
       localStorage.removeItem(`splitease:${eventId}:participantId`);
+      forgetEvent(eventId);
       window.location.href = window.location.pathname;
     } catch (err) {
       console.error(err);
@@ -667,6 +918,7 @@
       renderParticipants();
       checkWhoAmI();
       showToast(`${name} removed`);
+      logActivity("participant_removed", `<b>${escapeHtml(name)}</b> was removed`);
     } catch (err) {
       console.error(err);
       showToast("Couldn't remove that person — try again");
@@ -740,7 +992,10 @@
           </div>
         </div>
         <div style="display:flex; align-items:center; gap:12px;">
-          ${e.createdBy === currentParticipantId ? `<button class="btn-ghost expense-edit-btn" data-expense-id="${e.id}" style="padding:6px 12px; font-size:12.5px;">Edit</button>` : ""}
+          ${e.createdBy === currentParticipantId ? `
+            <button class="btn-ghost expense-edit-btn" data-expense-id="${e.id}" style="padding:6px 12px; font-size:12.5px;">Edit</button>
+            <button class="btn-ghost expense-delete-btn" data-expense-id="${e.id}" style="padding:6px 12px; font-size:12.5px; border-color: var(--coral); color: var(--coral);">Delete</button>
+          ` : ""}
           <div class="expense-amount amount">${money(e.amount)}</div>
         </div>
       </div>
@@ -771,6 +1026,7 @@
           description, amount, paidBy, splitAmong
         });
         showToast("Expense updated");
+        logActivity("expense_edited", `<b>${escapeHtml(participantName(currentParticipantId))}</b> edited “${escapeHtml(description)}”`);
         exitEditMode();
       } else {
         await addDoc(collection(db, "events", eventId, "expenses"), {
@@ -780,6 +1036,7 @@
           createdAt: serverTimestamp()
         });
         showToast("Expense added");
+        logActivity("expense_added", `<b>${escapeHtml(participantName(paidBy))}</b> paid ${money(amount)} for “${escapeHtml(description)}”`);
         descInput.value = "";
         amountInput.value = "";
       }
@@ -793,10 +1050,25 @@
 
   document.getElementById("cancel-edit-btn").addEventListener("click", () => exitEditMode());
 
-  document.getElementById("expense-log").addEventListener("click", (e) => {
+  document.getElementById("expense-log").addEventListener("click", async (e) => {
     const editBtn = e.target.closest(".expense-edit-btn");
-    if (!editBtn) return;
-    startEditExpense(editBtn.dataset.expenseId);
+    if (editBtn) { startEditExpense(editBtn.dataset.expenseId); return; }
+
+    const deleteBtn = e.target.closest(".expense-delete-btn");
+    if (deleteBtn) {
+      const id = deleteBtn.dataset.expenseId;
+      const exp = currentExpenses.find((x) => x.id === id);
+      if (!confirm(`Delete "${exp ? exp.description : "this expense"}"?`)) return;
+      try {
+        await deleteDoc(doc(db, "events", eventId, "expenses", id));
+        if (editingExpenseId === id) exitEditMode();
+        showToast("Expense deleted");
+        logActivity("expense_deleted", `<b>${escapeHtml(participantName(currentParticipantId))}</b> deleted “${escapeHtml(exp ? exp.description : "an expense")}”`);
+      } catch (err) {
+        console.error(err);
+        showToast("Couldn't delete that expense — try again");
+      }
+    }
   });
 
   function startEditExpense(id) {
@@ -806,7 +1078,11 @@
 
     document.getElementById("expense-desc").value = exp.description;
     document.getElementById("expense-amount").value = exp.amount;
-    document.getElementById("expense-paid-by").value = exp.paidBy;
+
+    const paidBySelect = document.getElementById("expense-paid-by");
+    paidBySelect.value = exp.paidBy;
+    paidBySelect.disabled = true;
+    document.getElementById("payer-lock-hint").classList.remove("hidden");
 
     document.querySelectorAll("#expense-split-list .split-pill").forEach((pill) => {
       const input = pill.querySelector("input");
@@ -830,6 +1106,31 @@
     document.getElementById("expense-form-subtext").textContent = "Log what you paid for and who it was shared with.";
     document.getElementById("expense-desc").value = "";
     document.getElementById("expense-amount").value = "";
+    document.getElementById("expense-paid-by").disabled = false;
+    document.getElementById("payer-lock-hint").classList.add("hidden");
+  }
+
+  function timeAgo(ts) {
+    if (!ts?.seconds) return "";
+    const diff = Date.now() / 1000 - ts.seconds;
+    if (diff < 60) return "just now";
+    if (diff < 3600) return `${Math.floor(diff / 60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}h ago`;
+    return `${Math.floor(diff / 86400)}d ago`;
+  }
+
+  function renderActivity(items) {
+    const list = document.getElementById("activity-list");
+    if (items.length === 0) {
+      list.innerHTML = `<div class="empty-state">Nothing's happened yet.</div>`;
+      return;
+    }
+    list.innerHTML = items.map((item) => `
+      <div class="activity-row">
+        <span class="activity-time">${timeAgo(item.createdAt)}</span>
+        <span class="activity-text">${item.text}</span>
+      </div>
+    `).join("");
   }
 
   // ---------- settle-up ----------
