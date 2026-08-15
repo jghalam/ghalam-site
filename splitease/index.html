@@ -328,6 +328,8 @@
 
 <main>
 
+  <div id="loading-state" class="hidden" style="text-align:center;color:var(--text-dim);padding:60px 0;">Loading event…</div>
+
   <!-- ===================== LANDING ===================== -->
   <section id="landing-screen">
     <div class="landing-cards">
@@ -466,6 +468,11 @@
   const params = new URLSearchParams(window.location.search);
   let eventId = params.get("event");
 
+  if (eventId) {
+    document.getElementById("landing-screen").classList.add("hidden");
+    document.getElementById("loading-state").classList.remove("hidden");
+  }
+
   let currentParticipantId = null;
   let currentParticipants = [];
   let currentExpenses = [];
@@ -532,6 +539,7 @@
     }
 
     document.getElementById("landing-screen").classList.add("hidden");
+    document.getElementById("loading-state").classList.add("hidden");
     document.getElementById("event-screen").classList.remove("hidden");
     document.getElementById("event-name-display").textContent = eventSnap.data().name;
     document.getElementById("event-id-display").textContent = `${location.origin}${location.pathname}?event=${id}`;
@@ -565,13 +573,28 @@
     const nameInput = document.getElementById("whoami-name");
     const name = nameInput.value.trim();
     if (!name) { nameInput.focus(); return; }
-    const ref = await addDoc(collection(db, "events", eventId, "participants"), {
-      name,
-      joinedAt: serverTimestamp()
-    });
-    currentParticipantId = ref.id;
-    localStorage.setItem(`splitease:${eventId}:participantId`, ref.id);
-    showToast(`Welcome, ${name}`);
+    const btn = document.getElementById("whoami-join-btn");
+    btn.disabled = true;
+    try {
+      const ref = await addDoc(collection(db, "events", eventId, "participants"), {
+        name,
+        joinedAt: serverTimestamp()
+      });
+      currentParticipantId = ref.id;
+      localStorage.setItem(`splitease:${eventId}:participantId`, ref.id);
+      // Don't wait on the snapshot listener to reflect this — update immediately.
+      if (!currentParticipants.some((p) => p.id === ref.id)) {
+        currentParticipants.push({ id: ref.id, name });
+      }
+      checkWhoAmI();
+      renderParticipants();
+      showToast(`Welcome, ${name}`);
+    } catch (err) {
+      console.error(err);
+      showToast("Couldn't join — try again");
+    } finally {
+      btn.disabled = false;
+    }
   });
 
   document.getElementById("copy-link-btn").addEventListener("click", () => {
