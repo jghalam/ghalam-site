@@ -116,10 +116,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const actions = document.createElement('div');
     actions.className = 'station-actions';
 
+    function labelBtn(el, label) {
+      el.setAttribute('aria-label', label);
+      el.title = label;
+    }
+
     if (onPlay) {
       const playBtn = document.createElement('button');
       playBtn.className = 'icon-btn';
-      playBtn.setAttribute('aria-label', 'Play');
+      labelBtn(playBtn, 'Play');
       playBtn.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>';
       playBtn.addEventListener('click', () => onPlay(station, playBtn));
       actions.appendChild(playBtn);
@@ -131,8 +136,7 @@ document.addEventListener('DOMContentLoaded', () => {
       linkBtn.href = station.homepage;
       linkBtn.target = '_blank';
       linkBtn.rel = 'noopener noreferrer';
-      linkBtn.setAttribute('aria-label', 'Open station website');
-      linkBtn.title = 'Open station website';
+      labelBtn(linkBtn, 'Open station website');
       linkBtn.innerHTML = '<svg viewBox="0 0 24 24" width="15" height="15"><path d="M14 4h6v6M10 14L20 4M18 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h6" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
       // Row click handlers elsewhere use bare clicks, not <a> navigation —
       // stop propagation so this doesn't also trigger a parent row action.
@@ -142,7 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (onAdd) {
       const addBtn = document.createElement('button');
       addBtn.className = 'icon-btn';
-      addBtn.setAttribute('aria-label', 'Add to My Stations');
+      labelBtn(addBtn, 'Add to My Stations');
       addBtn.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>';
       addBtn.addEventListener('click', () => onAdd(station));
       actions.appendChild(addBtn);
@@ -150,7 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (onEdit) {
       const editBtn = document.createElement('button');
       editBtn.className = 'icon-btn';
-      editBtn.setAttribute('aria-label', 'Edit');
+      labelBtn(editBtn, 'Edit station details');
       editBtn.innerHTML = '<svg viewBox="0 0 24 24" width="15" height="15"><path d="M4 20h4l10.5-10.5a1.5 1.5 0 0 0 0-2.12l-1.88-1.88a1.5 1.5 0 0 0-2.12 0L4 16v4z" stroke="currentColor" stroke-width="1.6" fill="none" stroke-linejoin="round"/></svg>';
       editBtn.addEventListener('click', () => onEdit(station));
       actions.appendChild(editBtn);
@@ -158,7 +162,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (onRemove) {
       const rmBtn = document.createElement('button');
       rmBtn.className = 'icon-btn danger';
-      rmBtn.setAttribute('aria-label', 'Remove');
+      labelBtn(rmBtn, 'Remove from My Stations');
       rmBtn.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
       rmBtn.addEventListener('click', () => onRemove(station));
       actions.appendChild(rmBtn);
@@ -203,6 +207,9 @@ document.addEventListener('DOMContentLoaded', () => {
   function setPlayIcon(btn, playing) {
     if (!btn) return;
     btn.classList.toggle('is-playing', playing);
+    const label = playing ? 'Stop' : 'Play';
+    btn.setAttribute('aria-label', label);
+    btn.title = label;
     btn.innerHTML = playing
       ? '<svg viewBox="0 0 24 24" width="16" height="16"><rect x="6" y="5" width="4" height="14" fill="currentColor"/><rect x="14" y="5" width="4" height="14" fill="currentColor"/></svg>'
       : '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>';
@@ -219,7 +226,6 @@ document.addEventListener('DOMContentLoaded', () => {
       if (row._playBtn) setPlayIcon(row._playBtn, isActive);
     });
     setPlayIcon(playerToggle, !!activeUrl);
-    playerToggle.setAttribute('aria-label', activeUrl ? 'Stop' : 'Play');
   }
 
   Player.setOnStateChange(({ status, station }) => {
