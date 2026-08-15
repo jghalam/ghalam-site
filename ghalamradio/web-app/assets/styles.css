@@ -466,7 +466,20 @@ a.icon-btn { text-decoration: none; }
   color: var(--accent);
 }
 
-.video-modal { width: min(640px, 94vw); }
+.video-modal { width: min(640px, 94vw, calc(70vh * 16 / 9)); }
+
+/* Video benefits from real screen space in a way the other modals don't —
+   scale it up substantially on anything wider than a phone. The 16:9
+   aspect-ratio on .video-modal-body means the video itself grows right
+   along with the modal's width. The third min() term caps width by
+   viewport *height* too, so a wide-but-short window (a laptop, say) can't
+   produce a video taller than the screen. */
+@media (min-width: 768px) {
+  .video-modal { width: min(1200px, 88vw, calc(75vh * 16 / 9)); }
+}
+@media (min-width: 1400px) {
+  .video-modal { width: min(1400px, 80vw, calc(75vh * 16 / 9)); }
+}
 
 .video-modal-header {
   display: flex;
