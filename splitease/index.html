@@ -1,3 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SplitEase — Share Together. Settle Smarter.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f14;
+    --surface: #151923;
+    --surface-raised: #1b202c;
+    --border: #262c3a;
+    --text: #f2f4f8;
+    --text-dim: #8b92a5;
+    --blue: #3d8bfd;
+    --blue-dim: #2a4f85;
+    --gold: #f2b134;
+    --green: #3ddc97;
+    --coral: #ff6b6b;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100vh;
+  }
+
+  .amount { font-family: 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; }
+
+  a { color: var(--blue); }
+
+  button {
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+    border-radius: 8px;
+    font-weight: 700;
+    transition: transform 0.08s ease, opacity 0.15s ease;
+  }
+  button:active { transform: scale(0.98); }
+  button:focus-visible, input:focus-visible, select:focus-visible {
+    outline: 2px solid var(--blue);
+    outline-offset: 2px;
+  }
+
+  .btn-primary {
+    background: var(--blue);
+    color: white;
+    padding: 12px 20px;
+    font-size: 15px;
+  }
+  .btn-primary:hover { opacity: 0.9; }
+  .btn-primary:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--text-dim);
+    border: 1px solid var(--border);
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+  .btn-ghost:hover { color: var(--text); border-color: var(--text-dim); }
+
+  input, select {
+    font-family: inherit;
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 8px;
+    padding: 11px 14px;
+    font-size: 15px;
+    width: 100%;
+  }
+  input::placeholder { color: var(--text-dim); }
+
+  /* ---------- header ---------- */
+  header {
+    padding: 28px 24px 12px;
+    text-align: center;
+  }
+  .wordmark {
+    font-family: 'DM Serif Display', serif;
+    font-size: 32px;
+    letter-spacing: -0.01em;
+  }
+  .wordmark .ease { color: var(--blue); }
+  .tagline {
+    color: var(--text-dim);
+    font-size: 14px;
+    margin-top: 2px;
+  }
+
+  main {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 24px 20px 80px;
+  }
+
+  .hidden { display: none !important; }
+
+  /* ---------- landing ---------- */
+  .landing-cards {
+    display: grid;
+    gap: 16px;
+    margin-top: 24px;
+  }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 22px;
+  }
+  .card h2 {
+    font-family: 'DM Serif Display', serif;
+    font-weight: 400;
+    font-size: 20px;
+    margin: 0 0 4px;
+  }
+  .card p {
+    color: var(--text-dim);
+    font-size: 14px;
+    margin: 0 0 16px;
+  }
+  .row { display: flex; gap: 10px; }
+  .row input { flex: 1; }
+
+  /* ---------- event header ---------- */
+  .event-topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+  .event-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 26px;
+    margin: 0;
+  }
+  .event-code {
+    color: var(--text-dim);
+    font-size: 13px;
+    margin-top: 2px;
+  }
+
+  .whoami {
+    background: var(--surface);
+    border: 1px solid var(--blue-dim);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 20px;
+  }
+
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 640px) {
+    .grid-2 { grid-template-columns: 1fr; }
+  }
+
+  .section-label {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-dim);
+    margin: 28px 0 10px;
+  }
+
+  /* participants */
+  .participant-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 6px 12px 6px 6px;
+    font-size: 13px;
+    margin: 0 6px 6px 0;
+  }
+  .avatar-dot {
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 10px; font-weight: 700;
+    color: #0d0f14;
+  }
+
+  /* checkboxes for split-among */
+  .split-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 6px 0 16px;
+  }
+  .split-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 7px 12px;
+    font-size: 13px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .split-pill.checked {
+    border-color: var(--blue);
+    background: rgba(61,139,253,0.12);
+  }
+  .split-pill input { width: auto; margin: 0; }
+
+  label.field-label {
+    display: block;
+    font-size: 13px;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+  .field { margin-bottom: 14px; }
+
+  /* expense log */
+  .expense-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+    animation: fadein 0.25s ease;
+  }
+  .expense-row:last-child { border-bottom: none; }
+  .expense-desc { font-weight: 500; }
+  .expense-meta { color: var(--text-dim); font-size: 12.5px; margin-top: 3px; }
+  .expense-amount { font-size: 16px; font-weight: 600; }
+
+  @keyframes fadein {
+    from { opacity: 0; transform: translateY(-4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .empty-state {
+    color: var(--text-dim);
+    font-size: 14px;
+    padding: 18px 0;
+    text-align: center;
+    border: 1px dashed var(--border);
+    border-radius: 10px;
+  }
+
+  /* settle-up receipt */
+  .receipt {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 4px 0 0;
+    margin-top: 10px;
+    position: relative;
+    overflow: hidden;
+  }
+  .receipt::before {
+    content: "";
+    display: block;
+    height: 10px;
+    background:
+      linear-gradient(135deg, var(--bg) 25%, transparent 25%) 0 0,
+      linear-gradient(225deg, var(--bg) 25%, transparent 25%) 0 0;
+    background-size: 14px 14px;
+    background-color: var(--surface);
+  }
+  .receipt-inner { padding: 8px 22px 20px; }
+  .receipt-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px dashed var(--border);
+    font-size: 14.5px;
+  }
+  .receipt-row:last-child { border-bottom: none; }
+  .receipt-arrow { color: var(--text-dim); margin: 0 8px; }
+  .receipt-amount { color: var(--gold); font-weight: 600; }
+  .all-settled {
+    text-align: center;
+    padding: 22px 0 10px;
+    color: var(--green);
+    font-weight: 500;
+  }
+
+  .invite-link {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 10px 18px;
+    border-radius: 100px;
+    font-size: 13.5px;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.25s ease;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="wordmark">Split<span class="ease">Ease</span></div>
+  <div class="tagline">Share Together. Settle Smarter.</div>
+</header>
+
+<main>
+
+  <!-- ===================== LANDING ===================== -->
+  <section id="landing-screen">
+    <div class="landing-cards">
+      <div class="card">
+        <h2>Start a new event</h2>
+        <p>Name it, share the link, start logging expenses together.</p>
+        <div class="row">
+          <input id="new-event-name" type="text" placeholder="e.g. Tahoe cabin weekend" maxlength="60">
+          <button class="btn-primary" id="create-event-btn">Create</button>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Join an event</h2>
+        <p>Paste the event link or code someone sent you.</p>
+        <div class="row">
+          <input id="join-event-code" type="text" placeholder="Event link or code">
+          <button class="btn-primary" id="join-event-btn">Join</button>
+        </div>
+      </div>
+    </div>
+    <p id="landing-error" style="color: var(--coral); font-size: 13px; margin-top: 14px;"></p>
+  </section>
+
+  <!-- ===================== EVENT ===================== -->
+  <section id="event-screen" class="hidden">
+
+    <div class="event-topbar">
+      <div>
+        <h1 class="event-name" id="event-name-display">—</h1>
+        <div class="event-code">Invite link: <span id="event-id-display">—</span></div>
+      </div>
+      <div class="invite-link">
+        <button class="btn-ghost" id="copy-link-btn">Copy invite link</button>
+      </div>
+    </div>
+
+    <!-- who am I -->
+    <div class="whoami hidden" id="whoami-card">
+      <label class="field-label">What's your name?</label>
+      <div class="row">
+        <input id="whoami-name" type="text" placeholder="Your name" maxlength="40">
+        <button class="btn-primary" id="whoami-join-btn">Join event</button>
+      </div>
+    </div>
+
+    <div id="event-body" class="hidden">
+
+      <div class="grid-2">
+        <div class="card">
+          <h2>Add an expense</h2>
+          <p>Log what you paid for and who it was shared with.</p>
+
+          <div class="field">
+            <label class="field-label">What was it?</label>
+            <input id="expense-desc" type="text" placeholder="e.g. Groceries" maxlength="80">
+          </div>
+
+          <div class="field">
+            <label class="field-label">Amount</label>
+            <input id="expense-amount" type="number" step="0.01" min="0" placeholder="0.00">
+          </div>
+
+          <div class="field">
+            <label class="field-label">Paid by</label>
+            <select id="expense-paid-by"></select>
+          </div>
+
+          <div class="field">
+            <label class="field-label">Split among</label>
+            <div class="split-list" id="expense-split-list"></div>
+          </div>
+
+          <button class="btn-primary" id="add-expense-btn" style="width:100%;">Add expense</button>
+        </div>
+
+        <div class="card">
+          <h2>Who's in</h2>
+          <p>Everyone who's joined this event so far.</p>
+          <div id="participant-list"></div>
+        </div>
+      </div>
+
+      <div class="section-label">Expenses</div>
+      <div id="expense-log"><div class="empty-state">No expenses yet — add the first one above.</div></div>
+
+      <div class="section-label">Settle up</div>
+      <div id="settle-up"></div>
+
+    </div>
+  </section>
+
+</main>
+
+<div class="toast" id="toast"></div>
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
   import {
@@ -21,11 +446,311 @@
   const db = getFirestore(app);
   const auth = getAuth(app);
 
-  signInAnonymously(auth).catch(console.error);
+  const AVATAR_COLORS = ["#3ddc97", "#f2b134", "#3d8bfd", "#ff6b6b", "#c084fc", "#f472b6"];
+  const colorFor = (id) => {
+    let h = 0;
+    for (const c of id) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+    return AVATAR_COLORS[h % AVATAR_COLORS.length];
+  };
+  const initials = (name) => (name || "?").trim().slice(0, 2).toUpperCase();
+  const money = (n) => `$${n.toFixed(2)}`;
 
-  onAuthStateChanged(auth, (user) => {
-    if (user) {
-      console.log("Signed in anonymously as", user.uid);
+  function showToast(msg) {
+    const t = document.getElementById("toast");
+    t.textContent = msg;
+    t.classList.add("show");
+    setTimeout(() => t.classList.remove("show"), 2200);
+  }
+
+  // ---------- routing ----------
+  const params = new URLSearchParams(window.location.search);
+  let eventId = params.get("event");
+
+  let currentParticipantId = null;
+  let currentParticipants = [];
+  let currentExpenses = [];
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) return;
+    console.log("Signed in anonymously as", user.uid);
+    if (eventId) {
+      await openEvent(eventId);
     }
   });
+  signInAnonymously(auth).catch((err) => {
+    document.getElementById("landing-error").textContent =
+      "Couldn't connect — check your connection and reload.";
+    console.error(err);
+  });
+
+  // ---------- landing actions ----------
+  document.getElementById("create-event-btn").addEventListener("click", async () => {
+    const nameInput = document.getElementById("new-event-name");
+    const name = nameInput.value.trim();
+    if (!name) { nameInput.focus(); return; }
+    const btn = document.getElementById("create-event-btn");
+    btn.disabled = true;
+    try {
+      const eventRef = doc(collection(db, "events"));
+      await setDoc(eventRef, { name, createdAt: serverTimestamp() });
+      window.history.pushState({}, "", `?event=${eventRef.id}`);
+      eventId = eventRef.id;
+      await openEvent(eventId);
+    } catch (err) {
+      console.error(err);
+      document.getElementById("landing-error").textContent = "Couldn't create the event. Try again.";
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  document.getElementById("join-event-btn").addEventListener("click", async () => {
+    const raw = document.getElementById("join-event-code").value.trim();
+    if (!raw) return;
+    let id = raw;
+    try {
+      const url = new URL(raw);
+      id = url.searchParams.get("event") || raw;
+    } catch { /* not a URL, treat as raw code */ }
+
+    const snap = await getDoc(doc(db, "events", id));
+    if (!snap.exists()) {
+      document.getElementById("landing-error").textContent = "Couldn't find that event — check the link or code.";
+      return;
+    }
+    window.history.pushState({}, "", `?event=${id}`);
+    eventId = id;
+    await openEvent(eventId);
+  });
+
+  // ---------- event screen ----------
+  async function openEvent(id) {
+    const eventSnap = await getDoc(doc(db, "events", id));
+    if (!eventSnap.exists()) {
+      document.getElementById("landing-error").textContent = "That event doesn't exist.";
+      return;
+    }
+
+    document.getElementById("landing-screen").classList.add("hidden");
+    document.getElementById("event-screen").classList.remove("hidden");
+    document.getElementById("event-name-display").textContent = eventSnap.data().name;
+    document.getElementById("event-id-display").textContent = `${location.origin}${location.pathname}?event=${id}`;
+
+    currentParticipantId = localStorage.getItem(`splitease:${id}:participantId`);
+
+    onSnapshot(collection(db, "events", id, "participants"), (snap) => {
+      currentParticipants = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      renderParticipants();
+      renderExpenses();
+      renderSettleUp();
+      checkWhoAmI();
+    });
+
+    onSnapshot(collection(db, "events", id, "expenses"), (snap) => {
+      currentExpenses = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      renderExpenses();
+      renderSettleUp();
+    });
+
+    checkWhoAmI();
+  }
+
+  function checkWhoAmI() {
+    const isKnown = currentParticipantId && currentParticipants.some((p) => p.id === currentParticipantId);
+    document.getElementById("whoami-card").classList.toggle("hidden", !!isKnown);
+    document.getElementById("event-body").classList.toggle("hidden", !isKnown);
+  }
+
+  document.getElementById("whoami-join-btn").addEventListener("click", async () => {
+    const nameInput = document.getElementById("whoami-name");
+    const name = nameInput.value.trim();
+    if (!name) { nameInput.focus(); return; }
+    const ref = await addDoc(collection(db, "events", eventId, "participants"), {
+      name,
+      joinedAt: serverTimestamp()
+    });
+    currentParticipantId = ref.id;
+    localStorage.setItem(`splitease:${eventId}:participantId`, ref.id);
+    showToast(`Welcome, ${name}`);
+  });
+
+  document.getElementById("copy-link-btn").addEventListener("click", () => {
+    navigator.clipboard.writeText(`${location.origin}${location.pathname}?event=${eventId}`);
+    showToast("Invite link copied");
+  });
+
+  // ---------- rendering ----------
+  function renderParticipants() {
+    const list = document.getElementById("participant-list");
+    if (currentParticipants.length === 0) {
+      list.innerHTML = `<div class="empty-state">No one's joined yet.</div>`;
+      return;
+    }
+    list.innerHTML = currentParticipants.map((p) => `
+      <span class="participant-chip">
+        <span class="avatar-dot" style="background:${colorFor(p.id)}">${initials(p.name)}</span>
+        ${escapeHtml(p.name)}${p.id === currentParticipantId ? " (you)" : ""}
+      </span>
+    `).join("");
+
+    // paid-by select
+    const select = document.getElementById("expense-paid-by");
+    const prevValue = select.value || currentParticipantId;
+    select.innerHTML = currentParticipants.map((p) =>
+      `<option value="${p.id}">${escapeHtml(p.name)}${p.id === currentParticipantId ? " (you)" : ""}</option>`
+    ).join("");
+    if (prevValue) select.value = prevValue;
+
+    // split-among pills
+    const splitList = document.getElementById("expense-split-list");
+    const checkedIds = new Set(
+      Array.from(splitList.querySelectorAll("input:checked")).map((i) => i.value)
+    );
+    splitList.innerHTML = currentParticipants.map((p) => {
+      const checked = checkedIds.has(p.id) || (checkedIds.size === 0 && p.id === currentParticipantId);
+      return `
+        <label class="split-pill ${checked ? "checked" : ""}">
+          <input type="checkbox" value="${p.id}" ${checked ? "checked" : ""}>
+          ${escapeHtml(p.name)}
+        </label>
+      `;
+    }).join("");
+    splitList.querySelectorAll(".split-pill").forEach((pill) => {
+      const input = pill.querySelector("input");
+      input.addEventListener("change", () => pill.classList.toggle("checked", input.checked));
+    });
+  }
+
+  function participantName(id) {
+    const p = currentParticipants.find((p) => p.id === id);
+    return p ? p.name : "Someone";
+  }
+
+  function renderExpenses() {
+    const log = document.getElementById("expense-log");
+    if (currentExpenses.length === 0) {
+      log.innerHTML = `<div class="empty-state">No expenses yet — add the first one above.</div>`;
+      return;
+    }
+    const sorted = [...currentExpenses].sort((a, b) =>
+      (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)
+    );
+    log.innerHTML = sorted.map((e) => `
+      <div class="expense-row">
+        <div>
+          <div class="expense-desc">${escapeHtml(e.description)}</div>
+          <div class="expense-meta">
+            Paid by ${escapeHtml(participantName(e.paidBy))} · split ${e.splitAmong.length}
+            ${e.splitAmong.length === 1 ? "way" : "ways"} (${e.splitAmong.map((id) => escapeHtml(participantName(id))).join(", ")})
+          </div>
+        </div>
+        <div class="expense-amount amount">${money(e.amount)}</div>
+      </div>
+    `).join("");
+  }
+
+  document.getElementById("add-expense-btn").addEventListener("click", async () => {
+    const descInput = document.getElementById("expense-desc");
+    const amountInput = document.getElementById("expense-amount");
+    const paidBy = document.getElementById("expense-paid-by").value;
+    const splitAmong = Array.from(
+      document.querySelectorAll("#expense-split-list input:checked")
+    ).map((i) => i.value);
+
+    const description = descInput.value.trim();
+    const amount = parseFloat(amountInput.value);
+
+    if (!description) { descInput.focus(); return; }
+    if (!amount || amount <= 0) { amountInput.focus(); return; }
+    if (splitAmong.length === 0) { showToast("Select who this expense was shared with"); return; }
+    if (!paidBy) { showToast("Choose who paid"); return; }
+
+    const btn = document.getElementById("add-expense-btn");
+    btn.disabled = true;
+    try {
+      await addDoc(collection(db, "events", eventId, "expenses"), {
+        description, amount, paidBy, splitAmong,
+        createdAt: serverTimestamp()
+      });
+      descInput.value = "";
+      amountInput.value = "";
+      showToast("Expense added");
+    } catch (err) {
+      console.error(err);
+      showToast("Couldn't add that expense — try again");
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  // ---------- settle-up ----------
+  function calculateSettlements(participants, expenses) {
+    const balances = {};
+    participants.forEach((p) => (balances[p.id] = 0));
+
+    expenses.forEach((exp) => {
+      const share = exp.amount / exp.splitAmong.length;
+      balances[exp.paidBy] = (balances[exp.paidBy] || 0) + exp.amount;
+      exp.splitAmong.forEach((pid) => {
+        balances[pid] = (balances[pid] || 0) - share;
+      });
+    });
+
+    const creditors = [];
+    const debtors = [];
+    Object.entries(balances).forEach(([id, bal]) => {
+      if (bal > 0.01) creditors.push({ id, amount: bal });
+      else if (bal < -0.01) debtors.push({ id, amount: -bal });
+    });
+    creditors.sort((a, b) => b.amount - a.amount);
+    debtors.sort((a, b) => b.amount - a.amount);
+
+    const settlements = [];
+    let i = 0, j = 0;
+    while (i < creditors.length && j < debtors.length) {
+      const c = creditors[i];
+      const d = debtors[j];
+      const amt = Math.min(c.amount, d.amount);
+      settlements.push({ from: d.id, to: c.id, amount: Math.round(amt * 100) / 100 });
+      c.amount -= amt;
+      d.amount -= amt;
+      if (c.amount < 0.01) i++;
+      if (d.amount < 0.01) j++;
+    }
+    return settlements;
+  }
+
+  function renderSettleUp() {
+    const container = document.getElementById("settle-up");
+    if (currentExpenses.length === 0) {
+      container.innerHTML = "";
+      return;
+    }
+    const settlements = calculateSettlements(currentParticipants, currentExpenses);
+    if (settlements.length === 0) {
+      container.innerHTML = `<div class="receipt"><div class="all-settled">Everyone's settled up ✓</div></div>`;
+      return;
+    }
+    container.innerHTML = `
+      <div class="receipt">
+        <div class="receipt-inner">
+          ${settlements.map((s) => `
+            <div class="receipt-row">
+              <span>${escapeHtml(participantName(s.from))}<span class="receipt-arrow">→</span>${escapeHtml(participantName(s.to))}</span>
+              <span class="receipt-amount amount">${money(s.amount)}</span>
+            </div>
+          `).join("")}
+        </div>
+      </div>
+    `;
+  }
+
+  function escapeHtml(str) {
+    const div = document.createElement("div");
+    div.textContent = str ?? "";
+    return div.innerHTML;
+  }
 </script>
+
+</body>
+</html>
