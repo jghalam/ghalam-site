@@ -466,7 +466,12 @@ a.icon-btn { text-decoration: none; }
   color: var(--accent);
 }
 
-.video-modal { width: min(640px, 94vw, calc(70vh * 16 / 9)); }
+/* dialog.video-modal (not just .video-modal) — needs to outrank the later
+   .modal { width: min(440px, 92vw); } rule regardless of source order. Both
+   were plain single-class selectors with equal specificity, so the one that
+   happened to come later in the file (.modal) was silently winning the
+   cascade and clamping every video to ~440px, no matter the viewport. */
+dialog.video-modal { width: min(640px, 94vw, calc(70vh * 16 / 9)); }
 
 /* Video benefits from real screen space in a way the other modals don't —
    scale it up substantially on anything wider than a phone. The 16:9
@@ -475,10 +480,10 @@ a.icon-btn { text-decoration: none; }
    viewport *height* too, so a wide-but-short window (a laptop, say) can't
    produce a video taller than the screen. */
 @media (min-width: 768px) {
-  .video-modal { width: min(1200px, 88vw, calc(75vh * 16 / 9)); }
+  dialog.video-modal { width: min(1200px, 88vw, calc(75vh * 16 / 9)); }
 }
 @media (min-width: 1400px) {
-  .video-modal { width: min(1400px, 80vw, calc(75vh * 16 / 9)); }
+  dialog.video-modal { width: min(1400px, 80vw, calc(75vh * 16 / 9)); }
 }
 
 .video-modal-header {
