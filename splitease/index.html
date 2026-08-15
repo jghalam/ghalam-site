@@ -374,7 +374,7 @@
       </div>
       <div class="invite-link">
         <button class="btn-ghost" id="copy-link-btn">Copy invite link</button>
-        <button class="btn-ghost" id="delete-event-btn" style="border-color: var(--coral); color: var(--coral);">Delete event</button>
+        <button class="btn-ghost hidden" id="delete-event-btn" style="border-color: var(--coral); color: var(--coral);">Delete event</button>
       </div>
     </div>
 
@@ -391,8 +391,8 @@
 
       <div class="grid-2">
         <div class="card">
-          <h2>Add an expense</h2>
-          <p>Log what you paid for and who it was shared with.</p>
+          <h2 id="expense-form-heading">Add an expense</h2>
+          <p id="expense-form-subtext">Log what you paid for and who it was shared with.</p>
 
           <div class="field">
             <label class="field-label">What was it?</label>
@@ -414,7 +414,10 @@
             <div class="split-list" id="expense-split-list"></div>
           </div>
 
-          <button class="btn-primary" id="add-expense-btn" style="width:100%;">Add expense</button>
+          <div style="display:flex; gap:10px;">
+            <button class="btn-primary" id="add-expense-btn" style="flex:1;">Add expense</button>
+            <button class="btn-ghost hidden" id="cancel-edit-btn">Cancel</button>
+          </div>
         </div>
 
         <div class="card">
@@ -440,7 +443,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
   import {
-    getFirestore, doc, setDoc, addDoc, getDoc, getDocs,
+    getFirestore, doc, setDoc, addDoc, getDoc, getDocs, updateDoc,
     collection, onSnapshot, serverTimestamp, deleteDoc
   } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
   import {
@@ -488,6 +491,7 @@
   let currentParticipantId = null;
   let currentParticipants = [];
   let currentExpenses = [];
+  let editingExpenseId = null;
 
   onAuthStateChanged(auth, async (user) => {
     if (!user) return;
@@ -511,7 +515,7 @@
     btn.disabled = true;
     try {
       const eventRef = doc(collection(db, "events"));
-      await setDoc(eventRef, { name, createdAt: serverTimestamp() });
+      await setDoc(eventRef, { name, creatorUid: auth.currentUser?.uid || null, createdAt: serverTimestamp() });
       window.history.pushState({}, "", `?event=${eventRef.id}`);
       eventId = eventRef.id;
       await openEvent(eventId);
@@ -555,11 +559,21 @@
     document.getElementById("event-screen").classList.remove("hidden");
     document.getElementById("event-name-display").textContent = eventSnap.data().name;
     document.getElementById("event-id-display").textContent = `${location.origin}${location.pathname}?event=${id}`;
+    document.getElementById("delete-event-btn").classList.toggle(
+      "hidden", eventSnap.data().creatorUid !== auth.currentUser?.uid
+    );
 
     currentParticipantId = localStorage.getItem(`splitease:${id}:participantId`);
 
     onSnapshot(collection(db, "events", id, "participants"), (snap) => {
+      const wasKnown = currentParticipantId && currentParticipants.some((p) => p.id === currentParticipantId);
       currentParticipants = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      const stillKnown = currentParticipantId && currentParticipants.some((p) => p.id === currentParticipantId);
+      if (wasKnown && !stillKnown) {
+        localStorage.removeItem(`splitease:${id}:participantId`);
+        currentParticipantId = null;
+        showToast("You've been removed from this event");
+      }
       renderParticipants();
       renderExpenses();
       renderSettleUp();
@@ -725,7 +739,10 @@
             ${e.splitAmong.length === 1 ? "way" : "ways"} (${e.splitAmong.map((id) => escapeHtml(participantName(id))).join(", ")})
           </div>
         </div>
-        <div class="expense-amount amount">${money(e.amount)}</div>
+        <div style="display:flex; align-items:center; gap:12px;">
+          ${e.createdBy === currentParticipantId ? `<button class="btn-ghost expense-edit-btn" data-expense-id="${e.id}" style="padding:6px 12px; font-size:12.5px;">Edit</button>` : ""}
+          <div class="expense-amount amount">${money(e.amount)}</div>
+        </div>
       </div>
     `).join("");
   }
@@ -749,20 +766,71 @@
     const btn = document.getElementById("add-expense-btn");
     btn.disabled = true;
     try {
-      await addDoc(collection(db, "events", eventId, "expenses"), {
-        description, amount, paidBy, splitAmong,
-        createdAt: serverTimestamp()
-      });
-      descInput.value = "";
-      amountInput.value = "";
-      showToast("Expense added");
+      if (editingExpenseId) {
+        await updateDoc(doc(db, "events", eventId, "expenses", editingExpenseId), {
+          description, amount, paidBy, splitAmong
+        });
+        showToast("Expense updated");
+        exitEditMode();
+      } else {
+        await addDoc(collection(db, "events", eventId, "expenses"), {
+          description, amount, paidBy, splitAmong,
+          createdBy: currentParticipantId,
+          createdByUid: auth.currentUser?.uid || null,
+          createdAt: serverTimestamp()
+        });
+        showToast("Expense added");
+        descInput.value = "";
+        amountInput.value = "";
+      }
     } catch (err) {
       console.error(err);
-      showToast("Couldn't add that expense — try again");
+      showToast(editingExpenseId ? "Couldn't save changes — try again" : "Couldn't add that expense — try again");
     } finally {
       btn.disabled = false;
     }
   });
+
+  document.getElementById("cancel-edit-btn").addEventListener("click", () => exitEditMode());
+
+  document.getElementById("expense-log").addEventListener("click", (e) => {
+    const editBtn = e.target.closest(".expense-edit-btn");
+    if (!editBtn) return;
+    startEditExpense(editBtn.dataset.expenseId);
+  });
+
+  function startEditExpense(id) {
+    const exp = currentExpenses.find((e) => e.id === id);
+    if (!exp) return;
+    editingExpenseId = id;
+
+    document.getElementById("expense-desc").value = exp.description;
+    document.getElementById("expense-amount").value = exp.amount;
+    document.getElementById("expense-paid-by").value = exp.paidBy;
+
+    document.querySelectorAll("#expense-split-list .split-pill").forEach((pill) => {
+      const input = pill.querySelector("input");
+      const checked = exp.splitAmong.includes(input.value);
+      input.checked = checked;
+      pill.classList.toggle("checked", checked);
+    });
+
+    document.getElementById("add-expense-btn").textContent = "Save changes";
+    document.getElementById("cancel-edit-btn").classList.remove("hidden");
+    document.getElementById("expense-form-heading").textContent = "Edit expense";
+    document.getElementById("expense-form-subtext").textContent = "Update the details and who's splitting it.";
+    document.getElementById("expense-desc").scrollIntoView({ behavior: "smooth", block: "center" });
+  }
+
+  function exitEditMode() {
+    editingExpenseId = null;
+    document.getElementById("add-expense-btn").textContent = "Add expense";
+    document.getElementById("cancel-edit-btn").classList.add("hidden");
+    document.getElementById("expense-form-heading").textContent = "Add an expense";
+    document.getElementById("expense-form-subtext").textContent = "Log what you paid for and who it was shared with.";
+    document.getElementById("expense-desc").value = "";
+    document.getElementById("expense-amount").value = "";
+  }
 
   // ---------- settle-up ----------
   function calculateSettlements(participants, expenses) {
