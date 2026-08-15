@@ -194,6 +194,17 @@
     font-size: 10px; font-weight: 700;
     color: #0d0f14;
   }
+  .chip-remove {
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    font-size: 15px;
+    line-height: 1;
+    padding: 2px 3px;
+    border-radius: 50%;
+    margin-left: 2px;
+  }
+  .chip-remove:hover { color: var(--coral); }
 
   /* checkboxes for split-among */
   .split-list {
@@ -363,6 +374,7 @@
       </div>
       <div class="invite-link">
         <button class="btn-ghost" id="copy-link-btn">Copy invite link</button>
+        <button class="btn-ghost" id="delete-event-btn" style="border-color: var(--coral); color: var(--coral);">Delete event</button>
       </div>
     </div>
 
@@ -428,8 +440,8 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
   import {
-    getFirestore, doc, setDoc, addDoc, getDoc,
-    collection, onSnapshot, serverTimestamp
+    getFirestore, doc, setDoc, addDoc, getDoc, getDocs,
+    collection, onSnapshot, serverTimestamp, deleteDoc
   } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
   import {
     getAuth, signInAnonymously, onAuthStateChanged
@@ -602,6 +614,51 @@
     showToast("Invite link copied");
   });
 
+  document.getElementById("delete-event-btn").addEventListener("click", async () => {
+    if (!confirm("Delete this entire event, including all participants and expenses? This can't be undone.")) return;
+    const btn = document.getElementById("delete-event-btn");
+    btn.disabled = true;
+    try {
+      const [participantsSnap, expensesSnap] = await Promise.all([
+        getDocs(collection(db, "events", eventId, "participants")),
+        getDocs(collection(db, "events", eventId, "expenses"))
+      ]);
+      await Promise.all([
+        ...participantsSnap.docs.map((d) => deleteDoc(d.ref)),
+        ...expensesSnap.docs.map((d) => deleteDoc(d.ref))
+      ]);
+      await deleteDoc(doc(db, "events", eventId));
+      localStorage.removeItem(`splitease:${eventId}:participantId`);
+      window.location.href = window.location.pathname;
+    } catch (err) {
+      console.error(err);
+      showToast("Couldn't delete the event — try again");
+      btn.disabled = false;
+    }
+  });
+
+  document.getElementById("participant-list").addEventListener("click", async (e) => {
+    const removeBtn = e.target.closest(".chip-remove");
+    if (!removeBtn) return;
+    const id = removeBtn.dataset.participantId;
+    const name = participantName(id);
+    if (!confirm(`Remove ${name} from this event?`)) return;
+    try {
+      await deleteDoc(doc(db, "events", eventId, "participants", id));
+      currentParticipants = currentParticipants.filter((p) => p.id !== id);
+      if (id === currentParticipantId) {
+        currentParticipantId = null;
+        localStorage.removeItem(`splitease:${eventId}:participantId`);
+      }
+      renderParticipants();
+      checkWhoAmI();
+      showToast(`${name} removed`);
+    } catch (err) {
+      console.error(err);
+      showToast("Couldn't remove that person — try again");
+    }
+  });
+
   // ---------- rendering ----------
   function renderParticipants() {
     const list = document.getElementById("participant-list");
@@ -613,6 +670,7 @@
       <span class="participant-chip">
         <span class="avatar-dot" style="background:${colorFor(p.id)}">${initials(p.name)}</span>
         ${escapeHtml(p.name)}${p.id === currentParticipantId ? " (you)" : ""}
+        <button class="chip-remove" data-participant-id="${p.id}" title="Remove ${escapeHtml(p.name)}" aria-label="Remove ${escapeHtml(p.name)}">×</button>
       </span>
     `).join("");
 
