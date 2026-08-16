@@ -1,5 +1,9 @@
 # SplitEase changelog
 
+## 1.4.1
+
+- Fixed a deeper race behind the "joined twice" bug — most reproducible by getting removed by someone else and then reloading. The join decision was being made synchronously right after opening an event, before any real participant data had arrived, so it could act on stale (empty) state instead of the real list. It now always waits for the first real snapshot before deciding whether to auto-join, show the join form, or reclaim an existing record
+
 ## 1.4.0
 
 - "Your events" on the home screen now checks each event with Firestore before displaying it, so a deleted event no longer lingers in your list until you click on it

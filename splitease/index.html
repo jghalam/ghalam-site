@@ -649,6 +649,10 @@
       </div>
     </div>
 
+    <div id="event-loading-placeholder" style="text-align:center;color:var(--text-dim);padding:30px 0;font-size:13.5px;">
+      Loading…
+    </div>
+
     <div id="event-body" class="hidden">
 
       <div class="grid-2">
@@ -716,7 +720,7 @@
     getAuth, signInAnonymously, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
-  const APP_VERSION = "1.4.0";
+  const APP_VERSION = "1.4.1";
   document.getElementById("app-footer").textContent =
     `SplitEase v${APP_VERSION} — Share Together. Settle Smarter.`;
   console.log(`%cSplitEase v${APP_VERSION}`, "color:#3d8bfd;font-weight:bold;");
@@ -1123,6 +1127,10 @@
     document.getElementById("delete-event-btn").classList.toggle("hidden", !isCreator);
     rememberEvent(id, eventSnap.data().name, isCreator);
 
+    document.getElementById("event-loading-placeholder").classList.remove("hidden");
+    document.getElementById("whoami-card").classList.add("hidden");
+    document.getElementById("event-body").classList.add("hidden");
+
     currentParticipantId = localStorage.getItem(`splitease:${id}:participantId`);
 
     // Detect the event itself being deleted while someone's actively viewing it.
@@ -1165,11 +1173,10 @@
         renderActivity(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
       }
     ));
-
-    checkWhoAmI();
   }
 
   function checkWhoAmI() {
+    document.getElementById("event-loading-placeholder").classList.add("hidden");
     const isKnown = currentParticipantId && currentParticipants.some((p) => p.id === currentParticipantId);
     if (isKnown) {
       const me = currentParticipants.find((p) => p.id === currentParticipantId);
