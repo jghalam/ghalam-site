@@ -26,6 +26,9 @@
     --green: #059669;
     --coral: #dc2626;
     --purple: #7c3aed;
+    --band-blue: #eaf2ff;
+    --card-green: #eafaf0;
+    --card-green-border: #cdeedb;
   }
 
   * { box-sizing: border-box; }
@@ -114,6 +117,10 @@
     border-radius: 14px;
     padding: 22px;
   }
+  .card-green {
+    background: var(--card-green);
+    border-color: var(--card-green-border);
+  }
   .card h2 {
     font-family: 'DM Serif Display', serif;
     font-weight: 400;
@@ -172,7 +179,24 @@
     color: var(--text-dim);
     font-size: 13px;
     margin-top: 2px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
   }
+  .icon-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-dim);
+    border-radius: 6px;
+    width: 24px;
+    height: 24px;
+    font-size: 13px;
+    line-height: 1;
+    padding: 0;
+    flex-shrink: 0;
+  }
+  .icon-btn:hover { color: var(--text); border-color: var(--text-dim); }
 
   .whoami {
     background: var(--surface);
@@ -372,13 +396,9 @@
 
   /* settle-up receipt */
   .receipt {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 14px;
-    padding: 4px 0 0;
-    margin-top: 10px;
     position: relative;
     overflow: hidden;
+    margin: -22px -22px 0;
   }
   .receipt::before {
     content: "";
@@ -390,7 +410,7 @@
     background-size: 14px 14px;
     background-color: var(--surface);
   }
-  .receipt-inner { padding: 8px 22px 20px; }
+  .receipt-inner { padding: 18px 22px 4px; }
   .receipt-row-wrap {
     padding: 12px 0;
     border-bottom: 1px dashed var(--border);
@@ -480,6 +500,13 @@
     display: flex;
     gap: 8px;
     align-items: center;
+    flex-wrap: wrap;
+  }
+  .btn-separator {
+    width: 1px;
+    height: 20px;
+    background: var(--border);
+    flex-shrink: 0;
   }
 
   .toast {
@@ -583,15 +610,17 @@
     text-align: center;
     color: var(--text-dim);
     font-size: 12px;
-    padding: 30px 20px 40px;
-    opacity: 0.6;
+    padding: 22px 20px;
+    background: var(--band-blue);
+    border-top: 1px solid var(--border);
+    margin-top: 40px;
   }
 
   .top-bar {
     position: sticky;
     top: 0;
     z-index: 50;
-    background: var(--bg);
+    background: var(--band-blue);
     border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
@@ -668,9 +697,27 @@
       <span class="site-logo-tagline">Share Together. Settle Smarter.</span>
     </div>
   </div>
-  <div class="my-name-badge hidden" id="my-name-badge">
-    <span id="my-name-badge-text"></span>
-    <button class="my-name-edit-btn" id="my-name-edit-btn" title="Edit your name" aria-label="Edit your name">✎</button>
+  <div style="display:flex; align-items:center; gap:10px;">
+    <button class="btn-primary hidden" id="new-event-btn" style="padding:9px 16px; font-size:13px; white-space:nowrap;">+ New Event</button>
+    <div class="my-name-badge hidden" id="my-name-badge">
+      <span id="my-name-badge-text"></span>
+      <button class="my-name-edit-btn" id="my-name-edit-btn" title="Edit your name" aria-label="Edit your name">✎</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="new-event-overlay">
+  <div class="modal-panel" style="max-width:380px;">
+    <h2>Start a new event</h2>
+    <p style="font-size:13px;color:var(--text-dim);margin:-8px 0 16px;">Name it, share the link, start logging expenses together.</p>
+    <div class="field" style="margin-bottom:0;">
+      <label class="field-label">Event name</label>
+      <input id="new-event-name" type="text" placeholder="e.g. Tahoe cabin weekend" maxlength="60">
+    </div>
+    <div class="modal-close-row" style="display:flex; justify-content:flex-end; gap:10px;">
+      <button class="btn-ghost" id="new-event-cancel-btn">Cancel</button>
+      <button class="btn-primary" id="create-event-btn">Create</button>
+    </div>
   </div>
 </div>
 
@@ -709,7 +756,7 @@
 
   <!-- ===================== LANDING ===================== -->
   <section id="landing-screen">
-    <div class="card hidden" id="my-events-card" style="margin-bottom:16px;">
+    <div class="card card-green hidden" id="my-events-card" style="margin-bottom:16px;">
       <h2>Your events</h2>
       <p>Pick up where you left off.</p>
       <div class="status-legend">
@@ -721,15 +768,7 @@
     </div>
 
     <div class="landing-cards">
-      <div class="card">
-        <h2>Start a new event</h2>
-        <p>Name it, share the link, start logging expenses together.</p>
-        <div class="row">
-          <input id="new-event-name" type="text" placeholder="e.g. Tahoe cabin weekend" maxlength="60">
-          <button class="btn-primary" id="create-event-btn">Create</button>
-        </div>
-      </div>
-      <div class="card">
+      <div class="card card-green">
         <h2>Join an event</h2>
         <p>Paste the event link or code someone sent you.</p>
         <div class="row">
@@ -747,12 +786,17 @@
     <div class="event-topbar">
       <div>
         <h1 class="event-name" id="event-name-display">—</h1>
-        <div class="event-code">Invite link: <span id="event-id-display">—</span></div>
+        <div class="event-code">
+          Invite link: <span id="event-id-display">—</span>
+          <button class="icon-btn" id="copy-link-icon-btn" title="Copy invite link" aria-label="Copy invite link">⧉</button>
+        </div>
       </div>
       <div class="invite-link">
         <button class="btn-ghost" id="home-btn">← Home</button>
-        <button class="btn-ghost" id="copy-link-btn">Copy invite link</button>
-        <button class="btn-ghost hidden" id="delete-event-btn" style="border-color: var(--coral); color: var(--coral);">Delete event</button>
+        <span class="btn-separator"></span>
+        <button class="btn-ghost" id="share-event-btn">Share Event</button>
+        <span class="btn-separator"></span>
+        <button class="btn-primary" id="open-add-expense-btn" style="padding:9px 16px; font-size:13px;">+ Add expense</button>
       </div>
     </div>
 
@@ -798,23 +842,15 @@
         </label>
       </div>
 
-      <div class="grid-2">
-        <div class="card">
-          <h2>Add an expense</h2>
-          <p>Log what you paid for and who it was shared with.</p>
-          <button class="btn-primary" id="open-add-expense-btn" style="width:100%;">+ Add expense</button>
+      <div class="card">
+        <h2>Who's in</h2>
+        <p>Everyone who's joined this event so far.</p>
+        <div class="status-legend">
+          <span><span class="legend-dot" style="background:var(--coral);"></span>No expenses</span>
+          <span><span class="legend-dot" style="background:var(--purple);"></span>Adding expenses</span>
+          <span><span class="legend-dot" style="background:var(--green);"></span>Done</span>
         </div>
-
-        <div class="card">
-          <h2>Who's in</h2>
-          <p>Everyone who's joined this event so far.</p>
-          <div class="status-legend">
-            <span><span class="legend-dot" style="background:var(--coral);"></span>No expenses</span>
-            <span><span class="legend-dot" style="background:var(--purple);"></span>Adding expenses</span>
-            <span><span class="legend-dot" style="background:var(--green);"></span>Done</span>
-          </div>
-          <div id="participant-list"></div>
-        </div>
+        <div id="participant-list"></div>
       </div>
 
       <div class="modal-overlay hidden" id="expense-modal-overlay">
@@ -853,13 +889,21 @@
       <div id="expense-log"><div class="empty-state">No expenses yet — add the first one above.</div></div>
 
       <div class="section-label">Settle up</div>
-      <div id="settle-up"></div>
+      <div class="card" id="settle-up-card">
+        <div id="settle-up"></div>
+      </div>
 
       <div class="section-label activity-toggle" id="activity-toggle" style="cursor:default;">
         <span>Activity</span>
         <button class="btn-ghost" id="activity-toggle-btn" style="padding:5px 12px; font-size:11.5px;">Show</button>
       </div>
-      <div id="activity-list" class="activity-list hidden"></div>
+      <div class="card hidden" id="activity-card">
+        <div id="activity-list" class="activity-list"></div>
+      </div>
+
+      <div style="text-align:center; margin-top: 40px;">
+        <button class="btn-ghost hidden" id="delete-event-btn" style="border-color: var(--coral); color: var(--coral);">Delete event</button>
+      </div>
 
     </div>
   </section>
@@ -889,7 +933,7 @@
     getAuth, signInAnonymously, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
-  const APP_VERSION = "2.4.0";
+  const APP_VERSION = "2.5.0";
   document.getElementById("app-footer").textContent =
     `SplitEase v${APP_VERSION} — Share Together. Settle Smarter.`;
   console.log(`%cSplitEase v${APP_VERSION}`, "color:#3d8bfd;font-weight:bold;");
@@ -961,9 +1005,9 @@
   }
 
   document.getElementById("activity-toggle-btn").addEventListener("click", () => {
-    const list = document.getElementById("activity-list");
+    const card = document.getElementById("activity-card");
     const btn = document.getElementById("activity-toggle-btn");
-    const collapsed = list.classList.toggle("hidden");
+    const collapsed = card.classList.toggle("hidden");
     btn.textContent = collapsed ? "Show" : "Hide";
   });
 
@@ -1229,6 +1273,7 @@
     document.getElementById("event-screen").classList.add("hidden");
     document.getElementById("loading-state").classList.add("hidden");
     document.getElementById("landing-screen").classList.remove("hidden");
+    document.getElementById("new-event-btn").classList.remove("hidden");
     renderMyEvents();
   }
   document.getElementById("site-logo-link").addEventListener("click", goHome);
@@ -1277,6 +1322,7 @@
     window.history.pushState({}, "", `?event=${id}`);
     eventId = id;
     document.getElementById("landing-screen").classList.add("hidden");
+    document.getElementById("new-event-btn").classList.add("hidden");
     document.getElementById("loading-state").classList.remove("hidden");
     await openEvent(id);
   });
@@ -1289,8 +1335,10 @@
 
   if (eventId) {
     document.getElementById("landing-screen").classList.add("hidden");
+    document.getElementById("new-event-btn").classList.add("hidden");
     document.getElementById("loading-state").classList.remove("hidden");
   } else {
+    document.getElementById("new-event-btn").classList.remove("hidden");
     renderMyEvents();
   }
 
@@ -1316,6 +1364,20 @@
   });
 
   // ---------- landing actions ----------
+  function openNewEventModal() {
+    document.getElementById("new-event-name").value = "";
+    document.getElementById("new-event-overlay").classList.remove("hidden");
+    document.getElementById("new-event-name").focus();
+  }
+  function closeNewEventModal() {
+    document.getElementById("new-event-overlay").classList.add("hidden");
+  }
+  document.getElementById("new-event-btn").addEventListener("click", openNewEventModal);
+  document.getElementById("new-event-cancel-btn").addEventListener("click", closeNewEventModal);
+  document.getElementById("new-event-overlay").addEventListener("click", (e) => {
+    if (e.target.id === "new-event-overlay") closeNewEventModal();
+  });
+
   document.getElementById("create-event-btn").addEventListener("click", async () => {
     const nameInput = document.getElementById("new-event-name");
     const name = nameInput.value.trim();
@@ -1327,6 +1389,7 @@
       await setDoc(eventRef, { name, creatorUid: auth.currentUser?.uid || null, createdAt: serverTimestamp() });
       window.history.pushState({}, "", `?event=${eventRef.id}`);
       eventId = eventRef.id;
+      closeNewEventModal();
       await openEvent(eventId);
     } catch (err) {
       console.error(err);
@@ -1371,6 +1434,7 @@
       document.getElementById("loading-state").classList.add("hidden");
       document.getElementById("event-screen").classList.add("hidden");
       document.getElementById("landing-screen").classList.remove("hidden");
+      document.getElementById("new-event-btn").classList.remove("hidden");
       renderMyEvents();
       showToast("That event no longer exists");
       return;
@@ -1380,6 +1444,7 @@
     isEventCreator = isCreator;
 
     document.getElementById("landing-screen").classList.add("hidden");
+    document.getElementById("new-event-btn").classList.add("hidden");
     document.getElementById("loading-state").classList.add("hidden");
     document.getElementById("event-screen").classList.remove("hidden");
     document.getElementById("event-name-display").textContent = eventSnap.data().name;
@@ -1571,9 +1636,32 @@
     btn.disabled = false;
   });
 
-  document.getElementById("copy-link-btn").addEventListener("click", () => {
+  document.getElementById("copy-link-icon-btn").addEventListener("click", () => {
     navigator.clipboard.writeText(`${location.origin}${location.pathname}?event=${eventId}`);
     showToast("Invite link copied");
+  });
+
+  document.getElementById("share-event-btn").addEventListener("click", async () => {
+    const url = `${location.origin}${location.pathname}?event=${eventId}`;
+    const shareData = {
+      title: `SplitEase — ${currentEventName}`,
+      text: `Join "${currentEventName}" on SplitEase to split expenses together.`,
+      url
+    };
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        if (err && err.name !== "AbortError") {
+          console.warn("Share failed, falling back to copy:", err);
+          navigator.clipboard.writeText(url);
+          showToast("Invite link copied");
+        }
+      }
+    } else {
+      navigator.clipboard.writeText(url);
+      showToast("Invite link copied");
+    }
   });
 
   document.getElementById("delete-event-btn").addEventListener("click", async () => {
@@ -1912,7 +2000,7 @@
   function renderSettleUp() {
     const container = document.getElementById("settle-up");
     if (currentExpenses.length === 0) {
-      container.innerHTML = "";
+      container.innerHTML = `<div class="empty-state" style="border:none; padding:6px 0;">No expenses yet — nothing to settle up.</div>`;
       return;
     }
     const notEveryoneDone = computeEventStatus() !== "closed";

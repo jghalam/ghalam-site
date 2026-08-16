@@ -1,5 +1,43 @@
 # SplitEase changelog
 
+## 2.5.0
+
+- Top bar and footer are now a light blue band; "Your events" and "Join an event" now have a light green background
+- Replaced the inline "Start a new event" box with a "+ New Event" button in the top-right of the top bar, opening a popup for the event name
+- Event view: removed the "Add an expense" box — the button now lives in the top button row next to Home and Share Event, separated by dividers
+- Delete event moved to a centered button at the bottom of the event view, above the footer
+- Added a copy icon next to the invite link
+- "Copy invite link" replaced with "Share Event," using the device's native share sheet (text/email/etc.) when available, falling back to copying the link on platforms without share support
+- Settle Up and Activity are now boxed in cards with a light background, and Settle Up always shows a message instead of going blank when there's nothing to settle yet
+
+## 2.4.0
+
+- Switched to a light theme: white page background, dark text, and every accent color (blue, gold, green, coral, purple) darkened for readable contrast on white instead of the previous dark-theme-tuned shades. Updated the toggle switch, browser theme-color, and app manifest colors to match
+- Activity log now defaults to collapsed, with an explicit Show/Hide button instead of relying on clicking the label
+- "Add an expense" is now a button that opens the form in a modal/sheet, instead of the form always sitting open inline — applies to both adding a new expense and editing an existing one
+
+## 2.3.2
+
+- Fixed: the expense Date field could overflow its card on mobile Safari — iOS renders `<input type="date">` with native OS chrome that doesn't reliably respect CSS width/box-sizing. Stripped the native appearance so it sizes like every other field
+
+## 2.3.1
+
+- Fixed: the logo and name badge were each `position: fixed`, pinned to the viewport — scrolling the page would drag in-flow content (like the event topbar) up underneath them, causing visible overlap on mobile. They're now combined into a single sticky top bar with a solid background that occupies normal page space, so nothing scrolls behind it
+
+## 2.3.0
+
+- The join screen ("What's your name?") now also shows optional Venmo and PayPal.me fields with an explanation of what they're for, so people discover payment linking at the moment they join instead of only by noticing the profile ✎ later. Prefilled from your saved profile if you've already set them; saved the same way either path
+
+## 2.2.0
+
+- The "Your events" list on the home screen now shows each event's status as a colored dot next to its name (gray = new, purple = in progress, green = closed), with a legend at the top of the card. Status is fetched live when the list loads, same logic as the in-event banner
+
+## 2.1.0
+
+- Avatar hover tooltips now spell out what the color means (e.g. "Purple — adding expenses") instead of just the status
+- Added a small persistent color legend under "Who's in," since hover tooltips don't work reliably on mobile touch
+- Increased the size of the logo and app name in the top-left corner
+
 ## 2.0.1
 
 - The automatic "un-marked as done" that happens when you add or edit an expense now logs its own activity entry (e.g. "Bot T added 'Groceries' — automatically un-marked as done"), so it's visible in the feed why someone's status — and potentially the event's — changed, not just that it changed
