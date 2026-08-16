@@ -1,5 +1,10 @@
 # SplitEase changelog
 
+## 2.6.0
+
+- Home screen: each event row's Leave/Delete button is now a "⋯" menu with Share and Leave/Delete options, instead of a standalone action button
+- Event view: Home moved to a top-left back-arrow icon; the copy icon next to the invite link is now a share icon and performs the full Share (native share sheet with copy fallback); the separate "Share Event" button was removed since it's now redundant
+
 ## 2.5.0
 
 - Top bar and footer are now a light blue band; "Your events" and "Join an event" now have a light green background

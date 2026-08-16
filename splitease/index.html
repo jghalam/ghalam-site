@@ -151,6 +151,29 @@
   .my-event-name { font-weight: 600; font-size: 14px; }
   .my-event-meta { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
   .my-event-arrow { color: var(--text-dim); font-size: 16px; }
+
+  .dropdown-menu {
+    position: fixed;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    padding: 6px;
+    z-index: 70;
+    min-width: 140px;
+  }
+  .dropdown-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: transparent;
+    border: none;
+    padding: 9px 12px;
+    font-size: 13.5px;
+    border-radius: 6px;
+    color: var(--text);
+  }
+  .dropdown-item:hover { background: var(--surface-raised); }
   .my-events-group-label {
     font-size: 11px;
     text-transform: uppercase;
@@ -197,6 +220,20 @@
     flex-shrink: 0;
   }
   .icon-btn:hover { color: var(--text); border-color: var(--text-dim); }
+
+  .icon-btn-lg {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 10px;
+    width: 40px;
+    height: 40px;
+    font-size: 19px;
+    line-height: 1;
+    padding: 0;
+    flex-shrink: 0;
+  }
+  .icon-btn-lg:hover { background: var(--surface-raised); border-color: var(--text-dim); }
 
   .whoami {
     background: var(--surface);
@@ -767,6 +804,11 @@
       <div id="my-events-list"></div>
     </div>
 
+    <div class="dropdown-menu hidden" id="my-event-menu">
+      <button class="dropdown-item" id="my-event-menu-share">Share</button>
+      <button class="dropdown-item" id="my-event-menu-action">Delete</button>
+    </div>
+
     <div class="landing-cards">
       <div class="card card-green">
         <h2>Join an event</h2>
@@ -784,18 +826,15 @@
   <section id="event-screen" class="hidden">
 
     <div class="event-topbar">
-      <div>
+      <button class="icon-btn-lg" id="home-btn" title="Back to home" aria-label="Back to home">←</button>
+      <div style="flex:1; min-width:0;">
         <h1 class="event-name" id="event-name-display">—</h1>
         <div class="event-code">
           Invite link: <span id="event-id-display">—</span>
-          <button class="icon-btn" id="copy-link-icon-btn" title="Copy invite link" aria-label="Copy invite link">⧉</button>
+          <button class="icon-btn" id="share-link-icon-btn" title="Share invite link" aria-label="Share invite link">↗</button>
         </div>
       </div>
       <div class="invite-link">
-        <button class="btn-ghost" id="home-btn">← Home</button>
-        <span class="btn-separator"></span>
-        <button class="btn-ghost" id="share-event-btn">Share Event</button>
-        <span class="btn-separator"></span>
         <button class="btn-primary" id="open-add-expense-btn" style="padding:9px 16px; font-size:13px;">+ Add expense</button>
       </div>
     </div>
@@ -933,7 +972,7 @@
     getAuth, signInAnonymously, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
-  const APP_VERSION = "2.5.0";
+  const APP_VERSION = "2.6.0";
   document.getElementById("app-footer").textContent =
     `SplitEase v${APP_VERSION} — Share Together. Settle Smarter.`;
   console.log(`%cSplitEase v${APP_VERSION}`, "color:#3d8bfd;font-weight:bold;");
@@ -1158,9 +1197,11 @@
             </div>
             <div class="my-event-meta">Last opened ${timeAgo({ seconds: Math.floor(e.lastVisitedAt / 1000) })}</div>
           </div>
-          <button class="btn-ghost my-event-action" data-event-id="${e.id}" data-action="${actionType}"
-            style="padding:6px 12px; font-size:12px; flex-shrink:0; ${actionType === "delete" ? "border-color: var(--coral); color: var(--coral);" : ""}">
-            ${actionLabel}
+          <button class="btn-ghost my-event-menu-btn" data-event-id="${e.id}" data-event-name="${escapeHtml(e.name)}"
+            data-action="${actionType}" data-action-label="${actionLabel}"
+            title="More options" aria-label="More options"
+            style="padding:6px 10px; font-size:17px; line-height:1; flex-shrink:0;">
+            ⋯
           </button>
         </div>
       `;
@@ -1279,33 +1320,93 @@
   document.getElementById("site-logo-link").addEventListener("click", goHome);
   document.getElementById("home-btn").addEventListener("click", goHome);
 
-  document.getElementById("my-events-list").addEventListener("click", async (e) => {
-    const actionBtn = e.target.closest(".my-event-action");
-    if (actionBtn) {
-      e.stopPropagation();
-      const id = actionBtn.dataset.eventId;
-      const action = actionBtn.dataset.action;
-      if (action === "delete") {
-        if (!confirm("Delete this event? This permanently removes it and every participant's and expense record inside it — for everyone. This can't be undone.")) return;
-        try {
-          await deleteEventCompletely(id);
-          renderMyEvents();
-          showToast("Event deleted");
-        } catch (err) {
-          console.error(err);
-          showToast("Couldn't delete that event — try again");
-        }
-      } else {
-        if (!confirm("Leave this event? This removes your name and deletes any expenses you added.")) return;
-        try {
-          await leaveEventById(id);
-          renderMyEvents();
-          showToast("You've left the event");
-        } catch (err) {
-          console.error(err);
-          showToast("Couldn't leave that event — try again");
+  async function shareEventLink(id, name) {
+    const url = `${location.origin}${location.pathname}?event=${id}`;
+    const shareData = {
+      title: `SplitEase — ${name}`,
+      text: `Join "${name}" on SplitEase to split expenses together.`,
+      url
+    };
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        if (err && err.name !== "AbortError") {
+          console.warn("Share failed, falling back to copy:", err);
+          navigator.clipboard.writeText(url);
+          showToast("Invite link copied");
         }
       }
+    } else {
+      navigator.clipboard.writeText(url);
+      showToast("Invite link copied");
+    }
+  }
+
+  function openRowMenu(btn) {
+    const menu = document.getElementById("my-event-menu");
+    const rect = btn.getBoundingClientRect();
+    menu.style.top = `${rect.bottom + 6}px`;
+    menu.style.right = `${window.innerWidth - rect.right}px`;
+    menu.style.left = "auto";
+    menu.dataset.eventId = btn.dataset.eventId;
+    menu.dataset.eventName = btn.dataset.eventName;
+    menu.dataset.action = btn.dataset.action;
+    const actionBtn = document.getElementById("my-event-menu-action");
+    actionBtn.textContent = btn.dataset.actionLabel;
+    actionBtn.style.color = btn.dataset.action === "delete" ? "var(--coral)" : "var(--text)";
+    menu.classList.remove("hidden");
+  }
+  function closeRowMenu() {
+    document.getElementById("my-event-menu").classList.add("hidden");
+  }
+  document.addEventListener("click", (e) => {
+    const menu = document.getElementById("my-event-menu");
+    if (menu.classList.contains("hidden")) return;
+    if (!menu.contains(e.target) && !e.target.closest(".my-event-menu-btn")) closeRowMenu();
+  });
+
+  document.getElementById("my-event-menu-share").addEventListener("click", () => {
+    const menu = document.getElementById("my-event-menu");
+    const id = menu.dataset.eventId;
+    const name = menu.dataset.eventName;
+    closeRowMenu();
+    shareEventLink(id, name);
+  });
+
+  document.getElementById("my-event-menu-action").addEventListener("click", async () => {
+    const menu = document.getElementById("my-event-menu");
+    const id = menu.dataset.eventId;
+    const action = menu.dataset.action;
+    closeRowMenu();
+    if (action === "delete") {
+      if (!confirm("Delete this event? This permanently removes it and every participant's and expense record inside it — for everyone. This can't be undone.")) return;
+      try {
+        await deleteEventCompletely(id);
+        renderMyEvents();
+        showToast("Event deleted");
+      } catch (err) {
+        console.error(err);
+        showToast("Couldn't delete that event — try again");
+      }
+    } else {
+      if (!confirm("Leave this event? This removes your name and deletes any expenses you added.")) return;
+      try {
+        await leaveEventById(id);
+        renderMyEvents();
+        showToast("You've left the event");
+      } catch (err) {
+        console.error(err);
+        showToast("Couldn't leave that event — try again");
+      }
+    }
+  });
+
+  document.getElementById("my-events-list").addEventListener("click", async (e) => {
+    const menuBtn = e.target.closest(".my-event-menu-btn");
+    if (menuBtn) {
+      e.stopPropagation();
+      openRowMenu(menuBtn);
       return;
     }
 
@@ -1636,32 +1737,8 @@
     btn.disabled = false;
   });
 
-  document.getElementById("copy-link-icon-btn").addEventListener("click", () => {
-    navigator.clipboard.writeText(`${location.origin}${location.pathname}?event=${eventId}`);
-    showToast("Invite link copied");
-  });
-
-  document.getElementById("share-event-btn").addEventListener("click", async () => {
-    const url = `${location.origin}${location.pathname}?event=${eventId}`;
-    const shareData = {
-      title: `SplitEase — ${currentEventName}`,
-      text: `Join "${currentEventName}" on SplitEase to split expenses together.`,
-      url
-    };
-    if (navigator.share) {
-      try {
-        await navigator.share(shareData);
-      } catch (err) {
-        if (err && err.name !== "AbortError") {
-          console.warn("Share failed, falling back to copy:", err);
-          navigator.clipboard.writeText(url);
-          showToast("Invite link copied");
-        }
-      }
-    } else {
-      navigator.clipboard.writeText(url);
-      showToast("Invite link copied");
-    }
+  document.getElementById("share-link-icon-btn").addEventListener("click", () => {
+    shareEventLink(eventId, currentEventName);
   });
 
   document.getElementById("delete-event-btn").addEventListener("click", async () => {
