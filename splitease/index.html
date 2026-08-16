@@ -691,6 +691,11 @@
     <div class="card hidden" id="my-events-card" style="margin-bottom:16px;">
       <h2>Your events</h2>
       <p>Pick up where you left off.</p>
+      <div class="status-legend">
+        <span><span class="legend-dot" style="background:var(--text-dim);"></span>New</span>
+        <span><span class="legend-dot" style="background:var(--purple);"></span>In progress</span>
+        <span><span class="legend-dot" style="background:var(--green);"></span>Closed</span>
+      </div>
       <div id="my-events-list"></div>
     </div>
 
@@ -738,6 +743,16 @@
         <input id="whoami-name" type="text" placeholder="Your name" maxlength="40">
         <button class="btn-primary" id="whoami-join-btn">Join event</button>
       </div>
+
+      <div style="margin-top: 16px;">
+        <label class="field-label">Venmo username (optional)</label>
+        <input id="whoami-venmo" type="text" maxlength="60" placeholder="e.g. john-smith">
+      </div>
+      <div style="margin-top: 12px;">
+        <label class="field-label">PayPal.me username (optional)</label>
+        <input id="whoami-paypal" type="text" maxlength="60" placeholder="e.g. johnsmith">
+      </div>
+      <p style="font-size:12px;color:var(--text-dim);margin:10px 0 0;">Lets others pay you directly from the settle-up screen. Add now or later from your profile (✎, top right).</p>
     </div>
 
     <div id="event-loading-placeholder" style="text-align:center;color:var(--text-dim);padding:30px 0;font-size:13.5px;">
@@ -845,7 +860,7 @@
     getAuth, signInAnonymously, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
-  const APP_VERSION = "2.1.0";
+  const APP_VERSION = "2.3.0";
   document.getElementById("app-footer").textContent =
     `SplitEase v${APP_VERSION} — Share Together. Settle Smarter.`;
   console.log(`%cSplitEase v${APP_VERSION}`, "color:#3d8bfd;font-weight:bold;");
@@ -937,8 +952,14 @@
   function getMyVenmo() {
     return localStorage.getItem(MY_VENMO_KEY) || "";
   }
+  function setMyVenmo(v) {
+    localStorage.setItem(MY_VENMO_KEY, v);
+  }
   function getMyPaypal() {
     return localStorage.getItem(MY_PAYPAL_KEY) || "";
+  }
+  function setMyPaypal(v) {
+    localStorage.setItem(MY_PAYPAL_KEY, v);
   }
 
   function sanitizeHandle(raw, kind) {
@@ -998,8 +1019,8 @@
     const newVenmo = sanitizeHandle(document.getElementById("edit-venmo-input").value, "venmo");
     const newPaypal = sanitizeHandle(document.getElementById("edit-paypal-input").value, "paypal");
     setMyName(newName);
-    localStorage.setItem(MY_VENMO_KEY, newVenmo);
-    localStorage.setItem(MY_PAYPAL_KEY, newPaypal);
+    setMyVenmo(newVenmo);
+    setMyPaypal(newPaypal);
     renderNameBadge();
     document.getElementById("edit-name-overlay").classList.add("hidden");
     await propagateProfileChange(newName, newVenmo, newPaypal);
@@ -1030,14 +1051,38 @@
     localStorage.setItem(MY_EVENTS_KEY, JSON.stringify(list));
   }
 
+  const STATUS_LABELS = { new: "New", in_progress: "In progress", closed: "Closed" };
+  const STATUS_COLORS = { new: "var(--text-dim)", in_progress: "var(--purple)", closed: "var(--green)" };
+
+  async function fetchEventStatus(id) {
+    try {
+      const [participantsSnap, expensesSnap] = await Promise.all([
+        getDocs(collection(db, "events", id, "participants")),
+        getDocs(query(collection(db, "events", id, "expenses"), limit(1)))
+      ]);
+      if (expensesSnap.empty) return "new";
+      const participants = participantsSnap.docs.map((d) => d.data());
+      const allDone = participants.length > 0 && participants.every((p) => p.isDone);
+      return allDone ? "closed" : "in_progress";
+    } catch (err) {
+      console.warn("Couldn't compute status for event list entry:", err);
+      return null;
+    }
+  }
+
   function renderMyEventGroup(title, items, actionLabel, actionType) {
     if (items.length === 0) return "";
     return `
       <div class="my-events-group-label">${title}</div>
-      ${items.map((e) => `
+      ${items.map((e) => {
+        const dotColor = STATUS_COLORS[e.status] || "var(--border)";
+        const dotTitle = STATUS_LABELS[e.status] || "Status unknown";
+        return `
         <div class="my-event-row">
           <div class="my-event-row-main" data-event-id="${e.id}">
-            <div class="my-event-name">${escapeHtml(e.name)}</div>
+            <div class="my-event-name">
+              <span class="legend-dot" style="background:${dotColor}; margin-right:7px;" title="${dotTitle}"></span>${escapeHtml(e.name)}
+            </div>
             <div class="my-event-meta">Last opened ${timeAgo({ seconds: Math.floor(e.lastVisitedAt / 1000) })}</div>
           </div>
           <button class="btn-ghost my-event-action" data-event-id="${e.id}" data-action="${actionType}"
@@ -1045,7 +1090,8 @@
             ${actionLabel}
           </button>
         </div>
-      `).join("")}
+      `;
+      }).join("")}
     `;
   }
 
@@ -1058,14 +1104,16 @@
     const checked = await Promise.all(all.map(async (e) => {
       try {
         const snap = await getDoc(doc(db, "events", e.id));
-        return snap.exists() ? e : null;
+        if (!snap.exists()) return null;
+        const status = await fetchEventStatus(e.id);
+        return { ...e, status };
       } catch {
         return e; // if the check itself fails (e.g. offline), don't lose the entry
       }
     }));
     const valid = checked.filter(Boolean);
     if (valid.length !== all.length) {
-      localStorage.setItem(MY_EVENTS_KEY, JSON.stringify(valid));
+      localStorage.setItem(MY_EVENTS_KEY, JSON.stringify(valid.map(({ status, ...rest }) => rest)));
     }
 
     if (valid.length === 0) { card.classList.add("hidden"); return; }
@@ -1441,6 +1489,8 @@
     }
 
     document.getElementById("whoami-name").value = savedName || "";
+    document.getElementById("whoami-venmo").value = getMyVenmo();
+    document.getElementById("whoami-paypal").value = getMyPaypal();
     document.getElementById("whoami-removed-note").classList.toggle("hidden", !wasRemoved);
     document.getElementById("whoami-card").classList.remove("hidden");
     document.getElementById("event-body").classList.add("hidden");
@@ -1484,6 +1534,8 @@
     const btn = document.getElementById("whoami-join-btn");
     btn.disabled = true;
     setMyName(name);
+    setMyVenmo(sanitizeHandle(document.getElementById("whoami-venmo").value, "venmo"));
+    setMyPaypal(sanitizeHandle(document.getElementById("whoami-paypal").value, "paypal"));
     renderNameBadge();
     localStorage.removeItem(`splitease:${eventId}:removed`);
     await joinCurrentEvent(name);
