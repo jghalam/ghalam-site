@@ -1,5 +1,16 @@
 # SplitEase changelog
 
+## 2.0.0
+
+- Added event status: **New** (no expenses yet), **In progress** (expenses logged, not everyone's done), **Closed** (everyone's marked themselves done) — shown as a color-coded banner at the top of the event, computed live from participant/expense data (nothing new stored on the event itself)
+- Added a "Done adding expenses?" switch for each person. Adding or editing an expense automatically un-marks you as done, since you're clearly still active
+- Participant avatars now reflect status by color instead of a fixed per-person color: red (no expenses yet), purple (adding expenses), green (done) — hover for a text label
+- Settle-up now shows a warning when not everyone's finished, and marking something Paid or clicking a Pay via Venmo/PayPal link while the event isn't Closed prompts a confirmation first rather than blocking outright
+
+## 1.9.1
+
+- Clicking "Pay via Venmo" or "Pay via PayPal" now opens the link as before, then shows a follow-up prompt — "Sent $X to Name?" — so marking it paid is one tap away instead of hunting for the switch. Auto-dismisses after 12 seconds if ignored, and doesn't assume the payment happened; you still confirm it yourself
+
 ## 1.9.0
 
 - Added optional Venmo and PayPal.me handles to your profile (via the name-edit panel, now "Your profile"), shared across events the same way your name is

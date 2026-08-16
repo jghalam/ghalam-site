@@ -25,6 +25,7 @@
     --gold: #f2b134;
     --green: #3ddc97;
     --coral: #ff6b6b;
+    --purple: #a78bfa;
   }
 
   * { box-sizing: border-box; }
@@ -174,6 +175,70 @@
     border-radius: 12px;
     padding: 18px 20px;
     margin-bottom: 20px;
+  }
+
+  .status-banner {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 18px;
+    border-radius: 12px;
+    font-size: 13.5px;
+    font-weight: 600;
+    margin-bottom: 16px;
+    border: 1px solid transparent;
+  }
+  .status-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .status-banner.status-new {
+    background: rgba(139, 146, 165, 0.12);
+    color: var(--text-dim);
+    border-color: var(--border);
+  }
+  .status-banner.status-new .status-dot { background: var(--text-dim); }
+  .status-banner.status-in_progress {
+    background: rgba(167, 139, 250, 0.14);
+    color: var(--purple);
+    border-color: rgba(167, 139, 250, 0.35);
+  }
+  .status-banner.status-in_progress .status-dot { background: var(--purple); }
+  .status-banner.status-closed {
+    background: rgba(61, 220, 151, 0.14);
+    color: var(--green);
+    border-color: rgba(61, 220, 151, 0.35);
+  }
+  .status-banner.status-closed .status-dot { background: var(--green); }
+
+  .done-toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+  }
+  .done-toggle-title { font-weight: 600; font-size: 14.5px; }
+  .done-toggle-subtext { font-size: 12.5px; color: var(--text-dim); margin-top: 2px; }
+
+  .settle-up-warning {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    background: rgba(167, 139, 250, 0.12);
+    border: 1px solid rgba(167, 139, 250, 0.3);
+    color: var(--purple);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 12.5px;
+    margin-bottom: 12px;
+    line-height: 1.4;
   }
 
   .grid-2 {
@@ -666,6 +731,22 @@
 
     <div id="event-body" class="hidden">
 
+      <div class="status-banner" id="status-banner">
+        <span class="status-dot" id="status-dot"></span>
+        <span id="status-banner-text"></span>
+      </div>
+
+      <div class="done-toggle-row">
+        <div>
+          <div class="done-toggle-title">Done adding expenses?</div>
+          <div class="done-toggle-subtext">Let others know you're finished. Adding a new expense un-marks this automatically.</div>
+        </div>
+        <label class="paid-toggle" title="Toggle when you're done">
+          <input type="checkbox" id="done-toggle-input">
+          <span class="paid-toggle-slider"></span>
+        </label>
+      </div>
+
       <div class="grid-2">
         <div class="card">
           <h2 id="expense-form-heading">Add an expense</h2>
@@ -744,7 +825,7 @@
     getAuth, signInAnonymously, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
-  const APP_VERSION = "1.9.1";
+  const APP_VERSION = "2.0.0";
   document.getElementById("app-footer").textContent =
     `SplitEase v${APP_VERSION} — Share Together. Settle Smarter.`;
   console.log(`%cSplitEase v${APP_VERSION}`, "color:#3d8bfd;font-weight:bold;");
@@ -762,12 +843,20 @@
   const db = getFirestore(app);
   const auth = getAuth(app);
 
-  const AVATAR_COLORS = ["#3ddc97", "#f2b134", "#3d8bfd", "#ff6b6b", "#c084fc", "#f472b6"];
-  const colorFor = (id) => {
-    let h = 0;
-    for (const c of id) h = (h * 31 + c.charCodeAt(0)) >>> 0;
-    return AVATAR_COLORS[h % AVATAR_COLORS.length];
-  };
+  function participantHasExpenses(participantId) {
+    return currentExpenses.some((e) => e.createdBy === participantId);
+  }
+
+  function statusColorFor(p) {
+    if (p.isDone) return "var(--green)";
+    return participantHasExpenses(p.id) ? "var(--purple)" : "var(--coral)";
+  }
+
+  function statusLabelFor(p) {
+    if (p.isDone) return "Done";
+    return participantHasExpenses(p.id) ? "Adding expenses" : "No expenses yet";
+  }
+
   const initials = (name) => {
     const parts = (name || "?").trim().split(/\s+/).filter(Boolean);
     if (parts.length === 0) return "?";
@@ -1229,6 +1318,8 @@
       renderParticipants();
       renderExpenses();
       renderSettleUp();
+      renderStatusBanner();
+      syncDoneToggle();
       checkWhoAmI();
     }));
 
@@ -1236,6 +1327,8 @@
       currentExpenses = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
       renderExpenses();
       renderSettleUp();
+      renderStatusBanner();
+      renderParticipants(); // avatar status colors depend on expense counts too
     }));
 
     unsubscribers.push(onSnapshot(collection(db, "events", id, "payments"), (snap) => {
@@ -1251,6 +1344,41 @@
     ));
   }
 
+  function syncDoneToggle() {
+    const input = document.getElementById("done-toggle-input");
+    const me = currentParticipants.find((p) => p.id === currentParticipantId);
+    input.checked = !!(me && me.isDone);
+  }
+
+  async function resetOwnDoneStatus() {
+    const me = currentParticipants.find((p) => p.id === currentParticipantId);
+    if (me && me.isDone) {
+      try {
+        await updateDoc(doc(db, "events", eventId, "participants", currentParticipantId), { isDone: false });
+      } catch (err) {
+        console.warn("Couldn't reset done status:", err);
+      }
+    }
+  }
+
+  document.getElementById("done-toggle-input").addEventListener("change", async (e) => {
+    if (!currentParticipantId) { e.target.checked = false; return; }
+    const isDone = e.target.checked;
+    e.target.disabled = true;
+    try {
+      await updateDoc(doc(db, "events", eventId, "participants", currentParticipantId), { isDone });
+      logActivity("done_status", isDone
+        ? `<b>${escapeHtml(participantName(currentParticipantId))}</b> marked their expenses as done`
+        : `<b>${escapeHtml(participantName(currentParticipantId))}</b> is adding expenses again`);
+    } catch (err) {
+      console.error(err);
+      showToast("Couldn't update that — try again");
+      e.target.checked = !isDone;
+    } finally {
+      e.target.disabled = false;
+    }
+  });
+
   function checkWhoAmI() {
     document.getElementById("event-loading-placeholder").classList.add("hidden");
     const isKnown = currentParticipantId && currentParticipants.some((p) => p.id === currentParticipantId);
@@ -1264,6 +1392,7 @@
       }
       document.getElementById("whoami-card").classList.add("hidden");
       document.getElementById("event-body").classList.remove("hidden");
+      syncDoneToggle();
       return;
     }
 
@@ -1303,6 +1432,7 @@
         name,
         venmoHandle,
         paypalHandle,
+        isDone: false,
         authUid: auth.currentUser?.uid || null,
         joinedAt: serverTimestamp()
       });
@@ -1310,10 +1440,12 @@
       localStorage.setItem(`splitease:${eventId}:participantId`, ref.id);
       // Don't wait on the snapshot listener to reflect this — update immediately.
       if (!currentParticipants.some((p) => p.id === ref.id)) {
-        currentParticipants.push({ id: ref.id, name, venmoHandle, paypalHandle, authUid: auth.currentUser?.uid || null });
+        currentParticipants.push({ id: ref.id, name, venmoHandle, paypalHandle, isDone: false, authUid: auth.currentUser?.uid || null });
       }
       checkWhoAmI();
       renderParticipants();
+      renderStatusBanner();
+      syncDoneToggle();
       showToast(`Welcome, ${name}`);
       logActivity("join", `<b>${escapeHtml(name)}</b> joined`);
     } catch (err) {
@@ -1391,6 +1523,25 @@
   });
 
   // ---------- rendering ----------
+  function computeEventStatus() {
+    if (currentExpenses.length === 0) return "new";
+    const allDone = currentParticipants.length > 0 && currentParticipants.every((p) => p.isDone);
+    return allDone ? "closed" : "in_progress";
+  }
+
+  function renderStatusBanner() {
+    const status = computeEventStatus();
+    const banner = document.getElementById("status-banner");
+    banner.className = `status-banner status-${status}`;
+    const text = {
+      new: "New — no expenses logged yet",
+      in_progress: "In progress — expenses are still being added",
+      closed: "Closed — everyone's done, ready to settle up"
+    }[status];
+    document.getElementById("status-banner-text").textContent = text;
+    return status;
+  }
+
   function renderParticipants() {
     const list = document.getElementById("participant-list");
     if (currentParticipants.length === 0) {
@@ -1401,7 +1552,7 @@
       const canRemove = p.id === currentParticipantId || isEventCreator;
       return `
       <span class="participant-chip">
-        <span class="avatar-dot" style="background:${colorFor(p.id)}">${initials(p.name)}</span>
+        <span class="avatar-dot" style="background:${statusColorFor(p)}" title="${statusLabelFor(p)}">${initials(p.name)}</span>
         ${escapeHtml(p.name)}${p.id === currentParticipantId ? " (you)" : ""}
         ${canRemove ? `<button class="chip-remove" data-participant-id="${p.id}" title="Remove ${escapeHtml(p.name)}" aria-label="Remove ${escapeHtml(p.name)}">×</button>` : ""}
       </span>
@@ -1488,6 +1639,7 @@
         });
         showToast("Expense updated");
         logActivity("expense_edited", `<b>${escapeHtml(participantName(currentParticipantId))}</b> edited “${escapeHtml(description)}”`);
+        await resetOwnDoneStatus();
         exitEditMode();
       } else {
         await addDoc(collection(db, "events", eventId, "expenses"), {
@@ -1498,6 +1650,7 @@
         });
         showToast("Expense added");
         logActivity("expense_added", `<b>${escapeHtml(participantName(paidBy))}</b> paid ${money(amount)} for “${escapeHtml(description)}”`);
+        await resetOwnDoneStatus();
         descInput.value = "";
         amountInput.value = "";
         dateInput.value = todayStr();
@@ -1637,12 +1790,17 @@
       container.innerHTML = "";
       return;
     }
+    const notEveryoneDone = computeEventStatus() !== "closed";
+    const warningHtml = notEveryoneDone
+      ? `<div class="settle-up-warning">⚠️ Not everyone has marked their expenses as done yet — amounts here may still change.</div>`
+      : "";
     const settlements = calculateSettlements(currentParticipants, currentExpenses);
     if (settlements.length === 0) {
-      container.innerHTML = `<div class="receipt"><div class="all-settled">Everyone's settled up ✓</div></div>`;
+      container.innerHTML = `${warningHtml}<div class="receipt"><div class="all-settled">Everyone's settled up ✓</div></div>`;
       return;
     }
     container.innerHTML = `
+      ${warningHtml}
       <div class="receipt">
         <div class="receipt-inner">
           ${settlements.map((s) => {
@@ -1708,6 +1866,12 @@
     const from = input.dataset.from;
     const to = input.dataset.to;
     const paid = input.checked;
+    if (paid && computeEventStatus() !== "closed") {
+      if (!confirm("Not everyone has finished entering their expenses yet — this amount could still change. Mark as paid anyway?")) {
+        input.checked = false;
+        return;
+      }
+    }
     input.disabled = true;
     try {
       await markPaid(from, to, paid);
@@ -1733,7 +1897,15 @@
   document.getElementById("settle-up").addEventListener("click", (e) => {
     const link = e.target.closest(".pay-link");
     if (!link) return;
-    // Let the link open Venmo/PayPal in a new tab as normal, then prompt here.
+
+    if (computeEventStatus() !== "closed") {
+      e.preventDefault();
+      const proceed = confirm("Not everyone has finished entering their expenses yet — this amount could still change. Continue to payment anyway?");
+      if (!proceed) return;
+      window.open(link.href, "_blank", "noopener");
+    }
+    // Otherwise let the link open Venmo/PayPal in a new tab as normal.
+
     const from = link.dataset.from;
     const to = link.dataset.to;
     const amount = parseFloat(link.dataset.amount);
