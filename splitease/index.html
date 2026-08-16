@@ -825,7 +825,7 @@
     getAuth, signInAnonymously, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
-  const APP_VERSION = "2.0.0";
+  const APP_VERSION = "2.0.1";
   document.getElementById("app-footer").textContent =
     `SplitEase v${APP_VERSION} — Share Together. Settle Smarter.`;
   console.log(`%cSplitEase v${APP_VERSION}`, "color:#3d8bfd;font-weight:bold;");
@@ -1350,11 +1350,13 @@
     input.checked = !!(me && me.isDone);
   }
 
-  async function resetOwnDoneStatus() {
+  async function resetOwnDoneStatus(reason) {
     const me = currentParticipants.find((p) => p.id === currentParticipantId);
     if (me && me.isDone) {
       try {
         await updateDoc(doc(db, "events", eventId, "participants", currentParticipantId), { isDone: false });
+        logActivity("done_status_auto_reset",
+          `<b>${escapeHtml(me.name)}</b> ${reason} — automatically un-marked as done`);
       } catch (err) {
         console.warn("Couldn't reset done status:", err);
       }
@@ -1639,7 +1641,7 @@
         });
         showToast("Expense updated");
         logActivity("expense_edited", `<b>${escapeHtml(participantName(currentParticipantId))}</b> edited “${escapeHtml(description)}”`);
-        await resetOwnDoneStatus();
+        await resetOwnDoneStatus(`edited “${escapeHtml(description)}”`);
         exitEditMode();
       } else {
         await addDoc(collection(db, "events", eventId, "expenses"), {
@@ -1650,7 +1652,7 @@
         });
         showToast("Expense added");
         logActivity("expense_added", `<b>${escapeHtml(participantName(paidBy))}</b> paid ${money(amount)} for “${escapeHtml(description)}”`);
-        await resetOwnDoneStatus();
+        await resetOwnDoneStatus(`added “${escapeHtml(description)}”`);
         descInput.value = "";
         amountInput.value = "";
         dateInput.value = todayStr();

@@ -1,5 +1,9 @@
 # SplitEase changelog
 
+## 2.0.1
+
+- The automatic "un-marked as done" that happens when you add or edit an expense now logs its own activity entry (e.g. "Bot T added 'Groceries' — automatically un-marked as done"), so it's visible in the feed why someone's status — and potentially the event's — changed, not just that it changed
+
 ## 2.0.0
 
 - Added event status: **New** (no expenses yet), **In progress** (expenses logged, not everyone's done), **Closed** (everyone's marked themselves done) — shown as a color-coded banner at the top of the event, computed live from participant/expense data (nothing new stored on the event itself)
