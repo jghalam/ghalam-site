@@ -433,9 +433,56 @@
     padding: 30px 20px 40px;
     opacity: 0.6;
   }
+
+  .my-name-badge {
+    position: fixed;
+    top: 18px;
+    right: 18px;
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface-raised);
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 7px 8px 7px 16px;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  .my-name-edit-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-dim);
+    font-size: 13px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    padding: 0;
+  }
+  .my-name-edit-btn:hover { color: var(--text); background: var(--surface); }
+  @media (max-width: 640px) {
+    .my-name-badge { top: 12px; right: 12px; font-size: 12px; padding: 6px 6px 6px 12px; }
+  }
 </style>
 </head>
 <body>
+
+<div class="my-name-badge hidden" id="my-name-badge">
+  <span id="my-name-badge-text"></span>
+  <button class="my-name-edit-btn" id="my-name-edit-btn" title="Edit your name" aria-label="Edit your name">✎</button>
+</div>
+
+<div class="modal-overlay hidden" id="edit-name-overlay">
+  <div class="modal-panel" style="max-width:360px;">
+    <h2>Your name</h2>
+    <p style="font-size:13px;color:var(--text-dim);margin:-8px 0 16px;">Used across every SplitEase event on this device.</p>
+    <input id="edit-name-input" type="text" maxlength="40" placeholder="Your name">
+    <div class="modal-close-row" style="display:flex; justify-content:flex-end; gap:10px;">
+      <button class="btn-ghost" id="edit-name-cancel-btn">Cancel</button>
+      <button class="btn-primary" id="edit-name-save-btn">Save</button>
+    </div>
+  </div>
+</div>
 
 <header>
   <div class="wordmark" id="home-link" style="cursor:pointer; display:inline-flex; align-items:center; gap:10px;">
@@ -556,14 +603,6 @@
           </div>
 
           <div class="field">
-            <label class="field-label">Paid by</label>
-            <select id="expense-paid-by"></select>
-            <p id="payer-lock-hint" class="hidden" style="font-size:12px;color:var(--text-dim);margin-top:6px;">
-              Payer can't be changed here — delete and re-add the expense instead.
-            </p>
-          </div>
-
-          <div class="field">
             <label class="field-label">Split among</label>
             <div class="split-list" id="expense-split-list"></div>
           </div>
@@ -613,7 +652,7 @@
     getAuth, signInAnonymously, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
-  const APP_VERSION = "1.2.0";
+  const APP_VERSION = "1.3.0";
   document.getElementById("app-footer").textContent =
     `SplitEase v${APP_VERSION} — Share Together. Settle Smarter.`;
   console.log(`%cSplitEase v${APP_VERSION}`, "color:#3d8bfd;font-weight:bold;");
@@ -637,7 +676,12 @@
     for (const c of id) h = (h * 31 + c.charCodeAt(0)) >>> 0;
     return AVATAR_COLORS[h % AVATAR_COLORS.length];
   };
-  const initials = (name) => (name || "?").trim().slice(0, 2).toUpperCase();
+  const initials = (name) => {
+    const parts = (name || "?").trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) return "?";
+    if (parts.length === 1) return parts[0].slice(0, 1).toUpperCase();
+    return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  };
   const money = (n) => `$${n.toFixed(2)}`;
 
   function showToast(msg) {
@@ -672,6 +716,65 @@
     const chevron = document.getElementById("activity-chevron");
     const collapsed = list.classList.toggle("hidden");
     chevron.textContent = collapsed ? "▸" : "▾";
+  });
+
+  // ---------- global identity (your name, shared across all events on this device) ----------
+  const MY_NAME_KEY = "splitease:myName";
+
+  function getMyName() {
+    return localStorage.getItem(MY_NAME_KEY) || "";
+  }
+
+  function setMyName(name) {
+    localStorage.setItem(MY_NAME_KEY, name);
+  }
+
+  function renderNameBadge() {
+    const badge = document.getElementById("my-name-badge");
+    const name = getMyName();
+    if (!name) { badge.classList.add("hidden"); return; }
+    badge.classList.remove("hidden");
+    document.getElementById("my-name-badge-text").textContent = name;
+  }
+
+  async function propagateNameChange(newName) {
+    const jobs = [];
+    if (eventId && currentParticipantId) {
+      jobs.push(
+        updateDoc(doc(db, "events", eventId, "participants", currentParticipantId), { name: newName }).catch(() => {})
+      );
+    }
+    for (const e of getMyEvents()) {
+      if (e.id === eventId) continue;
+      const pid = localStorage.getItem(`splitease:${e.id}:participantId`);
+      if (pid) {
+        jobs.push(
+          updateDoc(doc(db, "events", e.id, "participants", pid), { name: newName }).catch(() => {})
+        );
+      }
+    }
+    await Promise.all(jobs);
+  }
+
+  document.getElementById("my-name-edit-btn").addEventListener("click", () => {
+    document.getElementById("edit-name-input").value = getMyName();
+    document.getElementById("edit-name-overlay").classList.remove("hidden");
+  });
+  document.getElementById("edit-name-cancel-btn").addEventListener("click", () => {
+    document.getElementById("edit-name-overlay").classList.add("hidden");
+  });
+  document.getElementById("edit-name-overlay").addEventListener("click", (e) => {
+    if (e.target.id === "edit-name-overlay") e.target.classList.add("hidden");
+  });
+  document.getElementById("edit-name-save-btn").addEventListener("click", async () => {
+    const input = document.getElementById("edit-name-input");
+    const newName = input.value.trim();
+    if (!newName) { input.focus(); return; }
+    setMyName(newName);
+    renderNameBadge();
+    document.getElementById("edit-name-overlay").classList.add("hidden");
+    await propagateNameChange(newName);
+    showToast("Name updated");
   });
 
   // ---------- "your events" (per-browser history, no account needed) ----------
@@ -732,15 +835,17 @@
   }
 
   async function deleteEventCompletely(id) {
-    const [participantsSnap, expensesSnap, activitySnap] = await Promise.all([
+    const [participantsSnap, expensesSnap, activitySnap, paymentsSnap] = await Promise.all([
       getDocs(collection(db, "events", id, "participants")),
       getDocs(collection(db, "events", id, "expenses")),
-      getDocs(collection(db, "events", id, "activity"))
+      getDocs(collection(db, "events", id, "activity")),
+      getDocs(collection(db, "events", id, "payments"))
     ]);
     await Promise.all([
       ...participantsSnap.docs.map((d) => deleteDoc(d.ref)),
       ...expensesSnap.docs.map((d) => deleteDoc(d.ref)),
-      ...activitySnap.docs.map((d) => deleteDoc(d.ref))
+      ...activitySnap.docs.map((d) => deleteDoc(d.ref)),
+      ...paymentsSnap.docs.map((d) => deleteDoc(d.ref))
     ]);
     await deleteDoc(doc(db, "events", id));
     localStorage.removeItem(`splitease:${id}:participantId`);
@@ -766,6 +871,7 @@
     currentParticipantId = null;
     currentParticipants = [];
     currentExpenses = [];
+    currentPayments = [];
     editingExpenseId = null;
     window.history.pushState({}, "", window.location.pathname);
     document.getElementById("event-screen").classList.add("hidden");
@@ -827,6 +933,8 @@
   const params = new URLSearchParams(window.location.search);
   let eventId = params.get("event");
 
+  renderNameBadge();
+
   if (eventId) {
     document.getElementById("landing-screen").classList.add("hidden");
     document.getElementById("loading-state").classList.remove("hidden");
@@ -837,6 +945,7 @@
   let currentParticipantId = null;
   let currentParticipants = [];
   let currentExpenses = [];
+  let currentPayments = [];
   let editingExpenseId = null;
 
   onAuthStateChanged(auth, async (user) => {
@@ -893,13 +1002,23 @@
   });
 
   // ---------- event screen ----------
+  let autoJoinAttempted = false;
+
   async function openEvent(id) {
     unsubscribers.forEach((fn) => fn());
     unsubscribers = [];
+    autoJoinAttempted = false;
 
     const eventSnap = await getDoc(doc(db, "events", id));
     if (!eventSnap.exists()) {
-      document.getElementById("landing-error").textContent = "That event doesn't exist.";
+      forgetEvent(id);
+      eventId = null;
+      window.history.pushState({}, "", window.location.pathname);
+      document.getElementById("loading-state").classList.add("hidden");
+      document.getElementById("event-screen").classList.add("hidden");
+      document.getElementById("landing-screen").classList.remove("hidden");
+      renderMyEvents();
+      showToast("That event no longer exists");
       return;
     }
 
@@ -914,6 +1033,14 @@
     rememberEvent(id, eventSnap.data().name, isCreator);
 
     currentParticipantId = localStorage.getItem(`splitease:${id}:participantId`);
+
+    // Detect the event itself being deleted while someone's actively viewing it.
+    unsubscribers.push(onSnapshot(doc(db, "events", id), (snap) => {
+      if (!snap.exists()) {
+        showToast("This event was deleted");
+        goHome();
+      }
+    }));
 
     unsubscribers.push(onSnapshot(collection(db, "events", id, "participants"), (snap) => {
       const wasKnown = currentParticipantId && currentParticipants.some((p) => p.id === currentParticipantId);
@@ -936,6 +1063,11 @@
       renderSettleUp();
     }));
 
+    unsubscribers.push(onSnapshot(collection(db, "events", id, "payments"), (snap) => {
+      currentPayments = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      renderSettleUp();
+    }));
+
     unsubscribers.push(onSnapshot(
       query(collection(db, "events", id, "activity"), orderBy("createdAt", "desc"), limit(20)),
       (snap) => {
@@ -948,16 +1080,26 @@
 
   function checkWhoAmI() {
     const isKnown = currentParticipantId && currentParticipants.some((p) => p.id === currentParticipantId);
-    document.getElementById("whoami-card").classList.toggle("hidden", !!isKnown);
-    document.getElementById("event-body").classList.toggle("hidden", !isKnown);
+    if (isKnown) {
+      document.getElementById("whoami-card").classList.add("hidden");
+      document.getElementById("event-body").classList.remove("hidden");
+      return;
+    }
+
+    const savedName = getMyName();
+    if (savedName && !autoJoinAttempted) {
+      autoJoinAttempted = true;
+      document.getElementById("whoami-card").classList.add("hidden");
+      document.getElementById("event-body").classList.add("hidden");
+      joinCurrentEvent(savedName);
+      return;
+    }
+
+    document.getElementById("whoami-card").classList.remove("hidden");
+    document.getElementById("event-body").classList.add("hidden");
   }
 
-  document.getElementById("whoami-join-btn").addEventListener("click", async () => {
-    const nameInput = document.getElementById("whoami-name");
-    const name = nameInput.value.trim();
-    if (!name) { nameInput.focus(); return; }
-    const btn = document.getElementById("whoami-join-btn");
-    btn.disabled = true;
+  async function joinCurrentEvent(name) {
     try {
       const ref = await addDoc(collection(db, "events", eventId, "participants"), {
         name,
@@ -976,9 +1118,20 @@
     } catch (err) {
       console.error(err);
       showToast("Couldn't join — try again");
-    } finally {
-      btn.disabled = false;
+      document.getElementById("whoami-card").classList.remove("hidden");
     }
+  }
+
+  document.getElementById("whoami-join-btn").addEventListener("click", async () => {
+    const nameInput = document.getElementById("whoami-name");
+    const name = nameInput.value.trim();
+    if (!name) { nameInput.focus(); return; }
+    const btn = document.getElementById("whoami-join-btn");
+    btn.disabled = true;
+    setMyName(name);
+    renderNameBadge();
+    await joinCurrentEvent(name);
+    btn.disabled = false;
   });
 
   document.getElementById("copy-link-btn").addEventListener("click", () => {
@@ -1049,14 +1202,6 @@
       </span>
     `).join("");
 
-    // paid-by select
-    const select = document.getElementById("expense-paid-by");
-    const prevValue = select.value || currentParticipantId;
-    select.innerHTML = currentParticipants.map((p) =>
-      `<option value="${p.id}">${escapeHtml(p.name)}${p.id === currentParticipantId ? " (you)" : ""}</option>`
-    ).join("");
-    if (prevValue) select.value = prevValue;
-
     // split-among pills
     const splitList = document.getElementById("expense-split-list");
     const checkedIds = new Set(
@@ -1114,7 +1259,7 @@
   document.getElementById("add-expense-btn").addEventListener("click", async () => {
     const descInput = document.getElementById("expense-desc");
     const amountInput = document.getElementById("expense-amount");
-    const paidBy = document.getElementById("expense-paid-by").value;
+    const paidBy = currentParticipantId;
     const splitAmong = Array.from(
       document.querySelectorAll("#expense-split-list input:checked")
     ).map((i) => i.value);
@@ -1125,14 +1270,13 @@
     if (!description) { descInput.focus(); return; }
     if (!amount || amount <= 0) { amountInput.focus(); return; }
     if (splitAmong.length === 0) { showToast("Select who this expense was shared with"); return; }
-    if (!paidBy) { showToast("Choose who paid"); return; }
 
     const btn = document.getElementById("add-expense-btn");
     btn.disabled = true;
     try {
       if (editingExpenseId) {
         await updateDoc(doc(db, "events", eventId, "expenses", editingExpenseId), {
-          description, amount, paidBy, splitAmong
+          description, amount, splitAmong
         });
         showToast("Expense updated");
         logActivity("expense_edited", `<b>${escapeHtml(participantName(currentParticipantId))}</b> edited “${escapeHtml(description)}”`);
@@ -1188,11 +1332,6 @@
     document.getElementById("expense-desc").value = exp.description;
     document.getElementById("expense-amount").value = exp.amount;
 
-    const paidBySelect = document.getElementById("expense-paid-by");
-    paidBySelect.value = exp.paidBy;
-    paidBySelect.disabled = true;
-    document.getElementById("payer-lock-hint").classList.remove("hidden");
-
     document.querySelectorAll("#expense-split-list .split-pill").forEach((pill) => {
       const input = pill.querySelector("input");
       const checked = exp.splitAmong.includes(input.value);
@@ -1215,8 +1354,6 @@
     document.getElementById("expense-form-subtext").textContent = "Log what you paid for and who it was shared with.";
     document.getElementById("expense-desc").value = "";
     document.getElementById("expense-amount").value = "";
-    document.getElementById("expense-paid-by").disabled = false;
-    document.getElementById("payer-lock-hint").classList.add("hidden");
   }
 
   function timeAgo(ts) {
@@ -1243,7 +1380,7 @@
   }
 
   // ---------- settle-up ----------
-  function calculateSettlements(participants, expenses) {
+  function calculateSettlements(participants, expenses, payments) {
     const balances = {};
     participants.forEach((p) => (balances[p.id] = 0));
 
@@ -1253,6 +1390,13 @@
       exp.splitAmong.forEach((pid) => {
         balances[pid] = (balances[pid] || 0) - share;
       });
+    });
+
+    // Recorded payments net out against computed balances — a payment from
+    // A to B reduces A's remaining debt and reduces B's remaining credit.
+    payments.forEach((p) => {
+      balances[p.from] = (balances[p.from] || 0) + p.amount;
+      balances[p.to] = (balances[p.to] || 0) - p.amount;
     });
 
     const creditors = [];
@@ -1285,7 +1429,7 @@
       container.innerHTML = "";
       return;
     }
-    const settlements = calculateSettlements(currentParticipants, currentExpenses);
+    const settlements = calculateSettlements(currentParticipants, currentExpenses, currentPayments);
     if (settlements.length === 0) {
       container.innerHTML = `<div class="receipt"><div class="all-settled">Everyone's settled up ✓</div></div>`;
       return;
@@ -1293,16 +1437,45 @@
     container.innerHTML = `
       <div class="receipt">
         <div class="receipt-inner">
-          ${settlements.map((s) => `
+          ${settlements.map((s) => {
+            const canMark = currentParticipantId === s.from || currentParticipantId === s.to;
+            return `
             <div class="receipt-row">
               <span>${escapeHtml(participantName(s.from))}<span class="receipt-arrow">→</span>${escapeHtml(participantName(s.to))}</span>
-              <span class="receipt-amount amount">${money(s.amount)}</span>
+              <span style="display:flex; align-items:center; gap:10px;">
+                <span class="receipt-amount amount">${money(s.amount)}</span>
+                ${canMark ? `<button class="btn-ghost mark-paid-btn" data-from="${s.from}" data-to="${s.to}" data-amount="${s.amount}" style="padding:5px 10px; font-size:11.5px; flex-shrink:0;">Mark paid</button>` : ""}
+              </span>
             </div>
-          `).join("")}
+          `;
+          }).join("")}
         </div>
       </div>
     `;
   }
+
+  document.getElementById("settle-up").addEventListener("click", async (e) => {
+    const btn = e.target.closest(".mark-paid-btn");
+    if (!btn) return;
+    const from = btn.dataset.from;
+    const to = btn.dataset.to;
+    const amount = parseFloat(btn.dataset.amount);
+    if (!confirm(`Mark ${money(amount)} from ${participantName(from)} to ${participantName(to)} as paid?`)) return;
+    btn.disabled = true;
+    try {
+      await addDoc(collection(db, "events", eventId, "payments"), {
+        from, to, amount,
+        markedBy: currentParticipantId,
+        createdAt: serverTimestamp()
+      });
+      showToast("Marked as paid");
+      logActivity("payment", `<b>${escapeHtml(participantName(from))}</b> paid <b>${escapeHtml(participantName(to))}</b> ${money(amount)}`);
+    } catch (err) {
+      console.error(err);
+      showToast("Couldn't mark that as paid — try again");
+      btn.disabled = false;
+    }
+  });
 
   function escapeHtml(str) {
     const div = document.createElement("div");

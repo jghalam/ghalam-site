@@ -1,5 +1,13 @@
 # SplitEase changelog
 
+## 1.3.0
+
+- Your name is now entered once and reused across every event on this device — no more re-entering it each time you join. Shown top-right with an edit (✎) button; editing it updates your name on every event you're currently part of
+- Fixed: opening a link to a deleted event, or having the event you're viewing get deleted by its creator, now sends you back to the home screen instead of getting stuck on "Loading event…"
+- Removed the "Paid by" picker — an expense's payer is always whoever is logged in and adding it; no more logging an expense on someone else's behalf
+- Participant avatars now show first + last initials (e.g. "Jane Doe" → "JD") instead of the first two letters of the full name
+- Settle-up entries can now be marked "Paid" by either the payer or the payee — this records an actual payment and nets it against the computed balances, so a marked transaction drops off the list once covered
+
 ## 1.2.0
 
 - Added the SplitEase logo to the header, clickable to return to the home screen; added an explicit "← Home" button inside events too
