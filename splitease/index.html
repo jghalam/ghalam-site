@@ -219,10 +219,14 @@
   .event-topbar {
     display: flex;
     justify-content: space-between;
-    align-items: flex-start;
+    align-items: center;
     flex-wrap: wrap;
     gap: 12px;
     margin-bottom: 20px;
+  }
+  #event-title-block {
+    flex-basis: 100%;
+    order: 3;
   }
   .event-name {
     font-family: 'DM Serif Display', serif;
@@ -957,7 +961,10 @@
 
     <div class="event-topbar">
       <button class="icon-btn-lg" id="home-btn" title="Back to home" aria-label="Back to home">←</button>
-      <div style="flex:1; min-width:0;">
+      <div class="invite-link">
+        <button class="btn-primary" id="open-add-expense-btn" style="padding:9px 16px; font-size:13px;">+ Add expense</button>
+      </div>
+      <div id="event-title-block" style="flex:1; min-width:0;">
         <div style="display:flex; align-items:center; gap:10px;">
           <img id="event-logo-img" class="hidden" alt="" style="width:36px;height:36px;border-radius:8px;object-fit:cover;border:1px solid var(--border);flex-shrink:0;">
           <h1 class="event-name" id="event-name-display">—</h1>
@@ -966,9 +973,6 @@
           Invite link: <span id="event-id-display">—</span>
           <button class="icon-btn" id="share-link-icon-btn" title="Share invite link" aria-label="Share invite link">↗</button>
         </div>
-      </div>
-      <div class="invite-link">
-        <button class="btn-primary" id="open-add-expense-btn" style="padding:9px 16px; font-size:13px;">+ Add expense</button>
       </div>
     </div>
 
@@ -1105,7 +1109,7 @@
     getAuth, signInAnonymously, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
-  const APP_VERSION = "2.7.2";
+  const APP_VERSION = "2.7.3";
   document.getElementById("app-footer").textContent =
     `SplitEase v${APP_VERSION} — Share Together. Settle Smarter.`;
   console.log(`%cSplitEase v${APP_VERSION}`, "color:#3d8bfd;font-weight:bold;");
