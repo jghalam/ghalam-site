@@ -9,23 +9,23 @@
 <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
 <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0d0f14">
+<meta name="theme-color" content="#ffffff">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg: #0d0f14;
-    --surface: #151923;
-    --surface-raised: #1b202c;
-    --border: #262c3a;
-    --text: #f2f4f8;
-    --text-dim: #8b92a5;
-    --blue: #3d8bfd;
-    --blue-dim: #2a4f85;
-    --gold: #f2b134;
-    --green: #3ddc97;
-    --coral: #ff6b6b;
-    --purple: #a78bfa;
+    --bg: #ffffff;
+    --surface: #f6f7f9;
+    --surface-raised: #edeff3;
+    --border: #dde1e7;
+    --text: #14171f;
+    --text-dim: #6b7280;
+    --blue: #2563eb;
+    --blue-dim: #93c5fd;
+    --gold: #b45309;
+    --green: #059669;
+    --coral: #dc2626;
+    --purple: #7c3aed;
   }
 
   * { box-sizing: border-box; }
@@ -200,21 +200,21 @@
     flex-shrink: 0;
   }
   .status-banner.status-new {
-    background: rgba(139, 146, 165, 0.12);
+    background: rgba(107, 114, 128, 0.12);
     color: var(--text-dim);
     border-color: var(--border);
   }
   .status-banner.status-new .status-dot { background: var(--text-dim); }
   .status-banner.status-in_progress {
-    background: rgba(167, 139, 250, 0.14);
+    background: rgba(124, 58, 237, 0.14);
     color: var(--purple);
-    border-color: rgba(167, 139, 250, 0.35);
+    border-color: rgba(124, 58, 237, 0.35);
   }
   .status-banner.status-in_progress .status-dot { background: var(--purple); }
   .status-banner.status-closed {
-    background: rgba(61, 220, 151, 0.14);
+    background: rgba(5, 150, 105, 0.14);
     color: var(--green);
-    border-color: rgba(61, 220, 151, 0.35);
+    border-color: rgba(5, 150, 105, 0.35);
   }
   .status-banner.status-closed .status-dot { background: var(--green); }
 
@@ -236,8 +236,8 @@
     display: flex;
     align-items: flex-start;
     gap: 8px;
-    background: rgba(167, 139, 250, 0.12);
-    border: 1px solid rgba(167, 139, 250, 0.3);
+    background: rgba(124, 58, 237, 0.12);
+    border: 1px solid rgba(124, 58, 237, 0.3);
     color: var(--purple);
     border-radius: 10px;
     padding: 10px 14px;
@@ -280,7 +280,7 @@
     border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
     font-size: 10px; font-weight: 700;
-    color: #0d0f14;
+    color: #ffffff;
   }
   .status-legend {
     display: flex;
@@ -330,7 +330,7 @@
   }
   .split-pill.checked {
     border-color: var(--blue);
-    background: rgba(61,139,253,0.12);
+    background: rgba(37,99,235,0.12);
   }
   .split-pill input { width: auto; margin: 0; }
 
@@ -420,8 +420,8 @@
     text-decoration: none;
     flex-shrink: 0;
   }
-  .pay-link.venmo { background: rgba(61,139,253,0.15); color: var(--blue); }
-  .pay-link.paypal { background: rgba(242,177,52,0.18); color: var(--gold); }
+  .pay-link.venmo { background: rgba(37,99,235,0.15); color: var(--blue); }
+  .pay-link.paypal { background: rgba(180,83,9,0.18); color: var(--gold); }
   .all-settled {
     text-align: center;
     padding: 22px 0 10px;
@@ -430,7 +430,7 @@
   }
 
   .paid-badge {
-    background: rgba(61,220,151,0.15);
+    background: rgba(5,150,105,0.15);
     color: var(--green);
     font-size: 10.5px;
     font-weight: 700;
@@ -455,7 +455,7 @@
   .paid-toggle-slider {
     position: absolute;
     inset: 0;
-    background: var(--border);
+    background: #c3c9d3;
     border-radius: 100px;
     cursor: pointer;
     transition: background 0.15s ease;
@@ -469,6 +469,7 @@
     top: 3px;
     background: white;
     border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.25);
     transition: transform 0.15s ease;
   }
   .paid-toggle input:checked + .paid-toggle-slider { background: var(--green); }
@@ -799,6 +800,25 @@
 
       <div class="grid-2">
         <div class="card">
+          <h2>Add an expense</h2>
+          <p>Log what you paid for and who it was shared with.</p>
+          <button class="btn-primary" id="open-add-expense-btn" style="width:100%;">+ Add expense</button>
+        </div>
+
+        <div class="card">
+          <h2>Who's in</h2>
+          <p>Everyone who's joined this event so far.</p>
+          <div class="status-legend">
+            <span><span class="legend-dot" style="background:var(--coral);"></span>No expenses</span>
+            <span><span class="legend-dot" style="background:var(--purple);"></span>Adding expenses</span>
+            <span><span class="legend-dot" style="background:var(--green);"></span>Done</span>
+          </div>
+          <div id="participant-list"></div>
+        </div>
+      </div>
+
+      <div class="modal-overlay hidden" id="expense-modal-overlay">
+        <div class="modal-panel">
           <h2 id="expense-form-heading">Add an expense</h2>
           <p id="expense-form-subtext">Log what you paid for and who it was shared with.</p>
 
@@ -824,19 +844,8 @@
 
           <div style="display:flex; gap:10px;">
             <button class="btn-primary" id="add-expense-btn" style="flex:1;">Add expense</button>
-            <button class="btn-ghost hidden" id="cancel-edit-btn">Cancel</button>
+            <button class="btn-ghost" id="cancel-edit-btn">Cancel</button>
           </div>
-        </div>
-
-        <div class="card">
-          <h2>Who's in</h2>
-          <p>Everyone who's joined this event so far.</p>
-          <div class="status-legend">
-            <span><span class="legend-dot" style="background:var(--coral);"></span>No expenses</span>
-            <span><span class="legend-dot" style="background:var(--purple);"></span>Adding expenses</span>
-            <span><span class="legend-dot" style="background:var(--green);"></span>Done</span>
-          </div>
-          <div id="participant-list"></div>
         </div>
       </div>
 
@@ -846,11 +855,11 @@
       <div class="section-label">Settle up</div>
       <div id="settle-up"></div>
 
-      <div class="section-label activity-toggle" id="activity-toggle">
+      <div class="section-label activity-toggle" id="activity-toggle" style="cursor:default;">
         <span>Activity</span>
-        <span id="activity-chevron" style="font-size:11px;">▾</span>
+        <button class="btn-ghost" id="activity-toggle-btn" style="padding:5px 12px; font-size:11.5px;">Show</button>
       </div>
-      <div id="activity-list" class="activity-list"></div>
+      <div id="activity-list" class="activity-list hidden"></div>
 
     </div>
   </section>
@@ -880,7 +889,7 @@
     getAuth, signInAnonymously, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
-  const APP_VERSION = "2.3.2";
+  const APP_VERSION = "2.4.0";
   document.getElementById("app-footer").textContent =
     `SplitEase v${APP_VERSION} — Share Together. Settle Smarter.`;
   console.log(`%cSplitEase v${APP_VERSION}`, "color:#3d8bfd;font-weight:bold;");
@@ -951,11 +960,11 @@
     }
   }
 
-  document.getElementById("activity-toggle").addEventListener("click", () => {
+  document.getElementById("activity-toggle-btn").addEventListener("click", () => {
     const list = document.getElementById("activity-list");
-    const chevron = document.getElementById("activity-chevron");
+    const btn = document.getElementById("activity-toggle-btn");
     const collapsed = list.classList.toggle("hidden");
-    chevron.textContent = collapsed ? "▸" : "▾";
+    btn.textContent = collapsed ? "Show" : "Hide";
   });
 
   // ---------- global identity (name + optional payment handles, shared across all events on this device) ----------
@@ -1735,6 +1744,7 @@
         logActivity("expense_edited", `<b>${escapeHtml(participantName(currentParticipantId))}</b> edited “${escapeHtml(description)}”`);
         await resetOwnDoneStatus(`edited “${escapeHtml(description)}”`);
         exitEditMode();
+        closeExpenseModal();
       } else {
         await addDoc(collection(db, "events", eventId, "expenses"), {
           description, amount, paidBy, splitAmong, date,
@@ -1748,6 +1758,7 @@
         descInput.value = "";
         amountInput.value = "";
         dateInput.value = todayStr();
+        closeExpenseModal();
       }
     } catch (err) {
       console.error(err);
@@ -1757,7 +1768,29 @@
     }
   });
 
-  document.getElementById("cancel-edit-btn").addEventListener("click", () => exitEditMode());
+  function openExpenseModal() {
+    document.getElementById("expense-modal-overlay").classList.remove("hidden");
+  }
+  function closeExpenseModal() {
+    document.getElementById("expense-modal-overlay").classList.add("hidden");
+  }
+
+  document.getElementById("open-add-expense-btn").addEventListener("click", () => {
+    exitEditMode();
+    openExpenseModal();
+  });
+
+  document.getElementById("expense-modal-overlay").addEventListener("click", (e) => {
+    if (e.target.id === "expense-modal-overlay") {
+      exitEditMode();
+      closeExpenseModal();
+    }
+  });
+
+  document.getElementById("cancel-edit-btn").addEventListener("click", () => {
+    exitEditMode();
+    closeExpenseModal();
+  });
 
   document.getElementById("expense-log").addEventListener("click", async (e) => {
     const editBtn = e.target.closest(".expense-edit-btn");
@@ -1770,7 +1803,7 @@
       if (!confirm(`Delete "${exp ? exp.description : "this expense"}"?`)) return;
       try {
         await deleteDoc(doc(db, "events", eventId, "expenses", id));
-        if (editingExpenseId === id) exitEditMode();
+        if (editingExpenseId === id) { exitEditMode(); closeExpenseModal(); }
         showToast("Expense deleted");
         logActivity("expense_deleted", `<b>${escapeHtml(participantName(currentParticipantId))}</b> deleted “${escapeHtml(exp ? exp.description : "an expense")}”`);
       } catch (err) {
@@ -1797,16 +1830,14 @@
     });
 
     document.getElementById("add-expense-btn").textContent = "Save changes";
-    document.getElementById("cancel-edit-btn").classList.remove("hidden");
     document.getElementById("expense-form-heading").textContent = "Edit expense";
     document.getElementById("expense-form-subtext").textContent = "Update the details and who's splitting it.";
-    document.getElementById("expense-desc").scrollIntoView({ behavior: "smooth", block: "center" });
+    openExpenseModal();
   }
 
   function exitEditMode() {
     editingExpenseId = null;
     document.getElementById("add-expense-btn").textContent = "Add expense";
-    document.getElementById("cancel-edit-btn").classList.add("hidden");
     document.getElementById("expense-form-heading").textContent = "Add an expense";
     document.getElementById("expense-form-subtext").textContent = "Log what you paid for and who it was shared with.";
     document.getElementById("expense-desc").value = "";
