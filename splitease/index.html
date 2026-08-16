@@ -652,7 +652,7 @@
     getAuth, signInAnonymously, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
-  const APP_VERSION = "1.3.1";
+  const APP_VERSION = "1.3.2";
   document.getElementById("app-footer").textContent =
     `SplitEase v${APP_VERSION} — Share Together. Settle Smarter.`;
   console.log(`%cSplitEase v${APP_VERSION}`, "color:#3d8bfd;font-weight:bold;");
@@ -1091,8 +1091,27 @@
   function checkWhoAmI() {
     const isKnown = currentParticipantId && currentParticipants.some((p) => p.id === currentParticipantId);
     if (isKnown) {
+      const me = currentParticipants.find((p) => p.id === currentParticipantId);
+      if (me && !me.authUid && auth.currentUser?.uid) {
+        // Backfill so future visits can self-heal even if localStorage is lost.
+        updateDoc(doc(db, "events", eventId, "participants", currentParticipantId), {
+          authUid: auth.currentUser.uid
+        }).catch(() => {});
+      }
       document.getElementById("whoami-card").classList.add("hidden");
       document.getElementById("event-body").classList.remove("hidden");
+      return;
+    }
+
+    // Self-heal: if this device already has a participant record (matched by its
+    // anonymous auth uid) but localStorage lost track of it — e.g. a reload landed
+    // between joining and saving the id locally — reclaim it instead of rejoining.
+    const myUid = auth.currentUser?.uid;
+    const existing = myUid ? currentParticipants.find((p) => p.authUid === myUid) : null;
+    if (existing) {
+      currentParticipantId = existing.id;
+      localStorage.setItem(`splitease:${eventId}:participantId`, existing.id);
+      checkWhoAmI();
       return;
     }
 
@@ -1113,13 +1132,14 @@
     try {
       const ref = await addDoc(collection(db, "events", eventId, "participants"), {
         name,
+        authUid: auth.currentUser?.uid || null,
         joinedAt: serverTimestamp()
       });
       currentParticipantId = ref.id;
       localStorage.setItem(`splitease:${eventId}:participantId`, ref.id);
       // Don't wait on the snapshot listener to reflect this — update immediately.
       if (!currentParticipants.some((p) => p.id === ref.id)) {
-        currentParticipants.push({ id: ref.id, name });
+        currentParticipants.push({ id: ref.id, name, authUid: auth.currentUser?.uid || null });
       }
       checkWhoAmI();
       renderParticipants();
