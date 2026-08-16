@@ -1,5 +1,17 @@
 # SplitEase changelog
 
+## 2.7.0
+
+- Replaced the profile pencil icon with a settings gear (⚙). Clicking it opens a menu: "Edit profile" (the same name/Venmo/PayPal panel as before) or "Appearance…"
+- Appearance, opened from the home screen: choose Light Mode (default) or Dark Mode — persists on this device, applied instantly with no flash on reload
+- Appearance, opened from inside an event: the event creator can upload a background image and a logo for that specific event, visible to everyone in it. Images are resized and compressed client-side before saving (stored directly on the event record — no separate file storage needed). Non-creators see a note that only the creator can change it
+- When an event has a custom background, all the cards, boxes, and panels shift to a 90%-opaque version of their background so the image shows through faintly without hurting readability. The event's logo appears to the left of its name
+- Firestore rules: event-document updates (needed for background/logo) are now restricted to the event's creator, matching how event deletion already worked
+
+## 2.6.1
+
+- Footer now anchors to the bottom of the viewport on short pages (e.g. the landing screen with few events) instead of floating up right under the content. On longer pages it stays at the natural end of the content as before
+
 ## 2.6.0
 
 - Home screen: each event row's Leave/Delete button is now a "⋯" menu with Share and Leave/Delete options, instead of a standalone action button

@@ -10,12 +10,20 @@
 <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#ffffff">
+<script>
+  try {
+    if (localStorage.getItem("splitease:theme") === "dark") {
+      document.documentElement.classList.add("dark-mode");
+    }
+  } catch (e) {}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
 <style>
   :root {
     --bg: #ffffff;
     --surface: #f6f7f9;
+    --surface-rgb: 246, 247, 249;
     --surface-raised: #edeff3;
     --border: #dde1e7;
     --text: #14171f;
@@ -29,6 +37,25 @@
     --band-blue: #eaf2ff;
     --card-green: #eafaf0;
     --card-green-border: #cdeedb;
+  }
+
+  html.dark-mode {
+    --bg: #0d0f14;
+    --surface: #151923;
+    --surface-rgb: 21, 25, 35;
+    --surface-raised: #1b202c;
+    --border: #262c3a;
+    --text: #f2f4f8;
+    --text-dim: #8b92a5;
+    --blue: #3d8bfd;
+    --blue-dim: #2a4f85;
+    --gold: #f2b134;
+    --green: #3ddc97;
+    --coral: #ff6b6b;
+    --purple: #a78bfa;
+    --band-blue: #1b2a44;
+    --card-green: #123324;
+    --card-green-border: #1f4a36;
   }
 
   * { box-sizing: border-box; }
@@ -624,6 +651,39 @@
   }
   .modal-close-row { text-align: right; margin-top: 20px; }
 
+  .theme-option {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    background: var(--surface-raised);
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 14px;
+    font-size: 13px;
+    color: var(--text);
+  }
+  .theme-option.active { border-color: var(--blue); }
+  .theme-swatch {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: block;
+  }
+
+  #event-screen.has-custom-bg {
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    border-radius: 14px;
+  }
+  #event-screen.has-custom-bg .card,
+  #event-screen.has-custom-bg .done-toggle-row,
+  #event-screen.has-custom-bg .whoami {
+    background: rgba(var(--surface-rgb), 0.9);
+  }
+
   /* activity log */
   .activity-toggle {
     display: flex;
@@ -742,9 +802,14 @@
     <button class="btn-primary hidden" id="new-event-btn" style="padding:9px 16px; font-size:13px; white-space:nowrap;">+ New Event</button>
     <div class="my-name-badge hidden" id="my-name-badge">
       <span id="my-name-badge-text"></span>
-      <button class="my-name-edit-btn" id="my-name-edit-btn" title="Edit your name" aria-label="Edit your name">✎</button>
+      <button class="my-name-edit-btn" id="my-name-settings-btn" title="Settings" aria-label="Settings">⚙</button>
     </div>
   </div>
+</div>
+
+<div class="dropdown-menu hidden" id="settings-menu">
+  <button class="dropdown-item" id="settings-menu-profile">Edit profile</button>
+  <button class="dropdown-item" id="settings-menu-appearance">Appearance…</button>
 </div>
 
 <div class="modal-overlay hidden" id="new-event-overlay">
@@ -791,6 +856,54 @@
   </div>
 </div>
 
+<div class="modal-overlay hidden" id="appearance-overlay">
+  <div class="modal-panel" style="max-width:420px;">
+    <h2>Appearance</h2>
+
+    <div id="appearance-theme-section">
+      <p style="font-size:13px;color:var(--text-dim);margin:-8px 0 16px;">Applies to SplitEase on this device.</p>
+      <div style="display:flex; gap:10px;">
+        <button class="theme-option" id="theme-light-btn">
+          <span class="theme-swatch" style="background:#ffffff; border:1px solid #dde1e7;"></span>
+          Light Mode
+        </button>
+        <button class="theme-option" id="theme-dark-btn">
+          <span class="theme-swatch" style="background:#0d0f14;"></span>
+          Dark Mode
+        </button>
+      </div>
+    </div>
+
+    <div id="appearance-event-section" class="hidden">
+      <p style="font-size:13px;color:var(--text-dim);margin:-8px 0 16px;">Customize how this event looks for everyone in it.</p>
+
+      <div id="appearance-event-creator-only">
+        <div class="field">
+          <label class="field-label">Event logo</label>
+          <div style="display:flex; align-items:center; gap:12px;">
+            <img id="appearance-logo-preview" class="hidden" alt="" style="width:40px;height:40px;border-radius:8px;object-fit:cover;border:1px solid var(--border);">
+            <input id="appearance-logo-input" type="file" accept="image/*" style="font-size:12.5px;">
+          </div>
+          <button class="btn-ghost hidden" id="appearance-logo-remove-btn" style="margin-top:8px; padding:6px 12px; font-size:12px; border-color:var(--coral); color:var(--coral);">Remove logo</button>
+        </div>
+
+        <div class="field" style="margin-bottom:0;">
+          <label class="field-label">Background image</label>
+          <input id="appearance-bg-input" type="file" accept="image/*" style="font-size:12.5px;">
+          <button class="btn-ghost hidden" id="appearance-bg-remove-btn" style="margin-top:8px; padding:6px 12px; font-size:12px; border-color:var(--coral); color:var(--coral);">Remove background</button>
+        </div>
+        <p style="font-size:12px;color:var(--text-dim);margin:10px 0 0;">Images are resized automatically. Content stays readable in cards over the background.</p>
+      </div>
+
+      <p id="appearance-event-not-creator" class="hidden" style="font-size:13px;color:var(--text-dim);">Only the event creator can customize its appearance.</p>
+    </div>
+
+    <div class="modal-close-row" style="display:flex; justify-content:flex-end; gap:10px;">
+      <button class="btn-primary" id="appearance-close-btn">Done</button>
+    </div>
+  </div>
+</div>
+
 <main>
 
   <div id="loading-state" class="hidden" style="text-align:center;color:var(--text-dim);padding:60px 0;">Loading event…</div>
@@ -832,7 +945,10 @@
     <div class="event-topbar">
       <button class="icon-btn-lg" id="home-btn" title="Back to home" aria-label="Back to home">←</button>
       <div style="flex:1; min-width:0;">
-        <h1 class="event-name" id="event-name-display">—</h1>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <img id="event-logo-img" class="hidden" alt="" style="width:36px;height:36px;border-radius:8px;object-fit:cover;border:1px solid var(--border);flex-shrink:0;">
+          <h1 class="event-name" id="event-name-display">—</h1>
+        </div>
         <div class="event-code">
           Invite link: <span id="event-id-display">—</span>
           <button class="icon-btn" id="share-link-icon-btn" title="Share invite link" aria-label="Share invite link">↗</button>
@@ -970,13 +1086,13 @@
   import {
     getFirestore, doc, setDoc, addDoc, getDoc, getDocs, updateDoc,
     collection, onSnapshot, serverTimestamp, deleteDoc,
-    query, orderBy, limit
+    query, orderBy, limit, deleteField
   } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
   import {
     getAuth, signInAnonymously, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
-  const APP_VERSION = "2.6.1";
+  const APP_VERSION = "2.7.0";
   document.getElementById("app-footer").textContent =
     `SplitEase v${APP_VERSION} — Share Together. Settle Smarter.`;
   console.log(`%cSplitEase v${APP_VERSION}`, "color:#3d8bfd;font-weight:bold;");
@@ -1116,12 +1232,35 @@
     await Promise.all(jobs);
   }
 
-  document.getElementById("my-name-edit-btn").addEventListener("click", () => {
+  document.getElementById("my-name-settings-btn").addEventListener("click", (e) => {
+    e.stopPropagation();
+    const menu = document.getElementById("settings-menu");
+    const btn = document.getElementById("my-name-settings-btn");
+    const rect = btn.getBoundingClientRect();
+    menu.style.top = `${rect.bottom + 6}px`;
+    menu.style.right = `${window.innerWidth - rect.right}px`;
+    menu.style.left = "auto";
+    menu.classList.remove("hidden");
+  });
+  document.addEventListener("click", (e) => {
+    const menu = document.getElementById("settings-menu");
+    if (menu.classList.contains("hidden")) return;
+    if (!menu.contains(e.target) && e.target.id !== "my-name-settings-btn") {
+      menu.classList.add("hidden");
+    }
+  });
+  document.getElementById("settings-menu-profile").addEventListener("click", () => {
+    document.getElementById("settings-menu").classList.add("hidden");
     document.getElementById("edit-name-input").value = getMyName();
     document.getElementById("edit-venmo-input").value = getMyVenmo();
     document.getElementById("edit-paypal-input").value = getMyPaypal();
     document.getElementById("edit-name-overlay").classList.remove("hidden");
   });
+  document.getElementById("settings-menu-appearance").addEventListener("click", () => {
+    document.getElementById("settings-menu").classList.add("hidden");
+    openAppearanceModal();
+  });
+
   document.getElementById("edit-name-cancel-btn").addEventListener("click", () => {
     document.getElementById("edit-name-overlay").classList.add("hidden");
   });
@@ -1142,6 +1281,157 @@
     await propagateProfileChange(newName, newVenmo, newPaypal);
     showToast("Profile updated");
   });
+
+  // ---------- appearance: theme (global) + event background/logo (per-event) ----------
+  function applyTheme(theme) {
+    document.documentElement.classList.toggle("dark-mode", theme === "dark");
+    document.getElementById("theme-light-btn").classList.toggle("active", theme !== "dark");
+    document.getElementById("theme-dark-btn").classList.toggle("active", theme === "dark");
+  }
+  function getTheme() {
+    try { return localStorage.getItem("splitease:theme") === "dark" ? "dark" : "light"; }
+    catch { return "light"; }
+  }
+  function setTheme(theme) {
+    try { localStorage.setItem("splitease:theme", theme); } catch {}
+    applyTheme(theme);
+  }
+  document.getElementById("theme-light-btn").addEventListener("click", () => setTheme("light"));
+  document.getElementById("theme-dark-btn").addEventListener("click", () => setTheme("dark"));
+
+  function openAppearanceModal() {
+    applyTheme(getTheme());
+    const inEvent = !document.getElementById("event-screen").classList.contains("hidden");
+    document.getElementById("appearance-theme-section").classList.toggle("hidden", inEvent);
+    document.getElementById("appearance-event-section").classList.toggle("hidden", !inEvent);
+    if (inEvent) {
+      document.getElementById("appearance-event-creator-only").classList.toggle("hidden", !isEventCreator);
+      document.getElementById("appearance-event-not-creator").classList.toggle("hidden", isEventCreator);
+      const logoPreview = document.getElementById("appearance-logo-preview");
+      const currentLogo = document.getElementById("event-logo-img");
+      if (!currentLogo.classList.contains("hidden")) {
+        logoPreview.src = currentLogo.src;
+        logoPreview.classList.remove("hidden");
+        document.getElementById("appearance-logo-remove-btn").classList.remove("hidden");
+      } else {
+        logoPreview.classList.add("hidden");
+        document.getElementById("appearance-logo-remove-btn").classList.add("hidden");
+      }
+      document.getElementById("appearance-bg-remove-btn").classList.toggle(
+        "hidden", !document.getElementById("event-screen").classList.contains("has-custom-bg")
+      );
+    }
+    document.getElementById("appearance-overlay").classList.remove("hidden");
+  }
+  document.getElementById("appearance-close-btn").addEventListener("click", () => {
+    document.getElementById("appearance-overlay").classList.add("hidden");
+  });
+  document.getElementById("appearance-overlay").addEventListener("click", (e) => {
+    if (e.target.id === "appearance-overlay") e.target.classList.add("hidden");
+  });
+
+  function resizeImageToDataUrl(file, maxDim, quality) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          let { width, height } = img;
+          if (width > maxDim || height > maxDim) {
+            if (width > height) { height = Math.round(height * maxDim / width); width = maxDim; }
+            else { width = Math.round(width * maxDim / height); height = maxDim; }
+          }
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+          canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL("image/jpeg", quality));
+        };
+        img.onerror = () => reject(new Error("Couldn't read that image"));
+        img.src = e.target.result;
+      };
+      reader.onerror = () => reject(new Error("Couldn't read that file"));
+      reader.readAsDataURL(file);
+    });
+  }
+
+  document.getElementById("appearance-logo-input").addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const dataUrl = await resizeImageToDataUrl(file, 256, 0.85);
+      if (dataUrl.length > 350000) {
+        showToast("That image is too large even after compression — try a smaller one");
+        return;
+      }
+      await updateDoc(doc(db, "events", eventId), { eventLogo: dataUrl });
+      showToast("Logo updated");
+    } catch (err) {
+      console.error(err);
+      showToast("Couldn't update the logo — try again");
+    } finally {
+      e.target.value = "";
+    }
+  });
+  document.getElementById("appearance-logo-remove-btn").addEventListener("click", async () => {
+    try {
+      await updateDoc(doc(db, "events", eventId), { eventLogo: deleteField() });
+      showToast("Logo removed");
+      openAppearanceModal();
+    } catch (err) {
+      console.error(err);
+      showToast("Couldn't remove the logo — try again");
+    }
+  });
+
+  document.getElementById("appearance-bg-input").addEventListener("change", async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const dataUrl = await resizeImageToDataUrl(file, 1600, 0.72);
+      if (dataUrl.length > 850000) {
+        showToast("That image is too large even after compression — try a smaller one");
+        return;
+      }
+      await updateDoc(doc(db, "events", eventId), { backgroundImage: dataUrl });
+      showToast("Background updated");
+    } catch (err) {
+      console.error(err);
+      showToast("Couldn't update the background — try again");
+    } finally {
+      e.target.value = "";
+    }
+  });
+  document.getElementById("appearance-bg-remove-btn").addEventListener("click", async () => {
+    try {
+      await updateDoc(doc(db, "events", eventId), { backgroundImage: deleteField() });
+      showToast("Background removed");
+      openAppearanceModal();
+    } catch (err) {
+      console.error(err);
+      showToast("Couldn't remove the background — try again");
+    }
+  });
+
+  function applyEventAppearance(data) {
+    const screen = document.getElementById("event-screen");
+    if (data.backgroundImage) {
+      screen.style.backgroundImage = `url(${data.backgroundImage})`;
+      screen.classList.add("has-custom-bg");
+    } else {
+      screen.style.backgroundImage = "";
+      screen.classList.remove("has-custom-bg");
+    }
+    const logoImg = document.getElementById("event-logo-img");
+    if (data.eventLogo) {
+      logoImg.src = data.eventLogo;
+      logoImg.classList.remove("hidden");
+    } else {
+      logoImg.src = "";
+      logoImg.classList.add("hidden");
+    }
+  }
+
 
   // ---------- "your events" (per-browser history, no account needed) ----------
   const MY_EVENTS_KEY = "splitease:myEvents";
@@ -1314,6 +1604,7 @@
     editingExpenseId = null;
     isEventCreator = false;
     currentEventName = "";
+    applyEventAppearance({});
     window.history.pushState({}, "", window.location.pathname);
     document.getElementById("event-screen").classList.add("hidden");
     document.getElementById("loading-state").classList.add("hidden");
@@ -1557,6 +1848,7 @@
     document.getElementById("event-id-display").textContent = `${location.origin}${location.pathname}?event=${id}`;
     document.getElementById("delete-event-btn").classList.toggle("hidden", !isCreator);
     rememberEvent(id, eventSnap.data().name, isCreator);
+    applyEventAppearance(eventSnap.data());
 
     document.getElementById("event-loading-placeholder").classList.remove("hidden");
     document.getElementById("whoami-card").classList.add("hidden");
@@ -1564,12 +1856,15 @@
 
     currentParticipantId = localStorage.getItem(`splitease:${id}:participantId`);
 
-    // Detect the event itself being deleted while someone's actively viewing it.
+    // Detect the event itself being deleted while someone's actively viewing it,
+    // and keep background/logo in sync live if the creator changes them.
     unsubscribers.push(onSnapshot(doc(db, "events", id), (snap) => {
       if (!snap.exists()) {
         showToast("This event was deleted");
         goHome();
+        return;
       }
+      applyEventAppearance(snap.data());
     }));
 
     unsubscribers.push(onSnapshot(collection(db, "events", id, "participants"), (snap) => {
