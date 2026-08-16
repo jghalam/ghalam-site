@@ -1,5 +1,20 @@
 # SplitEase changelog
 
+## 1.4.0
+
+- "Your events" on the home screen now checks each event with Firestore before displaying it, so a deleted event no longer lingers in your list until you click on it
+- Settle-up entries now use a persistent Paid/Not paid switch instead of disappearing once marked — flip it back and the "Paid" label goes away, no data is deleted either way
+- Removed the payer picker's replacement "Mark paid" button/balance-netting approach in favor of the toggle above (simpler, doesn't shift amounts around)
+- Moved the SplitEase logo to a fixed top-left position so it no longer crowds the name badge in the top-right corner on narrow/mobile screens
+
+## 1.3.2
+
+- Fixed: a device could end up joined to the same event twice under the same name if a page reload landed between joining and saving that locally (e.g. auto-join firing again). Joining now also stamps each participant with the device's anonymous auth ID, and re-checks that ID before creating a new participant — an existing record is reclaimed instead of duplicated
+
+## 1.3.1
+
+- Fixed: deleting an event no longer fails entirely if the Firestore rules are a version behind (e.g. the `payments` subcollection added in 1.3.0 isn't yet permitted) — cleanup now skips whatever it can't access and still deletes the core event, participants, and expenses
+
 ## 1.3.0
 
 - Your name is now entered once and reused across every event on this device — no more re-entering it each time you join. Shown top-right with an edit (✎) button; editing it updates your name on every event you're currently part of

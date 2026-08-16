@@ -338,6 +338,52 @@
     font-weight: 500;
   }
 
+  .paid-badge {
+    background: rgba(61,220,151,0.15);
+    color: var(--green);
+    font-size: 10.5px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 100px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    flex-shrink: 0;
+  }
+  .paid-toggle {
+    position: relative;
+    display: inline-block;
+    width: 36px;
+    height: 21px;
+    flex-shrink: 0;
+  }
+  .paid-toggle input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  .paid-toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: var(--border);
+    border-radius: 100px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  .paid-toggle-slider::before {
+    content: "";
+    position: absolute;
+    height: 15px;
+    width: 15px;
+    left: 3px;
+    top: 3px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.15s ease;
+  }
+  .paid-toggle input:checked + .paid-toggle-slider { background: var(--green); }
+  .paid-toggle input:checked + .paid-toggle-slider::before { transform: translateX(15px); }
+  .paid-toggle input:disabled + .paid-toggle-slider { opacity: 0.5; cursor: not-allowed; }
+
   .invite-link {
     display: flex;
     gap: 8px;
@@ -463,6 +509,21 @@
   @media (max-width: 640px) {
     .my-name-badge { top: 12px; right: 12px; font-size: 12px; padding: 6px 6px 6px 12px; }
   }
+
+  .site-logo {
+    position: fixed;
+    top: 14px;
+    left: 18px;
+    z-index: 40;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+  }
+  .site-logo img { height: 36px; width: auto; display: block; }
+  @media (max-width: 640px) {
+    .site-logo { top: 10px; left: 12px; }
+    .site-logo img { height: 28px; }
+  }
 </style>
 </head>
 <body>
@@ -484,9 +545,12 @@
   </div>
 </div>
 
+<div class="site-logo" id="site-logo-link" title="Home">
+  <img src="icons/logo.png" alt="SplitEase">
+</div>
+
 <header>
-  <div class="wordmark" id="home-link" style="cursor:pointer; display:inline-flex; align-items:center; gap:10px;">
-    <img src="icons/logo.png" alt="" style="height:34px; width:auto;">
+  <div class="wordmark" id="home-link" style="cursor:pointer;">
     <span>Split<span class="ease">Ease</span></span>
   </div>
   <div class="tagline">Share Together. Settle Smarter.</div>
@@ -652,7 +716,7 @@
     getAuth, signInAnonymously, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
-  const APP_VERSION = "1.3.2";
+  const APP_VERSION = "1.4.0";
   document.getElementById("app-footer").textContent =
     `SplitEase v${APP_VERSION} — Share Together. Settle Smarter.`;
   console.log(`%cSplitEase v${APP_VERSION}`, "color:#3d8bfd;font-weight:bold;");
@@ -820,14 +884,30 @@
     `;
   }
 
-  function renderMyEvents() {
+  async function renderMyEvents() {
     const card = document.getElementById("my-events-card");
     const all = getMyEvents();
     if (all.length === 0) { card.classList.add("hidden"); return; }
+
+    // Verify each still exists before showing it — drop any that were deleted elsewhere.
+    const checked = await Promise.all(all.map(async (e) => {
+      try {
+        const snap = await getDoc(doc(db, "events", e.id));
+        return snap.exists() ? e : null;
+      } catch {
+        return e; // if the check itself fails (e.g. offline), don't lose the entry
+      }
+    }));
+    const valid = checked.filter(Boolean);
+    if (valid.length !== all.length) {
+      localStorage.setItem(MY_EVENTS_KEY, JSON.stringify(valid));
+    }
+
+    if (valid.length === 0) { card.classList.add("hidden"); return; }
     card.classList.remove("hidden");
 
-    const created = all.filter((e) => e.role === "creator").sort((a, b) => b.lastVisitedAt - a.lastVisitedAt);
-    const joined = all.filter((e) => e.role !== "creator").sort((a, b) => b.lastVisitedAt - a.lastVisitedAt);
+    const created = valid.filter((e) => e.role === "creator").sort((a, b) => b.lastVisitedAt - a.lastVisitedAt);
+    const joined = valid.filter((e) => e.role !== "creator").sort((a, b) => b.lastVisitedAt - a.lastVisitedAt);
 
     document.getElementById("my-events-list").innerHTML =
       renderMyEventGroup("Created by you", created, "Delete", "delete") +
@@ -890,6 +970,7 @@
     renderMyEvents();
   }
   document.getElementById("home-link").addEventListener("click", goHome);
+  document.getElementById("site-logo-link").addEventListener("click", goHome);
   document.getElementById("home-btn").addEventListener("click", goHome);
 
   document.getElementById("my-events-list").addEventListener("click", async (e) => {
@@ -1410,7 +1491,7 @@
   }
 
   // ---------- settle-up ----------
-  function calculateSettlements(participants, expenses, payments) {
+  function calculateSettlements(participants, expenses) {
     const balances = {};
     participants.forEach((p) => (balances[p.id] = 0));
 
@@ -1420,13 +1501,6 @@
       exp.splitAmong.forEach((pid) => {
         balances[pid] = (balances[pid] || 0) - share;
       });
-    });
-
-    // Recorded payments net out against computed balances — a payment from
-    // A to B reduces A's remaining debt and reduces B's remaining credit.
-    payments.forEach((p) => {
-      balances[p.from] = (balances[p.from] || 0) + p.amount;
-      balances[p.to] = (balances[p.to] || 0) - p.amount;
     });
 
     const creditors = [];
@@ -1453,13 +1527,17 @@
     return settlements;
   }
 
+  function paidPairId(from, to) {
+    return `${from}__${to}`;
+  }
+
   function renderSettleUp() {
     const container = document.getElementById("settle-up");
     if (currentExpenses.length === 0) {
       container.innerHTML = "";
       return;
     }
-    const settlements = calculateSettlements(currentParticipants, currentExpenses, currentPayments);
+    const settlements = calculateSettlements(currentParticipants, currentExpenses);
     if (settlements.length === 0) {
       container.innerHTML = `<div class="receipt"><div class="all-settled">Everyone's settled up ✓</div></div>`;
       return;
@@ -1468,13 +1546,21 @@
       <div class="receipt">
         <div class="receipt-inner">
           ${settlements.map((s) => {
-            const canMark = currentParticipantId === s.from || currentParticipantId === s.to;
+            const record = currentPayments.find((p) => p.id === paidPairId(s.from, s.to));
+            const isPaid = !!(record && record.paid);
+            const canToggle = currentParticipantId === s.from || currentParticipantId === s.to;
             return `
             <div class="receipt-row">
               <span>${escapeHtml(participantName(s.from))}<span class="receipt-arrow">→</span>${escapeHtml(participantName(s.to))}</span>
               <span style="display:flex; align-items:center; gap:10px;">
+                ${isPaid ? `<span class="paid-badge">Paid</span>` : ""}
                 <span class="receipt-amount amount">${money(s.amount)}</span>
-                ${canMark ? `<button class="btn-ghost mark-paid-btn" data-from="${s.from}" data-to="${s.to}" data-amount="${s.amount}" style="padding:5px 10px; font-size:11.5px; flex-shrink:0;">Mark paid</button>` : ""}
+                ${canToggle ? `
+                  <label class="paid-toggle" title="${isPaid ? "Mark as not paid" : "Mark as paid"}">
+                    <input type="checkbox" class="paid-toggle-input" data-from="${s.from}" data-to="${s.to}" ${isPaid ? "checked" : ""}>
+                    <span class="paid-toggle-slider"></span>
+                  </label>
+                ` : ""}
               </span>
             </div>
           `;
@@ -1484,26 +1570,28 @@
     `;
   }
 
-  document.getElementById("settle-up").addEventListener("click", async (e) => {
-    const btn = e.target.closest(".mark-paid-btn");
-    if (!btn) return;
-    const from = btn.dataset.from;
-    const to = btn.dataset.to;
-    const amount = parseFloat(btn.dataset.amount);
-    if (!confirm(`Mark ${money(amount)} from ${participantName(from)} to ${participantName(to)} as paid?`)) return;
-    btn.disabled = true;
+  document.getElementById("settle-up").addEventListener("change", async (e) => {
+    const input = e.target.closest(".paid-toggle-input");
+    if (!input) return;
+    const from = input.dataset.from;
+    const to = input.dataset.to;
+    const paid = input.checked;
+    input.disabled = true;
     try {
-      await addDoc(collection(db, "events", eventId, "payments"), {
-        from, to, amount,
-        markedBy: currentParticipantId,
-        createdAt: serverTimestamp()
-      });
-      showToast("Marked as paid");
-      logActivity("payment", `<b>${escapeHtml(participantName(from))}</b> paid <b>${escapeHtml(participantName(to))}</b> ${money(amount)}`);
+      await setDoc(doc(db, "events", eventId, "payments", paidPairId(from, to)), {
+        from, to, paid,
+        updatedBy: currentParticipantId,
+        updatedAt: serverTimestamp()
+      }, { merge: true });
+      logActivity("payment", paid
+        ? `<b>${escapeHtml(participantName(from))}</b> marked their payment to <b>${escapeHtml(participantName(to))}</b> as paid`
+        : `<b>${escapeHtml(participantName(from))}</b>'s payment to <b>${escapeHtml(participantName(to))}</b> marked unpaid`);
     } catch (err) {
       console.error(err);
-      showToast("Couldn't mark that as paid — try again");
-      btn.disabled = false;
+      showToast("Couldn't update that — try again");
+      input.checked = !paid;
+    } finally {
+      input.disabled = false;
     }
   });
 
