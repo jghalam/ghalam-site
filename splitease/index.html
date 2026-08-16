@@ -617,6 +617,11 @@
           </div>
 
           <div class="field">
+            <label class="field-label">Date</label>
+            <input id="expense-date" type="date">
+          </div>
+
+          <div class="field">
             <label class="field-label">Split among</label>
             <div class="split-list" id="expense-split-list"></div>
           </div>
@@ -666,7 +671,7 @@
     getAuth, signInAnonymously, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
-  const APP_VERSION = "1.7.0";
+  const APP_VERSION = "1.8.0";
   document.getElementById("app-footer").textContent =
     `SplitEase v${APP_VERSION} — Share Together. Settle Smarter.`;
   console.log(`%cSplitEase v${APP_VERSION}`, "color:#3d8bfd;font-weight:bold;");
@@ -697,6 +702,20 @@
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   };
   const money = (n) => `$${n.toFixed(2)}`;
+
+  function todayStr() {
+    const d = new Date();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${d.getFullYear()}-${mm}-${dd}`;
+  }
+
+  function formatDate(dateStr) {
+    if (!dateStr) return "";
+    return new Date(`${dateStr}T00:00:00`).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+  }
+
+  document.getElementById("expense-date").value = todayStr();
 
   function showToast(msg) {
     const t = document.getElementById("toast");
@@ -1323,7 +1342,7 @@
         <div>
           <div class="expense-desc">${escapeHtml(e.description)}</div>
           <div class="expense-meta">
-            Paid by ${escapeHtml(participantName(e.paidBy))} · split ${e.splitAmong.length}
+            ${e.date ? `${formatDate(e.date)} · ` : ""}Paid by ${escapeHtml(participantName(e.paidBy))} · split ${e.splitAmong.length}
             ${e.splitAmong.length === 1 ? "way" : "ways"} (${e.splitAmong.map((id) => escapeHtml(participantName(id))).join(", ")})
           </div>
         </div>
@@ -1341,6 +1360,7 @@
   document.getElementById("add-expense-btn").addEventListener("click", async () => {
     const descInput = document.getElementById("expense-desc");
     const amountInput = document.getElementById("expense-amount");
+    const dateInput = document.getElementById("expense-date");
     const paidBy = currentParticipantId;
     const splitAmong = Array.from(
       document.querySelectorAll("#expense-split-list input:checked")
@@ -1348,6 +1368,7 @@
 
     const description = descInput.value.trim();
     const amount = parseFloat(amountInput.value);
+    const date = dateInput.value || todayStr();
 
     if (!description) { descInput.focus(); return; }
     if (!amount || amount <= 0) { amountInput.focus(); return; }
@@ -1358,14 +1379,14 @@
     try {
       if (editingExpenseId) {
         await updateDoc(doc(db, "events", eventId, "expenses", editingExpenseId), {
-          description, amount, splitAmong
+          description, amount, splitAmong, date
         });
         showToast("Expense updated");
         logActivity("expense_edited", `<b>${escapeHtml(participantName(currentParticipantId))}</b> edited “${escapeHtml(description)}”`);
         exitEditMode();
       } else {
         await addDoc(collection(db, "events", eventId, "expenses"), {
-          description, amount, paidBy, splitAmong,
+          description, amount, paidBy, splitAmong, date,
           createdBy: currentParticipantId,
           createdByUid: auth.currentUser?.uid || null,
           createdAt: serverTimestamp()
@@ -1374,6 +1395,7 @@
         logActivity("expense_added", `<b>${escapeHtml(participantName(paidBy))}</b> paid ${money(amount)} for “${escapeHtml(description)}”`);
         descInput.value = "";
         amountInput.value = "";
+        dateInput.value = todayStr();
       }
     } catch (err) {
       console.error(err);
@@ -1413,6 +1435,7 @@
 
     document.getElementById("expense-desc").value = exp.description;
     document.getElementById("expense-amount").value = exp.amount;
+    document.getElementById("expense-date").value = exp.date || todayStr();
 
     document.querySelectorAll("#expense-split-list .split-pill").forEach((pill) => {
       const input = pill.querySelector("input");
@@ -1436,6 +1459,7 @@
     document.getElementById("expense-form-subtext").textContent = "Log what you paid for and who it was shared with.";
     document.getElementById("expense-desc").value = "";
     document.getElementById("expense-amount").value = "";
+    document.getElementById("expense-date").value = todayStr();
   }
 
   function timeAgo(ts) {
