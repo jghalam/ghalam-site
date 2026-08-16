@@ -672,15 +672,14 @@
     display: block;
   }
 
-  #event-screen.has-custom-bg {
+  body.has-custom-bg {
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
-    border-radius: 14px;
   }
-  #event-screen.has-custom-bg .card,
-  #event-screen.has-custom-bg .done-toggle-row,
-  #event-screen.has-custom-bg .whoami {
+  body.has-custom-bg .card,
+  body.has-custom-bg .done-toggle-row,
+  body.has-custom-bg .whoami {
     background: rgba(var(--surface-rgb), 0.9);
   }
 
@@ -1092,7 +1091,7 @@
     getAuth, signInAnonymously, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
-  const APP_VERSION = "2.7.0";
+  const APP_VERSION = "2.7.1";
   document.getElementById("app-footer").textContent =
     `SplitEase v${APP_VERSION} — Share Together. Settle Smarter.`;
   console.log(`%cSplitEase v${APP_VERSION}`, "color:#3d8bfd;font-weight:bold;");
@@ -1318,7 +1317,7 @@
         document.getElementById("appearance-logo-remove-btn").classList.add("hidden");
       }
       document.getElementById("appearance-bg-remove-btn").classList.toggle(
-        "hidden", !document.getElementById("event-screen").classList.contains("has-custom-bg")
+        "hidden", !document.body.classList.contains("has-custom-bg")
       );
     }
     document.getElementById("appearance-overlay").classList.remove("hidden");
@@ -1414,13 +1413,12 @@
   });
 
   function applyEventAppearance(data) {
-    const screen = document.getElementById("event-screen");
     if (data.backgroundImage) {
-      screen.style.backgroundImage = `url(${data.backgroundImage})`;
-      screen.classList.add("has-custom-bg");
+      document.body.style.backgroundImage = `url(${data.backgroundImage})`;
+      document.body.classList.add("has-custom-bg");
     } else {
-      screen.style.backgroundImage = "";
-      screen.classList.remove("has-custom-bg");
+      document.body.style.backgroundImage = "";
+      document.body.classList.remove("has-custom-bg");
     }
     const logoImg = document.getElementById("event-logo-img");
     if (data.eventLogo) {
