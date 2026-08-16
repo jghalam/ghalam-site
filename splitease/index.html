@@ -413,6 +413,34 @@
   }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+  .pay-confirm-toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: var(--surface-raised);
+    border: 1px solid var(--blue-dim);
+    color: var(--text);
+    padding: 14px 16px 14px 20px;
+    border-radius: 100px;
+    font-size: 13.5px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    z-index: 60;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.25s ease;
+    max-width: calc(100vw - 32px);
+  }
+  .pay-confirm-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); pointer-events: auto; }
+  .pay-confirm-actions { display: flex; gap: 8px; flex-shrink: 0; }
+  .pay-confirm-actions button { padding: 8px 14px; font-size: 12.5px; }
+  @media (max-width: 640px) {
+    .pay-confirm-toast { flex-direction: column; align-items: stretch; text-align: center; border-radius: 16px; gap: 10px; }
+    .pay-confirm-actions { justify-content: center; }
+  }
+
   /* help modal */
   .modal-overlay {
     position: fixed;
@@ -697,6 +725,14 @@
 
 <div class="toast" id="toast"></div>
 
+<div class="pay-confirm-toast hidden" id="pay-confirm-toast">
+  <span id="pay-confirm-text"></span>
+  <div class="pay-confirm-actions">
+    <button class="btn-ghost" id="pay-confirm-no">Not yet</button>
+    <button class="btn-primary" id="pay-confirm-yes">Mark as paid</button>
+  </div>
+</div>
+
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
   import {
@@ -708,7 +744,7 @@
     getAuth, signInAnonymously, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
-  const APP_VERSION = "1.9.0";
+  const APP_VERSION = "1.9.1";
   document.getElementById("app-footer").textContent =
     `SplitEase v${APP_VERSION} — Share Together. Settle Smarter.`;
   console.log(`%cSplitEase v${APP_VERSION}`, "color:#3d8bfd;font-weight:bold;");
@@ -992,6 +1028,7 @@
   }
 
   function goHome() {
+    hidePayConfirm();
     unsubscribers.forEach((fn) => fn());
     unsubscribers = [];
     eventId = null;
@@ -1642,8 +1679,8 @@
               </div>
               ${showPayLinks ? `
                 <div class="pay-links-row">
-                  ${venmoUrl ? `<a class="pay-link venmo" href="${venmoUrl}" target="_blank" rel="noopener">Pay via Venmo</a>` : ""}
-                  ${paypalUrl ? `<a class="pay-link paypal" href="${paypalUrl}" target="_blank" rel="noopener">Pay via PayPal</a>` : ""}
+                  ${venmoUrl ? `<a class="pay-link venmo" href="${venmoUrl}" target="_blank" rel="noopener" data-from="${s.from}" data-to="${s.to}" data-amount="${s.amount}">Pay via Venmo</a>` : ""}
+                  ${paypalUrl ? `<a class="pay-link paypal" href="${paypalUrl}" target="_blank" rel="noopener" data-from="${s.from}" data-to="${s.to}" data-amount="${s.amount}">Pay via PayPal</a>` : ""}
                 </div>
               ` : ""}
             </div>
@@ -1654,6 +1691,17 @@
     `;
   }
 
+  async function markPaid(from, to, paid) {
+    await setDoc(doc(db, "events", eventId, "payments", paidPairId(from, to)), {
+      from, to, paid,
+      updatedBy: currentParticipantId,
+      updatedAt: serverTimestamp()
+    }, { merge: true });
+    logActivity("payment", paid
+      ? `<b>${escapeHtml(participantName(from))}</b> marked their payment to <b>${escapeHtml(participantName(to))}</b> as paid`
+      : `<b>${escapeHtml(participantName(from))}</b>'s payment to <b>${escapeHtml(participantName(to))}</b> marked unpaid`);
+  }
+
   document.getElementById("settle-up").addEventListener("change", async (e) => {
     const input = e.target.closest(".paid-toggle-input");
     if (!input) return;
@@ -1662,20 +1710,57 @@
     const paid = input.checked;
     input.disabled = true;
     try {
-      await setDoc(doc(db, "events", eventId, "payments", paidPairId(from, to)), {
-        from, to, paid,
-        updatedBy: currentParticipantId,
-        updatedAt: serverTimestamp()
-      }, { merge: true });
-      logActivity("payment", paid
-        ? `<b>${escapeHtml(participantName(from))}</b> marked their payment to <b>${escapeHtml(participantName(to))}</b> as paid`
-        : `<b>${escapeHtml(participantName(from))}</b>'s payment to <b>${escapeHtml(participantName(to))}</b> marked unpaid`);
+      await markPaid(from, to, paid);
     } catch (err) {
       console.error(err);
       showToast("Couldn't update that — try again");
       input.checked = !paid;
     } finally {
       input.disabled = false;
+    }
+  });
+
+  // ---------- pay-link follow-up: after opening Venmo/PayPal, offer to mark it paid ----------
+  let payConfirmTimeout = null;
+  let payConfirmPending = null;
+
+  function hidePayConfirm() {
+    document.getElementById("pay-confirm-toast").classList.remove("show");
+    payConfirmPending = null;
+    if (payConfirmTimeout) { clearTimeout(payConfirmTimeout); payConfirmTimeout = null; }
+  }
+
+  document.getElementById("settle-up").addEventListener("click", (e) => {
+    const link = e.target.closest(".pay-link");
+    if (!link) return;
+    // Let the link open Venmo/PayPal in a new tab as normal, then prompt here.
+    const from = link.dataset.from;
+    const to = link.dataset.to;
+    const amount = parseFloat(link.dataset.amount);
+    payConfirmPending = { from, to, amount };
+    document.getElementById("pay-confirm-text").textContent =
+      `Sent ${money(amount)} to ${participantName(to)}?`;
+    document.getElementById("pay-confirm-toast").classList.add("show");
+    if (payConfirmTimeout) clearTimeout(payConfirmTimeout);
+    payConfirmTimeout = setTimeout(hidePayConfirm, 12000);
+  });
+
+  document.getElementById("pay-confirm-no").addEventListener("click", hidePayConfirm);
+
+  document.getElementById("pay-confirm-yes").addEventListener("click", async () => {
+    if (!payConfirmPending) return;
+    const { from, to } = payConfirmPending;
+    const btn = document.getElementById("pay-confirm-yes");
+    btn.disabled = true;
+    try {
+      await markPaid(from, to, true);
+      showToast("Marked as paid");
+    } catch (err) {
+      console.error(err);
+      showToast("Couldn't mark that as paid — try again");
+    } finally {
+      btn.disabled = false;
+      hidePayConfirm();
     }
   });
 
