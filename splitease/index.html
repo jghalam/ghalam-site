@@ -89,7 +89,7 @@
   main {
     max-width: 760px;
     margin: 0 auto;
-    padding: 90px 20px 80px;
+    padding: 100px 20px 80px;
   }
   @media (max-width: 640px) {
     main { padding-top: 70px; }
@@ -276,6 +276,21 @@
     display: flex; align-items: center; justify-content: center;
     font-size: 10px; font-weight: 700;
     color: #0d0f14;
+  }
+  .status-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: -4px 0 12px;
+    font-size: 11.5px;
+    color: var(--text-dim);
+  }
+  .status-legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
   }
   .chip-remove {
     background: transparent;
@@ -606,19 +621,19 @@
     align-items: center;
     gap: 10px;
   }
-  .site-logo img { height: 40px; width: auto; display: block; flex-shrink: 0; }
+  .site-logo img { height: 52px; width: auto; display: block; flex-shrink: 0; }
   .site-logo-text { display: flex; flex-direction: column; line-height: 1.2; }
   .site-logo-title {
     font-family: 'DM Serif Display', serif;
-    font-size: 19px;
+    font-size: 25px;
     color: var(--text);
   }
   .site-logo-title .ease { color: var(--blue); }
-  .site-logo-tagline { font-size: 10.5px; color: var(--text-dim); }
+  .site-logo-tagline { font-size: 12px; color: var(--text-dim); }
   @media (max-width: 640px) {
-    .site-logo { top: 10px; left: 12px; gap: 7px; }
-    .site-logo img { height: 30px; }
-    .site-logo-title { font-size: 15px; }
+    .site-logo { top: 10px; left: 12px; gap: 8px; }
+    .site-logo img { height: 38px; }
+    .site-logo-title { font-size: 19px; }
     .site-logo-tagline { display: none; }
   }
 </style>
@@ -781,6 +796,11 @@
         <div class="card">
           <h2>Who's in</h2>
           <p>Everyone who's joined this event so far.</p>
+          <div class="status-legend">
+            <span><span class="legend-dot" style="background:var(--coral);"></span>No expenses</span>
+            <span><span class="legend-dot" style="background:var(--purple);"></span>Adding expenses</span>
+            <span><span class="legend-dot" style="background:var(--green);"></span>Done</span>
+          </div>
           <div id="participant-list"></div>
         </div>
       </div>
@@ -825,7 +845,7 @@
     getAuth, signInAnonymously, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
-  const APP_VERSION = "2.0.1";
+  const APP_VERSION = "2.1.0";
   document.getElementById("app-footer").textContent =
     `SplitEase v${APP_VERSION} — Share Together. Settle Smarter.`;
   console.log(`%cSplitEase v${APP_VERSION}`, "color:#3d8bfd;font-weight:bold;");
@@ -853,8 +873,8 @@
   }
 
   function statusLabelFor(p) {
-    if (p.isDone) return "Done";
-    return participantHasExpenses(p.id) ? "Adding expenses" : "No expenses yet";
+    if (p.isDone) return "Green — done adding expenses";
+    return participantHasExpenses(p.id) ? "Purple — adding expenses" : "Red — no expenses yet";
   }
 
   const initials = (name) => {
