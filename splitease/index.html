@@ -306,17 +306,37 @@
     background-color: var(--surface);
   }
   .receipt-inner { padding: 8px 22px 20px; }
+  .receipt-row-wrap {
+    padding: 12px 0;
+    border-bottom: 1px dashed var(--border);
+  }
+  .receipt-row-wrap:last-child { border-bottom: none; }
   .receipt-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 12px 0;
-    border-bottom: 1px dashed var(--border);
     font-size: 14.5px;
   }
-  .receipt-row:last-child { border-bottom: none; }
   .receipt-arrow { color: var(--text-dim); margin: 0 8px; }
   .receipt-amount { color: var(--gold); font-weight: 600; }
+  .pay-links-row {
+    display: flex;
+    gap: 8px;
+    margin-top: 9px;
+    flex-wrap: wrap;
+  }
+  .pay-link {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 12px;
+    border-radius: 100px;
+    font-size: 11.5px;
+    font-weight: 700;
+    text-decoration: none;
+    flex-shrink: 0;
+  }
+  .pay-link.venmo { background: rgba(61,139,253,0.15); color: var(--blue); }
+  .pay-link.paypal { background: rgba(242,177,52,0.18); color: var(--gold); }
   .all-settled {
     text-align: center;
     padding: 22px 0 10px;
@@ -518,10 +538,27 @@
 </div>
 
 <div class="modal-overlay hidden" id="edit-name-overlay">
-  <div class="modal-panel" style="max-width:360px;">
-    <h2>Your name</h2>
+  <div class="modal-panel" style="max-width:380px;">
+    <h2>Your profile</h2>
     <p style="font-size:13px;color:var(--text-dim);margin:-8px 0 16px;">Used across every SplitEase event on this device.</p>
-    <input id="edit-name-input" type="text" maxlength="40" placeholder="Your name">
+
+    <div class="field">
+      <label class="field-label">Name</label>
+      <input id="edit-name-input" type="text" maxlength="40" placeholder="Your name">
+    </div>
+
+    <div class="field">
+      <label class="field-label">Venmo username (optional)</label>
+      <input id="edit-venmo-input" type="text" maxlength="60" placeholder="e.g. john-smith">
+    </div>
+
+    <div class="field" style="margin-bottom: 0;">
+      <label class="field-label">PayPal.me username (optional)</label>
+      <input id="edit-paypal-input" type="text" maxlength="60" placeholder="e.g. johnsmith">
+    </div>
+
+    <p style="font-size:12px;color:var(--text-dim);margin:10px 0 0;">Lets others pay you directly from the settle-up screen. Leave blank to skip.</p>
+
     <div class="modal-close-row" style="display:flex; justify-content:flex-end; gap:10px;">
       <button class="btn-ghost" id="edit-name-cancel-btn">Cancel</button>
       <button class="btn-primary" id="edit-name-save-btn">Save</button>
@@ -671,7 +708,7 @@
     getAuth, signInAnonymously, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
-  const APP_VERSION = "1.8.0";
+  const APP_VERSION = "1.9.0";
   document.getElementById("app-footer").textContent =
     `SplitEase v${APP_VERSION} — Share Together. Settle Smarter.`;
   console.log(`%cSplitEase v${APP_VERSION}`, "color:#3d8bfd;font-weight:bold;");
@@ -741,15 +778,32 @@
     chevron.textContent = collapsed ? "▸" : "▾";
   });
 
-  // ---------- global identity (your name, shared across all events on this device) ----------
+  // ---------- global identity (name + optional payment handles, shared across all events on this device) ----------
   const MY_NAME_KEY = "splitease:myName";
+  const MY_VENMO_KEY = "splitease:myVenmo";
+  const MY_PAYPAL_KEY = "splitease:myPaypal";
 
   function getMyName() {
     return localStorage.getItem(MY_NAME_KEY) || "";
   }
-
   function setMyName(name) {
     localStorage.setItem(MY_NAME_KEY, name);
+  }
+  function getMyVenmo() {
+    return localStorage.getItem(MY_VENMO_KEY) || "";
+  }
+  function getMyPaypal() {
+    return localStorage.getItem(MY_PAYPAL_KEY) || "";
+  }
+
+  function sanitizeHandle(raw, kind) {
+    let v = (raw || "").trim();
+    if (!v) return "";
+    v = v.replace(/^@/, "");
+    if (kind === "venmo") v = v.replace(/^https?:\/\/(www\.)?venmo\.com\//i, "");
+    if (kind === "paypal") v = v.replace(/^https?:\/\/(www\.)?paypal\.me\//i, "");
+    v = v.replace(/\/+$/, "");
+    return v;
   }
 
   function renderNameBadge() {
@@ -760,11 +814,12 @@
     document.getElementById("my-name-badge-text").textContent = name;
   }
 
-  async function propagateNameChange(newName) {
+  async function propagateProfileChange(newName, newVenmo, newPaypal) {
+    const fields = { name: newName, venmoHandle: newVenmo, paypalHandle: newPaypal };
     const jobs = [];
     if (eventId && currentParticipantId) {
       jobs.push(
-        updateDoc(doc(db, "events", eventId, "participants", currentParticipantId), { name: newName }).catch(() => {})
+        updateDoc(doc(db, "events", eventId, "participants", currentParticipantId), fields).catch(() => {})
       );
     }
     for (const e of getMyEvents()) {
@@ -772,7 +827,7 @@
       const pid = localStorage.getItem(`splitease:${e.id}:participantId`);
       if (pid) {
         jobs.push(
-          updateDoc(doc(db, "events", e.id, "participants", pid), { name: newName }).catch(() => {})
+          updateDoc(doc(db, "events", e.id, "participants", pid), fields).catch(() => {})
         );
       }
     }
@@ -781,6 +836,8 @@
 
   document.getElementById("my-name-edit-btn").addEventListener("click", () => {
     document.getElementById("edit-name-input").value = getMyName();
+    document.getElementById("edit-venmo-input").value = getMyVenmo();
+    document.getElementById("edit-paypal-input").value = getMyPaypal();
     document.getElementById("edit-name-overlay").classList.remove("hidden");
   });
   document.getElementById("edit-name-cancel-btn").addEventListener("click", () => {
@@ -793,11 +850,15 @@
     const input = document.getElementById("edit-name-input");
     const newName = input.value.trim();
     if (!newName) { input.focus(); return; }
+    const newVenmo = sanitizeHandle(document.getElementById("edit-venmo-input").value, "venmo");
+    const newPaypal = sanitizeHandle(document.getElementById("edit-paypal-input").value, "paypal");
     setMyName(newName);
+    localStorage.setItem(MY_VENMO_KEY, newVenmo);
+    localStorage.setItem(MY_PAYPAL_KEY, newPaypal);
     renderNameBadge();
     document.getElementById("edit-name-overlay").classList.add("hidden");
-    await propagateNameChange(newName);
-    showToast("Name updated");
+    await propagateProfileChange(newName, newVenmo, newPaypal);
+    showToast("Profile updated");
   });
 
   // ---------- "your events" (per-browser history, no account needed) ----------
@@ -940,6 +1001,7 @@
     currentPayments = [];
     editingExpenseId = null;
     isEventCreator = false;
+    currentEventName = "";
     window.history.pushState({}, "", window.location.pathname);
     document.getElementById("event-screen").classList.add("hidden");
     document.getElementById("loading-state").classList.add("hidden");
@@ -1015,6 +1077,7 @@
   let currentPayments = [];
   let editingExpenseId = null;
   let isEventCreator = false;
+  let currentEventName = "";
 
   onAuthStateChanged(auth, async (user) => {
     if (!user) return;
@@ -1097,6 +1160,7 @@
     document.getElementById("loading-state").classList.add("hidden");
     document.getElementById("event-screen").classList.remove("hidden");
     document.getElementById("event-name-display").textContent = eventSnap.data().name;
+    currentEventName = eventSnap.data().name;
     document.getElementById("event-id-display").textContent = `${location.origin}${location.pathname}?event=${id}`;
     document.getElementById("delete-event-btn").classList.toggle("hidden", !isCreator);
     rememberEvent(id, eventSnap.data().name, isCreator);
@@ -1196,8 +1260,12 @@
 
   async function joinCurrentEvent(name) {
     try {
+      const venmoHandle = getMyVenmo();
+      const paypalHandle = getMyPaypal();
       const ref = await addDoc(collection(db, "events", eventId, "participants"), {
         name,
+        venmoHandle,
+        paypalHandle,
         authUid: auth.currentUser?.uid || null,
         joinedAt: serverTimestamp()
       });
@@ -1205,7 +1273,7 @@
       localStorage.setItem(`splitease:${eventId}:participantId`, ref.id);
       // Don't wait on the snapshot listener to reflect this — update immediately.
       if (!currentParticipants.some((p) => p.id === ref.id)) {
-        currentParticipants.push({ id: ref.id, name, authUid: auth.currentUser?.uid || null });
+        currentParticipants.push({ id: ref.id, name, venmoHandle, paypalHandle, authUid: auth.currentUser?.uid || null });
       }
       checkWhoAmI();
       renderParticipants();
@@ -1544,22 +1612,40 @@
             const record = currentPayments.find((p) => p.id === paidPairId(s.from, s.to));
             const isPaid = !!(record && record.paid);
             const canToggle = currentParticipantId === s.from || currentParticipantId === s.to;
+            const isPayer = currentParticipantId === s.from;
+            const recipient = currentParticipants.find((p) => p.id === s.to);
+            const note = encodeURIComponent(`SplitEase settle-up — ${currentEventName}`);
+            const venmoUrl = recipient?.venmoHandle
+              ? `https://venmo.com/${encodeURIComponent(recipient.venmoHandle)}?txn=pay&amount=${s.amount.toFixed(2)}&note=${note}`
+              : null;
+            const paypalUrl = recipient?.paypalHandle
+              ? `https://paypal.me/${encodeURIComponent(recipient.paypalHandle)}/${s.amount.toFixed(2)}`
+              : null;
+            const showPayLinks = isPayer && !isPaid && (venmoUrl || paypalUrl);
             return `
-            <div class="receipt-row">
-              <span>${escapeHtml(participantName(s.from))}<span class="receipt-arrow">→</span>${escapeHtml(participantName(s.to))}</span>
-              <span style="display:flex; align-items:center; gap:10px;">
-                ${isPaid ? `<span class="paid-badge">Paid</span>` : ""}
-                <span class="receipt-amount amount">${money(s.amount)}</span>
-                ${canToggle ? `
-                  <span style="display:flex; align-items:center; gap:6px;">
-                    <span style="font-size:11px; color:var(--text-dim);">Paid</span>
-                    <label class="paid-toggle" title="${isPaid ? "Mark as not paid" : "Mark as paid"}">
-                      <input type="checkbox" class="paid-toggle-input" data-from="${s.from}" data-to="${s.to}" ${isPaid ? "checked" : ""}>
-                      <span class="paid-toggle-slider"></span>
-                    </label>
-                  </span>
-                ` : ""}
-              </span>
+            <div class="receipt-row-wrap">
+              <div class="receipt-row">
+                <span>${escapeHtml(participantName(s.from))}<span class="receipt-arrow">→</span>${escapeHtml(participantName(s.to))}</span>
+                <span style="display:flex; align-items:center; gap:10px;">
+                  ${isPaid ? `<span class="paid-badge">Paid</span>` : ""}
+                  <span class="receipt-amount amount">${money(s.amount)}</span>
+                  ${canToggle ? `
+                    <span style="display:flex; align-items:center; gap:6px;">
+                      <span style="font-size:11px; color:var(--text-dim);">Paid</span>
+                      <label class="paid-toggle" title="${isPaid ? "Mark as not paid" : "Mark as paid"}">
+                        <input type="checkbox" class="paid-toggle-input" data-from="${s.from}" data-to="${s.to}" ${isPaid ? "checked" : ""}>
+                        <span class="paid-toggle-slider"></span>
+                      </label>
+                    </span>
+                  ` : ""}
+                </span>
+              </div>
+              ${showPayLinks ? `
+                <div class="pay-links-row">
+                  ${venmoUrl ? `<a class="pay-link venmo" href="${venmoUrl}" target="_blank" rel="noopener">Pay via Venmo</a>` : ""}
+                  ${paypalUrl ? `<a class="pay-link paypal" href="${paypalUrl}" target="_blank" rel="noopener">Pay via PayPal</a>` : ""}
+                </div>
+              ` : ""}
             </div>
           `;
           }).join("")}

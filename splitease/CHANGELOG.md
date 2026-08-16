@@ -1,5 +1,15 @@
 # SplitEase changelog
 
+## 1.9.0
+
+- Added optional Venmo and PayPal.me handles to your profile (via the name-edit panel, now "Your profile"), shared across events the same way your name is
+- Settle-up rows now show "Pay via Venmo" / "Pay via PayPal" buttons for whoever owes money, when the person they owe has a handle saved — opens the other app/site with the amount and a note pre-filled; the payer still confirms it themselves, same as everywhere else Venmo/PayPal are used this way (Splitwise does the same)
+- These are convenience links only, not a verified payment integration — nothing confirms the payment actually happened, so the existing Paid switch is still how you mark it settled
+
+## 1.8.0
+
+- Added a date field to expenses, defaulting to today. Shown in the expense list ("Jan 5 · Paid by..."); editable when adding or editing an expense. Existing expenses logged before this update just won't show a date until edited and saved
+
 ## 1.7.0
 
 - Only the event creator can now remove someone else from the event — the "×" on other people's chips is hidden for everyone else, enforced in the rules as well as the UI. Leaving on your own is still always available on your own chip
