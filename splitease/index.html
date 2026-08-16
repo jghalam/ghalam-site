@@ -85,27 +85,13 @@
   }
   input::placeholder { color: var(--text-dim); }
 
-  /* ---------- header ---------- */
-  header {
-    padding: 28px 24px 12px;
-    text-align: center;
-  }
-  .wordmark {
-    font-family: 'DM Serif Display', serif;
-    font-size: 32px;
-    letter-spacing: -0.01em;
-  }
-  .wordmark .ease { color: var(--blue); }
-  .tagline {
-    color: var(--text-dim);
-    font-size: 14px;
-    margin-top: 2px;
-  }
-
   main {
     max-width: 760px;
     margin: 0 auto;
-    padding: 24px 20px 80px;
+    padding: 90px 20px 80px;
+  }
+  @media (max-width: 640px) {
+    main { padding-top: 70px; }
   }
 
   .hidden { display: none !important; }
@@ -434,19 +420,6 @@
     font-size: 22px;
     margin: 0 0 16px;
   }
-  .help-item { margin-bottom: 16px; }
-  .help-item:last-child { margin-bottom: 0; }
-  .help-item h3 {
-    font-size: 14px;
-    margin: 0 0 4px;
-    color: var(--text);
-  }
-  .help-item p {
-    font-size: 13.5px;
-    color: var(--text-dim);
-    margin: 0;
-    line-height: 1.5;
-  }
   .modal-close-row { text-align: right; margin-top: 20px; }
 
   /* activity log */
@@ -518,11 +491,22 @@
     cursor: pointer;
     display: flex;
     align-items: center;
+    gap: 10px;
   }
-  .site-logo img { height: 36px; width: auto; display: block; }
+  .site-logo img { height: 40px; width: auto; display: block; flex-shrink: 0; }
+  .site-logo-text { display: flex; flex-direction: column; line-height: 1.2; }
+  .site-logo-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 19px;
+    color: var(--text);
+  }
+  .site-logo-title .ease { color: var(--blue); }
+  .site-logo-tagline { font-size: 10.5px; color: var(--text-dim); }
   @media (max-width: 640px) {
-    .site-logo { top: 10px; left: 12px; }
-    .site-logo img { height: 28px; }
+    .site-logo { top: 10px; left: 12px; gap: 7px; }
+    .site-logo img { height: 30px; }
+    .site-logo-title { font-size: 15px; }
+    .site-logo-tagline { display: none; }
   }
 </style>
 </head>
@@ -547,48 +531,9 @@
 
 <div class="site-logo" id="site-logo-link" title="Home">
   <img src="icons/logo.png" alt="SplitEase">
-</div>
-
-<header>
-  <div class="wordmark" id="home-link" style="cursor:pointer;">
-    <span>Split<span class="ease">Ease</span></span>
-  </div>
-  <div class="tagline">Share Together. Settle Smarter.</div>
-  <button class="btn-ghost" id="help-btn" style="margin-top:12px; font-size:12.5px; padding:7px 14px;">How it works</button>
-</header>
-
-<div class="modal-overlay hidden" id="help-overlay">
-  <div class="modal-panel">
-    <h2>How SplitEase works</h2>
-
-    <div class="help-item">
-      <h3>No accounts, just links</h3>
-      <p>Whoever starts an event gets a link. Anyone with that link can join by entering their name — nothing to sign up for.</p>
-    </div>
-    <div class="help-item">
-      <h3>Split only who was actually there</h3>
-      <p>When you log an expense, check off exactly who it was shared with. Nothing splits evenly among everyone by default.</p>
-    </div>
-    <div class="help-item">
-      <h3>Editing an expense</h3>
-      <p>You can edit or delete expenses you added. The payer can't be changed after the fact — delete the expense and re-add it instead.</p>
-    </div>
-    <div class="help-item">
-      <h3>Settle up</h3>
-      <p>The settle-up list updates live and is calculated to minimize the number of payments needed — not everyone pays everyone, just enough transactions to net out.</p>
-    </div>
-    <div class="help-item">
-      <h3>Leaving or removing someone</h3>
-      <p>Anyone can remove a participant from the event. If you're removed, you're taken back to the join screen automatically.</p>
-    </div>
-    <div class="help-item">
-      <h3>Deleting the event</h3>
-      <p>Only the person who created the event can delete it. Deleting removes everyone and everything in it — there's no undo.</p>
-    </div>
-
-    <div class="modal-close-row">
-      <button class="btn-primary" id="help-close-btn">Got it</button>
-    </div>
+  <div class="site-logo-text">
+    <span class="site-logo-title">Split<span class="ease">Ease</span></span>
+    <span class="site-logo-tagline">Share Together. Settle Smarter.</span>
   </div>
 </div>
 
@@ -720,7 +665,7 @@
     getAuth, signInAnonymously, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
-  const APP_VERSION = "1.4.1";
+  const APP_VERSION = "1.5.0";
   document.getElementById("app-footer").textContent =
     `SplitEase v${APP_VERSION} — Share Together. Settle Smarter.`;
   console.log(`%cSplitEase v${APP_VERSION}`, "color:#3d8bfd;font-weight:bold;");
@@ -768,16 +713,6 @@
       console.error("Activity log failed:", err);
     }
   }
-
-  document.getElementById("help-btn").addEventListener("click", () => {
-    document.getElementById("help-overlay").classList.remove("hidden");
-  });
-  document.getElementById("help-close-btn").addEventListener("click", () => {
-    document.getElementById("help-overlay").classList.add("hidden");
-  });
-  document.getElementById("help-overlay").addEventListener("click", (e) => {
-    if (e.target.id === "help-overlay") e.target.classList.add("hidden");
-  });
 
   document.getElementById("activity-toggle").addEventListener("click", () => {
     const list = document.getElementById("activity-list");
@@ -973,7 +908,6 @@
     document.getElementById("landing-screen").classList.remove("hidden");
     renderMyEvents();
   }
-  document.getElementById("home-link").addEventListener("click", goHome);
   document.getElementById("site-logo-link").addEventListener("click", goHome);
   document.getElementById("home-btn").addEventListener("click", goHome);
 
