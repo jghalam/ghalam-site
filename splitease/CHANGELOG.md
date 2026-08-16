@@ -1,5 +1,22 @@
 # SplitEase changelog
 
+## 2.7.4
+
+- Section headings (Expenses, Settle up, Activity) are now bold serif headings in full-contrast text instead of small dim uppercase labels
+- Share, Show/Hide Activity, and Delete event are now solid-filled buttons instead of outlined/transparent, for better visibility — especially over a custom event background
+
+## 2.7.3
+
+- Fixed: on narrow screens the event title block (logo, name, invite link) could overlap the back button and "+ Add expense" button instead of wrapping below them — the flex layout was letting it shrink to fit rather than break onto its own line. It now always sits on its own row underneath the button row, at any screen width
+
+## 2.7.2
+
+- When an event has a custom background, the whole content area now sits on a translucent panel (not just individual cards), with cards, expense rows, the status banner, and empty-state messages slightly more opaque on top of that. Previously only cards had any tint, so headings, section labels, and the space between boxes sat directly on the raw photo and were hard to read
+
+## 2.7.1
+
+- Fixed: the event background image was applied to the scrolling content block instead of the page itself, so it never showed in the margins around the content or stayed fixed while scrolling. It's now applied to the page background directly, with the cards still floating semi-transparent on top
+
 ## 2.7.0
 
 - Replaced the profile pencil icon with a settings gear (⚙). Clicking it opens a menu: "Edit profile" (the same name/Venmo/PayPal panel as before) or "Appearance…"
