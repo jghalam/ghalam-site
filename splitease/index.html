@@ -89,10 +89,7 @@
   main {
     max-width: 760px;
     margin: 0 auto;
-    padding: 100px 20px 80px;
-  }
-  @media (max-width: 640px) {
-    main { padding-top: 70px; }
+    padding: 24px 20px 80px;
   }
 
   .hidden { display: none !important; }
@@ -581,11 +578,20 @@
     opacity: 0.6;
   }
 
+  .top-bar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 10px 18px;
+  }
+
   .my-name-badge {
-    position: fixed;
-    top: 18px;
-    right: 18px;
-    z-index: 40;
     display: flex;
     align-items: center;
     gap: 8px;
@@ -595,6 +601,13 @@
     padding: 7px 8px 7px 16px;
     font-size: 13px;
     font-weight: 500;
+    flex-shrink: 0;
+    max-width: 55vw;
+  }
+  #my-name-badge-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   .my-name-edit-btn {
     background: transparent;
@@ -608,41 +621,48 @@
   }
   .my-name-edit-btn:hover { color: var(--text); background: var(--surface); }
   @media (max-width: 640px) {
-    .my-name-badge { top: 12px; right: 12px; font-size: 12px; padding: 6px 6px 6px 12px; }
+    .my-name-badge { font-size: 12px; padding: 6px 6px 6px 12px; }
   }
 
   .site-logo {
-    position: fixed;
-    top: 14px;
-    left: 18px;
-    z-index: 40;
     cursor: pointer;
     display: flex;
     align-items: center;
     gap: 10px;
+    min-width: 0;
   }
-  .site-logo img { height: 52px; width: auto; display: block; flex-shrink: 0; }
-  .site-logo-text { display: flex; flex-direction: column; line-height: 1.2; }
+  .site-logo img { height: 44px; width: auto; display: block; flex-shrink: 0; }
+  .site-logo-text { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; }
   .site-logo-title {
     font-family: 'DM Serif Display', serif;
-    font-size: 25px;
+    font-size: 22px;
     color: var(--text);
   }
   .site-logo-title .ease { color: var(--blue); }
-  .site-logo-tagline { font-size: 12px; color: var(--text-dim); }
+  .site-logo-tagline { font-size: 12px; color: var(--text-dim); white-space: nowrap; }
   @media (max-width: 640px) {
-    .site-logo { top: 10px; left: 12px; gap: 8px; }
-    .site-logo img { height: 38px; }
-    .site-logo-title { font-size: 19px; }
+    .top-bar { padding: 8px 12px; gap: 8px; }
+    .site-logo { gap: 8px; }
+    .site-logo img { height: 32px; }
+    .site-logo-title { font-size: 17px; }
     .site-logo-tagline { display: none; }
   }
 </style>
 </head>
 <body>
 
-<div class="my-name-badge hidden" id="my-name-badge">
-  <span id="my-name-badge-text"></span>
-  <button class="my-name-edit-btn" id="my-name-edit-btn" title="Edit your name" aria-label="Edit your name">✎</button>
+<div class="top-bar">
+  <div class="site-logo" id="site-logo-link" title="Home">
+    <img src="icons/logo.png" alt="SplitEase">
+    <div class="site-logo-text">
+      <span class="site-logo-title">Split<span class="ease">Ease</span></span>
+      <span class="site-logo-tagline">Share Together. Settle Smarter.</span>
+    </div>
+  </div>
+  <div class="my-name-badge hidden" id="my-name-badge">
+    <span id="my-name-badge-text"></span>
+    <button class="my-name-edit-btn" id="my-name-edit-btn" title="Edit your name" aria-label="Edit your name">✎</button>
+  </div>
 </div>
 
 <div class="modal-overlay hidden" id="edit-name-overlay">
@@ -671,14 +691,6 @@
       <button class="btn-ghost" id="edit-name-cancel-btn">Cancel</button>
       <button class="btn-primary" id="edit-name-save-btn">Save</button>
     </div>
-  </div>
-</div>
-
-<div class="site-logo" id="site-logo-link" title="Home">
-  <img src="icons/logo.png" alt="SplitEase">
-  <div class="site-logo-text">
-    <span class="site-logo-title">Split<span class="ease">Ease</span></span>
-    <span class="site-logo-tagline">Share Together. Settle Smarter.</span>
   </div>
 </div>
 
@@ -860,7 +872,7 @@
     getAuth, signInAnonymously, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
-  const APP_VERSION = "2.3.0";
+  const APP_VERSION = "2.3.1";
   document.getElementById("app-footer").textContent =
     `SplitEase v${APP_VERSION} — Share Together. Settle Smarter.`;
   console.log(`%cSplitEase v${APP_VERSION}`, "color:#3d8bfd;font-weight:bold;");
