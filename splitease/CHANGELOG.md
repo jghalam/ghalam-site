@@ -1,5 +1,10 @@
 # SplitEase changelog
 
+## 1.7.0
+
+- Only the event creator can now remove someone else from the event — the "×" on other people's chips is hidden for everyone else, enforced in the rules as well as the UI. Leaving on your own is still always available on your own chip
+- Added a "Paid" text label next to the settle-up switch so its purpose is clear regardless of state
+
 ## 1.6.0
 
 - Removing or leaving now retroactively cleans up expenses instead of leaving orphaned "Someone" references: your own logged expenses are deleted, and you're stripped out of the split on everyone else's (recalculating their share correctly, or deleting the expense if the split would be empty)

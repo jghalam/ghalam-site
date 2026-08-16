@@ -666,7 +666,7 @@
     getAuth, signInAnonymously, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
-  const APP_VERSION = "1.6.0";
+  const APP_VERSION = "1.7.0";
   document.getElementById("app-footer").textContent =
     `SplitEase v${APP_VERSION} — Share Together. Settle Smarter.`;
   console.log(`%cSplitEase v${APP_VERSION}`, "color:#3d8bfd;font-weight:bold;");
@@ -920,6 +920,7 @@
     currentExpenses = [];
     currentPayments = [];
     editingExpenseId = null;
+    isEventCreator = false;
     window.history.pushState({}, "", window.location.pathname);
     document.getElementById("event-screen").classList.add("hidden");
     document.getElementById("loading-state").classList.add("hidden");
@@ -994,6 +995,7 @@
   let currentExpenses = [];
   let currentPayments = [];
   let editingExpenseId = null;
+  let isEventCreator = false;
 
   onAuthStateChanged(auth, async (user) => {
     if (!user) return;
@@ -1070,6 +1072,7 @@
     }
 
     const isCreator = eventSnap.data().creatorUid === auth.currentUser?.uid;
+    isEventCreator = isCreator;
 
     document.getElementById("landing-screen").classList.add("hidden");
     document.getElementById("loading-state").classList.add("hidden");
@@ -1234,6 +1237,10 @@
     const id = removeBtn.dataset.participantId;
     const name = participantName(id);
     const isSelf = id === currentParticipantId;
+    if (!isSelf && !isEventCreator) {
+      showToast("Only the event creator can remove someone else");
+      return;
+    }
     const confirmMsg = isSelf
       ? "Leave this event? This deletes expenses you added and removes you from any expenses others logged."
       : `Remove ${name} from this event? This deletes expenses they added and removes them from others' expense splits.`;
@@ -1266,13 +1273,16 @@
       list.innerHTML = `<div class="empty-state">No one's joined yet.</div>`;
       return;
     }
-    list.innerHTML = currentParticipants.map((p) => `
+    list.innerHTML = currentParticipants.map((p) => {
+      const canRemove = p.id === currentParticipantId || isEventCreator;
+      return `
       <span class="participant-chip">
         <span class="avatar-dot" style="background:${colorFor(p.id)}">${initials(p.name)}</span>
         ${escapeHtml(p.name)}${p.id === currentParticipantId ? " (you)" : ""}
-        <button class="chip-remove" data-participant-id="${p.id}" title="Remove ${escapeHtml(p.name)}" aria-label="Remove ${escapeHtml(p.name)}">×</button>
+        ${canRemove ? `<button class="chip-remove" data-participant-id="${p.id}" title="Remove ${escapeHtml(p.name)}" aria-label="Remove ${escapeHtml(p.name)}">×</button>` : ""}
       </span>
-    `).join("");
+    `;
+    }).join("");
 
     // split-among pills
     const splitList = document.getElementById("expense-split-list");
@@ -1517,10 +1527,13 @@
                 ${isPaid ? `<span class="paid-badge">Paid</span>` : ""}
                 <span class="receipt-amount amount">${money(s.amount)}</span>
                 ${canToggle ? `
-                  <label class="paid-toggle" title="${isPaid ? "Mark as not paid" : "Mark as paid"}">
-                    <input type="checkbox" class="paid-toggle-input" data-from="${s.from}" data-to="${s.to}" ${isPaid ? "checked" : ""}>
-                    <span class="paid-toggle-slider"></span>
-                  </label>
+                  <span style="display:flex; align-items:center; gap:6px;">
+                    <span style="font-size:11px; color:var(--text-dim);">Paid</span>
+                    <label class="paid-toggle" title="${isPaid ? "Mark as not paid" : "Mark as paid"}">
+                      <input type="checkbox" class="paid-toggle-input" data-from="${s.from}" data-to="${s.to}" ${isPaid ? "checked" : ""}>
+                      <span class="paid-toggle-slider"></span>
+                    </label>
+                  </span>
                 ` : ""}
               </span>
             </div>
