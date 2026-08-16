@@ -652,7 +652,7 @@
     getAuth, signInAnonymously, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
-  const APP_VERSION = "1.3.0";
+  const APP_VERSION = "1.3.1";
   document.getElementById("app-footer").textContent =
     `SplitEase v${APP_VERSION} — Share Together. Settle Smarter.`;
   console.log(`%cSplitEase v${APP_VERSION}`, "color:#3d8bfd;font-weight:bold;");
@@ -834,19 +834,29 @@
       renderMyEventGroup("Joined", joined, "Leave", "leave");
   }
 
+  async function safeGetDocs(ref) {
+    try {
+      return await getDocs(ref);
+    } catch (err) {
+      console.warn("Skipping a subcollection during cleanup — check Firestore rules are up to date:", err);
+      return { docs: [] };
+    }
+  }
+
   async function deleteEventCompletely(id) {
     const [participantsSnap, expensesSnap, activitySnap, paymentsSnap] = await Promise.all([
-      getDocs(collection(db, "events", id, "participants")),
-      getDocs(collection(db, "events", id, "expenses")),
-      getDocs(collection(db, "events", id, "activity")),
-      getDocs(collection(db, "events", id, "payments"))
+      safeGetDocs(collection(db, "events", id, "participants")),
+      safeGetDocs(collection(db, "events", id, "expenses")),
+      safeGetDocs(collection(db, "events", id, "activity")),
+      safeGetDocs(collection(db, "events", id, "payments"))
     ]);
-    await Promise.all([
+    const cleanupJobs = [
       ...participantsSnap.docs.map((d) => deleteDoc(d.ref)),
       ...expensesSnap.docs.map((d) => deleteDoc(d.ref)),
       ...activitySnap.docs.map((d) => deleteDoc(d.ref)),
       ...paymentsSnap.docs.map((d) => deleteDoc(d.ref))
-    ]);
+    ].map((p) => p.catch((err) => console.warn("A cleanup delete failed (non-fatal):", err)));
+    await Promise.all(cleanupJobs);
     await deleteDoc(doc(db, "events", id));
     localStorage.removeItem(`splitease:${id}:participantId`);
     forgetEvent(id);
