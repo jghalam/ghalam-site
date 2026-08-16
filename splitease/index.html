@@ -587,6 +587,7 @@
 
     <!-- who am I -->
     <div class="whoami hidden" id="whoami-card">
+      <p id="whoami-removed-note" class="hidden" style="color: var(--coral); font-size: 13px; margin: 0 0 12px;">You were removed from this event.</p>
       <label class="field-label">What's your name?</label>
       <div class="row">
         <input id="whoami-name" type="text" placeholder="Your name" maxlength="40">
@@ -665,7 +666,7 @@
     getAuth, signInAnonymously, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
-  const APP_VERSION = "1.5.0";
+  const APP_VERSION = "1.6.0";
   document.getElementById("app-footer").textContent =
     `SplitEase v${APP_VERSION} — Share Together. Settle Smarter.`;
   console.log(`%cSplitEase v${APP_VERSION}`, "color:#3d8bfd;font-weight:bold;");
@@ -862,6 +863,23 @@
     }
   }
 
+  async function cleanupParticipantExpenses(evId, participantId, expensesList) {
+    const jobs = [];
+    for (const exp of expensesList) {
+      if (exp.createdBy === participantId) {
+        jobs.push(deleteDoc(doc(db, "events", evId, "expenses", exp.id)));
+      } else if (Array.isArray(exp.splitAmong) && exp.splitAmong.includes(participantId)) {
+        const remaining = exp.splitAmong.filter((pid) => pid !== participantId);
+        jobs.push(
+          remaining.length === 0
+            ? deleteDoc(doc(db, "events", evId, "expenses", exp.id))
+            : updateDoc(doc(db, "events", evId, "expenses", exp.id), { splitAmong: remaining })
+        );
+      }
+    }
+    await Promise.all(jobs.map((p) => p.catch((err) => console.warn("Expense cleanup step failed (non-fatal):", err))));
+  }
+
   async function deleteEventCompletely(id) {
     const [participantsSnap, expensesSnap, activitySnap, paymentsSnap] = await Promise.all([
       safeGetDocs(collection(db, "events", id, "participants")),
@@ -885,8 +903,8 @@
     const participantId = localStorage.getItem(`splitease:${id}:participantId`);
     if (participantId) {
       const expensesSnap = await getDocs(collection(db, "events", id, "expenses"));
-      const mine = expensesSnap.docs.filter((d) => d.data().createdBy === participantId);
-      await Promise.all(mine.map((d) => deleteDoc(d.ref)));
+      const expensesList = expensesSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      await cleanupParticipantExpenses(id, participantId, expensesList);
       await deleteDoc(doc(db, "events", id, "participants", participantId));
       localStorage.removeItem(`splitease:${id}:participantId`);
     }
@@ -1081,6 +1099,7 @@
       const stillKnown = currentParticipantId && currentParticipants.some((p) => p.id === currentParticipantId);
       if (wasKnown && !stillKnown) {
         localStorage.removeItem(`splitease:${id}:participantId`);
+        localStorage.setItem(`splitease:${id}:removed`, "1");
         currentParticipantId = null;
         showToast("You've been removed from this event");
       }
@@ -1138,7 +1157,8 @@
     }
 
     const savedName = getMyName();
-    if (savedName && !autoJoinAttempted) {
+    const wasRemoved = localStorage.getItem(`splitease:${eventId}:removed`) === "1";
+    if (savedName && !autoJoinAttempted && !wasRemoved) {
       autoJoinAttempted = true;
       document.getElementById("whoami-card").classList.add("hidden");
       document.getElementById("event-body").classList.add("hidden");
@@ -1146,6 +1166,8 @@
       return;
     }
 
+    document.getElementById("whoami-name").value = savedName || "";
+    document.getElementById("whoami-removed-note").classList.toggle("hidden", !wasRemoved);
     document.getElementById("whoami-card").classList.remove("hidden");
     document.getElementById("event-body").classList.add("hidden");
   }
@@ -1182,6 +1204,7 @@
     btn.disabled = true;
     setMyName(name);
     renderNameBadge();
+    localStorage.removeItem(`splitease:${eventId}:removed`);
     await joinCurrentEvent(name);
     btn.disabled = false;
   });
@@ -1212,14 +1235,11 @@
     const name = participantName(id);
     const isSelf = id === currentParticipantId;
     const confirmMsg = isSelf
-      ? "Leave this event? This removes your name and deletes any expenses you added."
-      : `Remove ${name} from this event?`;
+      ? "Leave this event? This deletes expenses you added and removes you from any expenses others logged."
+      : `Remove ${name} from this event? This deletes expenses they added and removes them from others' expense splits.`;
     if (!confirm(confirmMsg)) return;
     try {
-      if (isSelf) {
-        const mine = currentExpenses.filter((exp) => exp.createdBy === id);
-        await Promise.all(mine.map((exp) => deleteDoc(doc(db, "events", eventId, "expenses", exp.id))));
-      }
+      await cleanupParticipantExpenses(eventId, id, currentExpenses);
       await deleteDoc(doc(db, "events", eventId, "participants", id));
       currentParticipants = currentParticipants.filter((p) => p.id !== id);
       if (isSelf) {

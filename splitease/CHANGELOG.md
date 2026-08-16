@@ -1,5 +1,15 @@
 # SplitEase changelog
 
+## 1.6.0
+
+- Removing or leaving now retroactively cleans up expenses instead of leaving orphaned "Someone" references: your own logged expenses are deleted, and you're stripped out of the split on everyone else's (recalculating their share correctly, or deleting the expense if the split would be empty)
+- Fixed: after being removed from an event, the app no longer silently rejoins you on your next visit or reload — you'll see a "You were removed" notice and have to explicitly rejoin (your name is still pre-filled for convenience)
+
+## 1.5.0
+
+- Moved the SplitEase title and tagline beside the logo in a single compact lockup, fixed to the top-left of the page — replaces the old large centered hero header
+- Removed the "How it works" button and its help panel
+
 ## 1.4.1
 
 - Fixed a deeper race behind the "joined twice" bug — most reproducible by getting removed by someone else and then reloading. The join decision was being made synchronously right after opening an event, before any real participant data had arrived, so it could act on stale (empty) state instead of the real list. It now always waits for the first real snapshot before deciding whether to auto-join, show the join form, or reclaim an existing record
