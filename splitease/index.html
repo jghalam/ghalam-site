@@ -677,10 +677,24 @@
     background-position: center;
     background-attachment: fixed;
   }
+  body.has-custom-bg #event-screen {
+    background: rgba(var(--surface-rgb), 0.55);
+    border-radius: 18px;
+    padding: 22px;
+  }
   body.has-custom-bg .card,
   body.has-custom-bg .done-toggle-row,
-  body.has-custom-bg .whoami {
-    background: rgba(var(--surface-rgb), 0.9);
+  body.has-custom-bg .whoami,
+  body.has-custom-bg .empty-state,
+  body.has-custom-bg .status-banner {
+    background: rgba(var(--surface-rgb), 0.94);
+  }
+  body.has-custom-bg .expense-row {
+    background: rgba(var(--surface-rgb), 0.94);
+    border-radius: 10px;
+    padding-left: 14px;
+    padding-right: 14px;
+    margin-bottom: 2px;
   }
 
   /* activity log */
@@ -1091,7 +1105,7 @@
     getAuth, signInAnonymously, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
-  const APP_VERSION = "2.7.1";
+  const APP_VERSION = "2.7.2";
   document.getElementById("app-footer").textContent =
     `SplitEase v${APP_VERSION} — Share Together. Settle Smarter.`;
   console.log(`%cSplitEase v${APP_VERSION}`, "color:#3d8bfd;font-weight:bold;");
