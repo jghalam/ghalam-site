@@ -114,6 +114,20 @@
   }
 
   .btn-solid-action:hover { opacity: 0.9; }
+  .share-solid-btn {
+    color: #ffffff !important;
+    background: var(--blue) !important;
+    border-color: var(--blue) !important;
+  }
+
+  .share-solid-btn svg,
+  .share-solid-btn svg *,
+  .share-solid-btn img {
+    color: #ffffff;
+    stroke: #ffffff;
+    fill: #ffffff;
+  }
+
 
   .btn-delete {
     background: var(--coral);
@@ -995,7 +1009,7 @@
         </div>
         <div class="event-code">
           Invite link: <span id="event-id-display">—</span>
-          <button class="icon-btn" id="share-link-icon-btn" title="Share invite link" aria-label="Share invite link">↗</button>
+          <button class="btn-solid-action share-solid-btn" id="share-link-icon-btn" title="Share invite link" aria-label="Share invite link">↗</button>
         </div>
       </div>
     </div>
