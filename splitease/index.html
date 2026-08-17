@@ -72,6 +72,14 @@
     flex-direction: column;
   }
 
+  html.dark-mode body {
+    background:
+      radial-gradient(ellipse 1100px 650px at 88% -5%, rgba(158, 92, 30, 0.38), transparent 60%),
+      radial-gradient(ellipse 800px 500px at 6% -5%, rgba(90, 50, 95, 0.30), transparent 60%),
+      var(--bg);
+    background-attachment: fixed;
+  }
+
   .amount { font-family: 'IBM Plex Mono', monospace; font-variant-numeric: tabular-nums; }
 
   a { color: var(--blue); }
@@ -189,6 +197,10 @@
   .card-green {
     background: var(--card-green);
     border-color: var(--card-green-border);
+  }
+  html.dark-mode #join-event-card {
+    background: var(--surface);
+    border-color: var(--border);
   }
   .card h2 {
     font-family: 'DM Serif Display', serif;
@@ -986,7 +998,7 @@
     </div>
 
     <div class="landing-cards">
-      <div class="card card-green">
+      <div class="card card-green" id="join-event-card">
         <h2>Join an event</h2>
         <p>Paste the event link or code someone sent you.</p>
         <div class="row">
@@ -1151,7 +1163,7 @@
     getAuth, signInAnonymously, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
-  const APP_VERSION = "2.8.0";
+  const APP_VERSION = "2.8.1";
   document.getElementById("app-footer").textContent =
     `SplitEase v${APP_VERSION} — Share Together. Settle Smarter.`;
   console.log(`%cSplitEase v${APP_VERSION}`, "color:#3d8bfd;font-weight:bold;");
