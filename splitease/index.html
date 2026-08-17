@@ -34,6 +34,7 @@
     --green: #059669;
     --coral: #dc2626;
     --purple: #7c3aed;
+    --yellow: #a16207;
     --band-blue: #eaf2ff;
     --card-green: #eafaf0;
     --card-green-border: #cdeedb;
@@ -53,6 +54,7 @@
     --green: #3ddc97;
     --coral: #ff6b6b;
     --purple: #a78bfa;
+    --yellow: #facc15;
     --band-blue: #1b2a44;
     --card-green: #123324;
     --card-green-border: #1f4a36;
@@ -333,17 +335,17 @@
     flex-shrink: 0;
   }
   .status-banner.status-new {
-    background: rgba(107, 114, 128, 0.12);
-    color: var(--text-dim);
-    border-color: var(--border);
+    background: rgba(220, 38, 38, 0.12);
+    color: var(--coral);
+    border-color: rgba(220, 38, 38, 0.35);
   }
-  .status-banner.status-new .status-dot { background: var(--text-dim); }
+  .status-banner.status-new .status-dot { background: var(--coral); }
   .status-banner.status-in_progress {
-    background: rgba(124, 58, 237, 0.14);
-    color: var(--purple);
-    border-color: rgba(124, 58, 237, 0.35);
+    background: rgba(161, 98, 7, 0.14);
+    color: var(--yellow);
+    border-color: rgba(161, 98, 7, 0.35);
   }
-  .status-banner.status-in_progress .status-dot { background: var(--purple); }
+  .status-banner.status-in_progress .status-dot { background: var(--yellow); }
   .status-banner.status-closed {
     background: rgba(5, 150, 105, 0.14);
     color: var(--green);
@@ -427,6 +429,7 @@
   }
   .status-legend span { display: inline-flex; align-items: center; gap: 5px; }
   .legend-dot {
+    display: inline-block;
     width: 8px;
     height: 8px;
     border-radius: 50%;
@@ -970,8 +973,8 @@
       <h2>Your events</h2>
       <p>Pick up where you left off.</p>
       <div class="status-legend">
-        <span><span class="legend-dot" style="background:var(--text-dim);"></span>New</span>
-        <span><span class="legend-dot" style="background:var(--purple);"></span>In progress</span>
+        <span><span class="legend-dot" style="background:var(--coral);"></span>New</span>
+        <span><span class="legend-dot" style="background:var(--yellow);"></span>In progress</span>
         <span><span class="legend-dot" style="background:var(--green);"></span>Closed</span>
       </div>
       <div id="my-events-list"></div>
@@ -1148,7 +1151,7 @@
     getAuth, signInAnonymously, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
-  const APP_VERSION = "2.7.5";
+  const APP_VERSION = "2.8.0";
   document.getElementById("app-footer").textContent =
     `SplitEase v${APP_VERSION} — Share Together. Settle Smarter.`;
   console.log(`%cSplitEase v${APP_VERSION}`, "color:#3d8bfd;font-weight:bold;");
@@ -1513,7 +1516,7 @@
   }
 
   const STATUS_LABELS = { new: "New", in_progress: "In progress", closed: "Closed" };
-  const STATUS_COLORS = { new: "var(--text-dim)", in_progress: "var(--purple)", closed: "var(--green)" };
+  const STATUS_COLORS = { new: "var(--coral)", in_progress: "var(--yellow)", closed: "var(--green)" };
 
   async function fetchEventStatus(id) {
     try {
