@@ -1054,6 +1054,17 @@
       <p style="font-size:12px;color:var(--text-dim);margin:10px 0 0;">Lets others pay you directly from the settle-up screen. Add now or later from your profile (✎, top right).</p>
     </div>
 
+    <div class="modal-overlay hidden" id="name-match-overlay">
+      <div class="modal-panel" style="max-width:400px;">
+        <h2>Is this the same person?</h2>
+        <p id="name-match-text" style="font-size:14px;color:var(--text-dim);"></p>
+        <div class="modal-close-row" style="display:flex; justify-content:flex-end; gap:10px;">
+          <button class="btn-ghost" id="name-match-different-btn">No, use a different name</button>
+          <button class="btn-primary" id="name-match-same-btn">Yes, same person</button>
+        </div>
+      </div>
+    </div>
+
     <div id="event-loading-placeholder" style="text-align:center;color:var(--text-dim);padding:30px 0;font-size:13.5px;">
       Loading…
     </div>
@@ -1167,7 +1178,7 @@
     getAuth, signInAnonymously, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
-  const APP_VERSION = "2.8.5";
+  const APP_VERSION = "2.9.1";
   document.getElementById("app-footer").textContent =
     `SplitEase v${APP_VERSION} — Share Together. Settle Smarter.`;
   console.log(`%cSplitEase v${APP_VERSION}`, "color:#3d8bfd;font-weight:bold;");
@@ -2017,15 +2028,22 @@
     }
   });
 
+  function participantAuthUids(p) {
+    const uids = Array.isArray(p.authUids) ? p.authUids.slice() : [];
+    if (p.authUid && !uids.includes(p.authUid)) uids.push(p.authUid);
+    return uids;
+  }
+
   function checkWhoAmI() {
     document.getElementById("event-loading-placeholder").classList.add("hidden");
     const isKnown = currentParticipantId && currentParticipants.some((p) => p.id === currentParticipantId);
     if (isKnown) {
       const me = currentParticipants.find((p) => p.id === currentParticipantId);
-      if (me && !me.authUid && auth.currentUser?.uid) {
-        // Backfill so future visits can self-heal even if localStorage is lost.
+      const myUid = auth.currentUser?.uid;
+      if (me && myUid && !participantAuthUids(me).includes(myUid)) {
+        // Backfill so future visits (and other merged devices) can self-heal even if localStorage is lost.
         updateDoc(doc(db, "events", eventId, "participants", currentParticipantId), {
-          authUid: auth.currentUser.uid
+          authUids: [...new Set([...participantAuthUids(me), myUid])]
         }).catch(() => {});
       }
       document.getElementById("whoami-card").classList.add("hidden");
@@ -2038,7 +2056,7 @@
     // anonymous auth uid) but localStorage lost track of it — e.g. a reload landed
     // between joining and saving the id locally — reclaim it instead of rejoining.
     const myUid = auth.currentUser?.uid;
-    const existing = myUid ? currentParticipants.find((p) => p.authUid === myUid) : null;
+    const existing = myUid ? currentParticipants.find((p) => participantAuthUids(p).includes(myUid)) : null;
     if (existing) {
       currentParticipantId = existing.id;
       localStorage.setItem(`splitease:${eventId}:participantId`, existing.id);
@@ -2052,7 +2070,7 @@
       autoJoinAttempted = true;
       document.getElementById("whoami-card").classList.add("hidden");
       document.getElementById("event-body").classList.add("hidden");
-      joinCurrentEvent(savedName);
+      attemptJoin(savedName);
       return;
     }
 
@@ -2064,8 +2082,47 @@
     document.getElementById("event-body").classList.add("hidden");
   }
 
+  function namesLikelyMatch(nameA, nameB) {
+    const a = nameA.trim().toLowerCase().split(/\s+/);
+    const b = nameB.trim().toLowerCase().split(/\s+/);
+    if (!a[0] || !b[0] || a[0] !== b[0]) return false; // first names must match
+    const aRest = a.slice(1).join(" ");
+    const bRest = b.slice(1).join(" ");
+    if (aRest === bRest) return true; // identical, including "first name only" vs "first name only"
+    if (!aRest || !bRest) return true; // one has just a first name — ambiguous, flag it
+    const aInitial = aRest.replace(/\./g, "");
+    const bInitial = bRest.replace(/\./g, "");
+    if (aInitial.length === 1 && bRest.startsWith(aInitial)) return true;
+    if (bInitial.length === 1 && aRest.startsWith(bInitial)) return true;
+    return false;
+  }
+
+  async function mergeIntoParticipant(existingMatch) {
+    try {
+      const myUid = auth.currentUser?.uid;
+      if (myUid) {
+        const mergedUids = [...new Set([...participantAuthUids(existingMatch), myUid])];
+        await updateDoc(doc(db, "events", eventId, "participants", existingMatch.id), {
+          authUids: mergedUids
+        });
+      }
+      currentParticipantId = existingMatch.id;
+      localStorage.setItem(`splitease:${eventId}:participantId`, existingMatch.id);
+      checkWhoAmI();
+      renderParticipants();
+      renderStatusBanner();
+      syncDoneToggle();
+      showToast(`Welcome back, ${existingMatch.name}`);
+      logActivity("join", `<b>${escapeHtml(existingMatch.name)}</b> joined from another device`);
+    } catch (err) {
+      console.error(err);
+      showToast("Couldn't join — try again");
+    }
+  }
+
   async function joinCurrentEvent(name) {
     try {
+      const myUid = auth.currentUser?.uid;
       const venmoHandle = getMyVenmo();
       const paypalHandle = getMyPaypal();
       const ref = await addDoc(collection(db, "events", eventId, "participants"), {
@@ -2073,14 +2130,14 @@
         venmoHandle,
         paypalHandle,
         isDone: false,
-        authUid: auth.currentUser?.uid || null,
+        authUids: myUid ? [myUid] : [],
         joinedAt: serverTimestamp()
       });
       currentParticipantId = ref.id;
       localStorage.setItem(`splitease:${eventId}:participantId`, ref.id);
       // Don't wait on the snapshot listener to reflect this — update immediately.
       if (!currentParticipants.some((p) => p.id === ref.id)) {
-        currentParticipants.push({ id: ref.id, name, venmoHandle, paypalHandle, isDone: false, authUid: auth.currentUser?.uid || null });
+        currentParticipants.push({ id: ref.id, name, venmoHandle, paypalHandle, isDone: false, authUids: myUid ? [myUid] : [] });
       }
       checkWhoAmI();
       renderParticipants();
@@ -2095,6 +2152,54 @@
     }
   }
 
+  let pendingJoinMatch = null;
+
+  async function attemptJoin(name) {
+    const trimmed = name.trim();
+    const exact = currentParticipants.find(
+      (p) => p.name && p.name.trim().toLowerCase() === trimmed.toLowerCase()
+    );
+    const match = exact || currentParticipants.find((p) => p.name && namesLikelyMatch(p.name, trimmed));
+
+    if (match) {
+      pendingJoinMatch = match;
+      document.getElementById("whoami-name").value = trimmed;
+      document.getElementById("whoami-venmo").value = getMyVenmo();
+      document.getElementById("whoami-paypal").value = getMyPaypal();
+      document.getElementById("name-match-text").textContent = exact
+        ? `There's already someone named "${match.name}" in this event. Are you the same person?`
+        : `There's already someone named "${match.name}" in this event, close to "${trimmed}". Are you the same person?`;
+      document.getElementById("whoami-card").classList.remove("hidden");
+      document.getElementById("event-body").classList.add("hidden");
+      document.getElementById("name-match-overlay").classList.remove("hidden");
+      return;
+    }
+
+    await joinCurrentEvent(trimmed);
+  }
+
+  document.getElementById("name-match-same-btn").addEventListener("click", async () => {
+    if (!pendingJoinMatch) return;
+    const match = pendingJoinMatch;
+    pendingJoinMatch = null;
+    document.getElementById("name-match-overlay").classList.add("hidden");
+    await mergeIntoParticipant(match);
+  });
+
+  document.getElementById("name-match-different-btn").addEventListener("click", () => {
+    pendingJoinMatch = null;
+    document.getElementById("name-match-overlay").classList.add("hidden");
+    const input = document.getElementById("whoami-name");
+    input.focus();
+    input.select();
+  });
+  document.getElementById("name-match-overlay").addEventListener("click", (e) => {
+    if (e.target.id === "name-match-overlay") {
+      pendingJoinMatch = null;
+      e.target.classList.add("hidden");
+    }
+  });
+
   document.getElementById("whoami-join-btn").addEventListener("click", async () => {
     const nameInput = document.getElementById("whoami-name");
     const name = nameInput.value.trim();
@@ -2106,7 +2211,7 @@
     setMyPaypal(sanitizeHandle(document.getElementById("whoami-paypal").value, "paypal"));
     renderNameBadge();
     localStorage.removeItem(`splitease:${eventId}:removed`);
-    await joinCurrentEvent(name);
+    await attemptJoin(name);
     btn.disabled = false;
   });
 
