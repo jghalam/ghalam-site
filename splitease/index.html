@@ -198,7 +198,8 @@
     background: var(--card-green);
     border-color: var(--card-green-border);
   }
-  html.dark-mode #join-event-card {
+  html.dark-mode #join-event-card,
+  html.dark-mode #my-events-card {
     background: var(--surface);
     border-color: var(--border);
   }
@@ -1163,7 +1164,7 @@
     getAuth, signInAnonymously, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
-  const APP_VERSION = "2.8.1";
+  const APP_VERSION = "2.8.2";
   document.getElementById("app-footer").textContent =
     `SplitEase v${APP_VERSION} — Share Together. Settle Smarter.`;
   console.log(`%cSplitEase v${APP_VERSION}`, "color:#3d8bfd;font-weight:bold;");
