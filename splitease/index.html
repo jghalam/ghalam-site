@@ -1178,7 +1178,7 @@
     getAuth, signInAnonymously, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
-  const APP_VERSION = "2.9.1";
+  const APP_VERSION = "2.9.2";
   document.getElementById("app-footer").textContent =
     `SplitEase v${APP_VERSION} — Share Together. Settle Smarter.`;
   console.log(`%cSplitEase v${APP_VERSION}`, "color:#3d8bfd;font-weight:bold;");
@@ -1688,6 +1688,7 @@
     currentPayments = [];
     editingExpenseId = null;
     isEventCreator = false;
+    eventCreatorUid = "";
     currentEventName = "";
     applyEventAppearance({});
     window.history.pushState({}, "", window.location.pathname);
@@ -1829,6 +1830,7 @@
   let currentPayments = [];
   let editingExpenseId = null;
   let isEventCreator = false;
+  let eventCreatorUid = "";
   let currentEventName = "";
 
   onAuthStateChanged(auth, async (user) => {
@@ -1921,8 +1923,9 @@
       return;
     }
 
-    const isCreator = eventSnap.data().creatorUid === auth.currentUser?.uid;
-    isEventCreator = isCreator;
+    const rawCreatorUid = eventSnap.data().creatorUid;
+    eventCreatorUid = rawCreatorUid;
+    isEventCreator = rawCreatorUid === auth.currentUser?.uid;
 
     document.getElementById("landing-screen").classList.add("hidden");
     document.getElementById("new-event-btn").classList.add("hidden");
@@ -1931,8 +1934,8 @@
     document.getElementById("event-name-display").textContent = eventSnap.data().name;
     currentEventName = eventSnap.data().name;
     document.getElementById("event-id-display").textContent = `${location.origin}${location.pathname}?event=${id}`;
-    document.getElementById("delete-event-btn").classList.toggle("hidden", !isCreator);
-    rememberEvent(id, eventSnap.data().name, isCreator);
+    document.getElementById("delete-event-btn").classList.toggle("hidden", !isEventCreator);
+    rememberEvent(id, eventSnap.data().name, isEventCreator);
     applyEventAppearance(eventSnap.data());
 
     document.getElementById("event-loading-placeholder").classList.remove("hidden");
@@ -1962,6 +1965,16 @@
         currentParticipantId = null;
         showToast("You've been removed from this event");
       }
+      // A device merged (by name match) into the same participant identity as
+      // whoever created the event should be treated as the creator too.
+      const myUid = auth.currentUser?.uid;
+      if (myUid && !isEventCreator && eventCreatorUid) {
+        const creatorParticipant = currentParticipants.find((p) => participantAuthUids(p).includes(eventCreatorUid));
+        if (creatorParticipant && participantAuthUids(creatorParticipant).includes(myUid)) {
+          isEventCreator = true;
+        }
+      }
+      document.getElementById("delete-event-btn").classList.toggle("hidden", !isEventCreator);
       renderParticipants();
       renderExpenses();
       renderSettleUp();
@@ -2049,6 +2062,7 @@
       document.getElementById("whoami-card").classList.add("hidden");
       document.getElementById("event-body").classList.remove("hidden");
       syncDoneToggle();
+      ensureCreatorParticipantLink();
       return;
     }
 
@@ -2120,6 +2134,18 @@
     }
   }
 
+  async function ensureCreatorParticipantLink() {
+    if (!isEventCreator || !currentParticipantId || !eventId) return;
+    try {
+      const snap = await getDoc(doc(db, "events", eventId));
+      if (snap.exists() && !snap.data().creatorParticipantId) {
+        await updateDoc(doc(db, "events", eventId), { creatorParticipantId: currentParticipantId });
+      }
+    } catch (err) {
+      console.warn("Couldn't link creator participant record:", err);
+    }
+  }
+
   async function joinCurrentEvent(name) {
     try {
       const myUid = auth.currentUser?.uid;
@@ -2145,6 +2171,7 @@
       syncDoneToggle();
       showToast(`Welcome, ${name}`);
       logActivity("join", `<b>${escapeHtml(name)}</b> joined`);
+      await ensureCreatorParticipantLink();
     } catch (err) {
       console.error(err);
       showToast("Couldn't join — try again");
