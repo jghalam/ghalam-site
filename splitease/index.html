@@ -36,8 +36,8 @@
     --purple: #7c3aed;
     --yellow: #a16207;
     --band-blue: #eaf2ff;
-    --card-green: #eafaf0;
-    --card-green-border: #cdeedb;
+    --card-green: #bfe3cc;
+    --card-green-border: #94cead;
   }
 
   html.dark-mode {
@@ -65,8 +65,8 @@
   body {
     margin: 0;
     background:
-      radial-gradient(ellipse 1300px 850px at 50% 15%, rgba(255,255,255,0.95), transparent 62%),
-      #f4efe3;
+      radial-gradient(ellipse 1100px 700px at 50% 10%, rgba(255,255,255,0.65), transparent 58%),
+      #ede4d1;
     background-attachment: fixed;
     color: var(--text);
     font-family: 'DM Sans', sans-serif;
@@ -1167,7 +1167,7 @@
     getAuth, signInAnonymously, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
-  const APP_VERSION = "2.8.4";
+  const APP_VERSION = "2.8.5";
   document.getElementById("app-footer").textContent =
     `SplitEase v${APP_VERSION} — Share Together. Settle Smarter.`;
   console.log(`%cSplitEase v${APP_VERSION}`, "color:#3d8bfd;font-weight:bold;");
