@@ -1178,7 +1178,7 @@
     getAuth, signInAnonymously, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
-  const APP_VERSION = "2.9.3";
+  const APP_VERSION = "2.9.4";
   document.getElementById("app-footer").textContent =
     `SplitEase v${APP_VERSION} — Share Together. Settle Smarter.`;
   console.log(`%cSplitEase v${APP_VERSION}`, "color:#3d8bfd;font-weight:bold;");
@@ -1364,8 +1364,13 @@
     setMyPaypal(newPaypal);
     renderNameBadge();
     document.getElementById("edit-name-overlay").classList.add("hidden");
-    await propagateProfileChange(newName, newVenmo, newPaypal);
-    showToast("Profile updated");
+    try {
+      await propagateProfileChange(newName, newVenmo, newPaypal);
+      showToast("Profile updated");
+    } catch (err) {
+      console.error(err);
+      showToast("Profile saved on this device, but syncing to your events failed — try again later");
+    }
   });
 
   // ---------- appearance: theme (global) + event background/logo (per-event) ----------
@@ -1794,19 +1799,24 @@
     const row = e.target.closest(".my-event-row-main");
     if (!row) return;
     const id = row.dataset.eventId;
-    const snap = await getDoc(doc(db, "events", id));
-    if (!snap.exists()) {
-      forgetEvent(id);
-      renderMyEvents();
-      showToast("That event no longer exists");
-      return;
+    try {
+      const snap = await getDoc(doc(db, "events", id));
+      if (!snap.exists()) {
+        forgetEvent(id);
+        renderMyEvents();
+        showToast("That event no longer exists");
+        return;
+      }
+      window.history.pushState({}, "", `?event=${id}`);
+      eventId = id;
+      document.getElementById("landing-screen").classList.add("hidden");
+      document.getElementById("new-event-btn").classList.add("hidden");
+      document.getElementById("loading-state").classList.remove("hidden");
+      await openEvent(id);
+    } catch (err) {
+      console.error(err);
+      showToast("Couldn't open that event — check your connection and try again");
     }
-    window.history.pushState({}, "", `?event=${id}`);
-    eventId = id;
-    document.getElementById("landing-screen").classList.add("hidden");
-    document.getElementById("new-event-btn").classList.add("hidden");
-    document.getElementById("loading-state").classList.remove("hidden");
-    await openEvent(id);
   });
 
   // ---------- routing ----------
@@ -1891,14 +1901,19 @@
       id = url.searchParams.get("event") || raw;
     } catch { /* not a URL, treat as raw code */ }
 
-    const snap = await getDoc(doc(db, "events", id));
-    if (!snap.exists()) {
-      document.getElementById("landing-error").textContent = "Couldn't find that event — check the link or code.";
-      return;
+    try {
+      const snap = await getDoc(doc(db, "events", id));
+      if (!snap.exists()) {
+        document.getElementById("landing-error").textContent = "Couldn't find that event — check the link or code.";
+        return;
+      }
+      window.history.pushState({}, "", `?event=${id}`);
+      eventId = id;
+      await openEvent(eventId);
+    } catch (err) {
+      console.error(err);
+      showToast("Couldn't join that event — check your connection and try again");
     }
-    window.history.pushState({}, "", `?event=${id}`);
-    eventId = id;
-    await openEvent(eventId);
   });
 
   // ---------- event screen ----------
@@ -1909,7 +1924,19 @@
     unsubscribers = [];
     autoJoinAttempted = false;
 
-    const eventSnap = await getDoc(doc(db, "events", id));
+    let eventSnap;
+    try {
+      eventSnap = await getDoc(doc(db, "events", id));
+    } catch (err) {
+      console.error(err);
+      document.getElementById("loading-state").classList.add("hidden");
+      document.getElementById("event-screen").classList.add("hidden");
+      document.getElementById("landing-screen").classList.remove("hidden");
+      document.getElementById("new-event-btn").classList.remove("hidden");
+      renderMyEvents();
+      showToast("Couldn't load that event — check your connection and try again");
+      return;
+    }
     if (!eventSnap.exists()) {
       forgetEvent(id);
       eventId = null;
