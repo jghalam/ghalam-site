@@ -1170,7 +1170,7 @@
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
   import {
-    getFirestore, doc, setDoc, addDoc, getDoc, getDocs, updateDoc,
+    initializeFirestore, doc, setDoc, addDoc, getDoc, getDocs, updateDoc,
     collection, onSnapshot, serverTimestamp, deleteDoc,
     query, orderBy, limit, deleteField
   } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-firestore.js";
@@ -1178,7 +1178,7 @@
     getAuth, signInAnonymously, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
-  const APP_VERSION = "2.9.2";
+  const APP_VERSION = "2.9.3";
   document.getElementById("app-footer").textContent =
     `SplitEase v${APP_VERSION} — Share Together. Settle Smarter.`;
   console.log(`%cSplitEase v${APP_VERSION}`, "color:#3d8bfd;font-weight:bold;");
@@ -1193,7 +1193,7 @@
   };
 
   const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+  const db = initializeFirestore(app, { experimentalAutoDetectLongPolling: true });
   const auth = getAuth(app);
 
   function participantHasExpenses(participantId) {
