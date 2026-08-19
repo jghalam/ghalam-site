@@ -213,6 +213,12 @@ document.addEventListener('DOMContentLoaded', () => {
   const playerDesc = document.getElementById('playerDesc');
   const playerStatus = document.getElementById('playerStatus');
   const playerToggle = document.getElementById('playerToggle');
+  const playerArtBtn = document.getElementById('playerArtBtn');
+  const playerArt = document.getElementById('playerArt');
+  const bgArt = document.getElementById('bgArt');
+  const artworkModal = document.getElementById('artworkModal');
+  const artworkModalImg = document.getElementById('artworkModalImg');
+  const artworkModalTitle = document.getElementById('artworkModalTitle');
 
   function setPlayIcon(btn, playing) {
     if (!btn) return;
@@ -225,6 +231,52 @@ document.addEventListener('DOMContentLoaded', () => {
       : '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>';
   }
 
+  // ---------- album art ----------
+  // Looked up from live track metadata (artist/title), not the station
+  // itself, so it only ever shows for the track actually playing right now.
+
+  let currentArtworkUrl = null; // the "large" URL — what the popup opens to
+  let currentArtworkKey = null; // guards a slow lookup from overwriting a newer track's result
+
+  function setArtwork(result) {
+    if (result) {
+      currentArtworkUrl = result.large;
+      playerArt.src = result.small;
+      playerArtBtn.hidden = false;
+      bgArt.style.backgroundImage = `url("${result.small}")`; // heavily blurred — the small size is plenty and loads faster
+      bgArt.classList.add('is-active');
+    } else {
+      currentArtworkUrl = null;
+      playerArtBtn.hidden = true;
+      playerArt.removeAttribute('src');
+      bgArt.classList.remove('is-active');
+    }
+  }
+
+  async function updateArtworkForMetadata(info) {
+    const artist = info && info.artist;
+    const title = info && info.title;
+    const key = Artwork.cacheKey(artist, title);
+    if (key === currentArtworkKey) return; // same track as last time — nothing to do
+    currentArtworkKey = key;
+
+    if (!artist && !title) { setArtwork(null); return; }
+    const result = await Artwork.lookup(artist, title);
+    if (key !== currentArtworkKey) return; // a newer track/station started while this was in flight
+    setArtwork(result);
+  }
+
+  playerArtBtn.addEventListener('click', () => {
+    if (!currentArtworkUrl) return;
+    artworkModalImg.src = currentArtworkUrl;
+    artworkModalTitle.textContent = playerName.textContent || 'Album art';
+    artworkModal.showModal();
+  });
+  document.getElementById('artworkModalClose').addEventListener('click', () => artworkModal.close());
+  // Drop the src on close (not just hide) so a slow-loading image never
+  // flashes stale art from a previous track the next time this opens.
+  artworkModal.addEventListener('close', () => { artworkModalImg.removeAttribute('src'); });
+
   // `selectedStation` is what the footer control bar shows and operates on.
   // It's distinct from Player.current (which is only ever set while audio
   // is actually connecting/playing): selecting a station just points the
@@ -236,6 +288,8 @@ document.addEventListener('DOMContentLoaded', () => {
     selectedStation = station;
     lastStatus = 'stopped';
     lastMetadata = null; // stale track info from a previous station shouldn't show here
+    currentArtworkKey = null;
+    setArtwork(null); // ditto for its artwork/backdrop — this station hasn't reported a track yet
     playerBar.hidden = false;
     playerName.textContent = station.name || station.url;
     playerDesc.textContent = station.description || '';
@@ -265,7 +319,13 @@ document.addEventListener('DOMContentLoaded', () => {
   Player.setOnStateChange(({ status, station }) => {
     lastStatus = status;
     if (station) selectedStation = station; // actually playing something always selects it
-    if (!selectedStation) { playerBar.hidden = true; syncPlaybackUI(); return; }
+    if (!selectedStation) {
+      playerBar.hidden = true;
+      currentArtworkKey = null;
+      setArtwork(null);
+      syncPlaybackUI();
+      return;
+    }
     playerBar.hidden = false;
     playerName.textContent = selectedStation.name || selectedStation.url;
     playerDesc.textContent = selectedStation.description || '';
@@ -293,6 +353,7 @@ document.addEventListener('DOMContentLoaded', () => {
   Player.setOnMetadata((info) => {
     lastMetadata = info;
     renderPlayerStatusText();
+    updateArtworkForMetadata(info);
   });
 
   // ---------- video playback ----------

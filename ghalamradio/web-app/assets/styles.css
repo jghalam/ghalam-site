@@ -42,6 +42,26 @@ body {
   z-index: 0;
 }
 
+/* Full-viewport backdrop built from the current track's album art, heavily
+   blurred and darkened so it reads as ambient color rather than a picture —
+   sits behind .dial-glow (z-index 0) so the amber accent still shows
+   through. `inset: -10%` overshoots the viewport on all sides so the blur's
+   soft edges fall outside what's visible, instead of a faint vignette. Only
+   toggling opacity (never swapping display) is what makes the crossfade
+   between tracks/stations smooth. */
+.bg-art {
+  position: fixed;
+  inset: -10%;
+  background-size: cover;
+  background-position: center;
+  filter: blur(70px) saturate(1.4) brightness(0.4);
+  opacity: 0;
+  transition: opacity 0.7s ease;
+  z-index: -1;
+  pointer-events: none;
+}
+.bg-art.is-active { opacity: 1; }
+
 .site-header {
   position: relative;
   z-index: 1;
@@ -398,7 +418,6 @@ a.icon-btn { text-decoration: none; }
   backdrop-filter: blur(10px);
   border-top: 1px solid var(--border);
 }
-
 .player-toggle {
   width: 42px;
   height: 42px;
@@ -413,7 +432,35 @@ a.icon-btn { text-decoration: none; }
   flex-shrink: 0;
 }
 
-.player-info { min-width: 0; flex: 1; }
+/* Reserves room for the art button, which is centered in the bar via
+   absolute positioning (so it stays dead-center regardless of the toggle
+   button's or app-version's width) and therefore isn't part of this flex
+   item's normal layout flow. Reserving the space unconditionally — rather
+   than only when art is actually showing — means nothing reflows/jumps
+   when a track's artwork appears or disappears mid-stream. */
+.player-info { min-width: 0; flex: 1; padding-right: 3.25rem; }
+
+/* Centered in the player bar (not just "after the info text") so it reads
+   as a real focal point rather than trailing off to one side. */
+.player-art-btn {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--surface-2);
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+.player-art-btn:hover { border-color: var(--accent); transform: translate(-50%, -50%) scale(1.06); }
+.player-art-btn[hidden] { display: none; }
+
+.player-art { width: 100%; height: 100%; object-fit: cover; display: block; }
 
 .player-title-row {
   display: flex;
@@ -530,6 +577,20 @@ dialog.video-modal { width: min(640px, 94vw, calc(70vh * 16 / 9)); }
 
 .modal::backdrop { background: rgba(5, 6, 10, 0.72); }
 
+/* Same "own class wins the cascade regardless of source order" issue noted
+   above for dialog.video-modal — sized to the image itself (via its own
+   width/aspect-ratio) rather than the generic .modal's fixed 440px cap. */
+dialog.artwork-modal { width: min(480px, 92vw); }
+
+.artwork-modal-img {
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 8px;
+  background: var(--surface-2);
+  display: block;
+}
+
 .modal-form {
   padding: 1.5rem;
   display: flex;
@@ -631,4 +692,10 @@ dialog.video-modal { width: min(640px, 94vw, calc(70vh * 16 / 9)); }
     white-space: normal;
     overflow-wrap: break-word;
   }
+
+  /* Same reasoning as the station-art shrink above — on a narrow phone the
+     toggle button, art thumbnail, and app-version text are all fixed-width
+     and would otherwise crowd out the station name/status text between them. */
+  .player-art-btn { width: 38px; height: 38px; }
+  .player-info { padding-right: 2.75rem; }
 }

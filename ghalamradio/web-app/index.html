@@ -14,6 +14,7 @@
 </head>
 <body>
 
+<div id="bgArt" class="bg-art" aria-hidden="true"></div>
 <div class="dial-glow" aria-hidden="true"></div>
 
 <header class="site-header">
@@ -81,8 +82,24 @@
     </div>
     <div id="playerStatus" class="player-status">—</div>
   </div>
+  <button id="playerArtBtn" class="player-art-btn" hidden aria-label="View album art" title="View album art">
+    <img id="playerArt" class="player-art" alt="">
+  </button>
   <span id="appVersion" class="app-version"></span>
 </div>
+
+<!-- Album art popup -->
+<dialog id="artworkModal" class="modal artwork-modal">
+  <div class="modal-form">
+    <div class="video-modal-header">
+      <h2 id="artworkModalTitle">Album art</h2>
+      <button type="button" class="icon-btn" id="artworkModalClose" aria-label="Close" title="Close">
+        <svg viewBox="0 0 24 24" width="16" height="16"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/></svg>
+      </button>
+    </div>
+    <img id="artworkModalImg" class="artwork-modal-img" alt="">
+  </div>
+</dialog>
 
 <!-- Video playback modal -->
 <dialog id="videoModal" class="modal video-modal">
@@ -156,6 +173,7 @@
 <script src="assets/backup.js"></script>
 <script src="assets/mystations.js"></script>
 <script src="assets/metadata.js"></script>
+<script src="assets/artwork.js"></script>
 <script src="assets/player.js"></script>
 <script src="assets/app.js"></script>
 </body>
