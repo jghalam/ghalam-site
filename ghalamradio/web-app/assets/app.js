@@ -213,12 +213,25 @@ document.addEventListener('DOMContentLoaded', () => {
   const playerDesc = document.getElementById('playerDesc');
   const playerStatus = document.getElementById('playerStatus');
   const playerToggle = document.getElementById('playerToggle');
+  const playerStationLogo = document.getElementById('playerStationLogo');
   const playerArtBtn = document.getElementById('playerArtBtn');
   const playerArt = document.getElementById('playerArt');
   const bgArt = document.getElementById('bgArt');
   const artworkModal = document.getElementById('artworkModal');
   const artworkModalImg = document.getElementById('artworkModalImg');
   const artworkModalTitle = document.getElementById('artworkModalTitle');
+
+  // Single place that writes a station's identity (name/description/logo)
+  // into the footer bar — used wherever the footer starts pointing at a
+  // station (selecting, playing) AND whenever that station's saved details
+  // change while it's already the one shown (see applyStationEditToSelection
+  // below), so an edit is reflected immediately instead of only on reselect.
+  function renderStationInfo(station) {
+    playerName.textContent = station.name || station.url;
+    playerDesc.textContent = station.description || '';
+    playerStationLogo.src = station.image || fallbackArt(station.name);
+    playerStationLogo.onerror = () => { playerStationLogo.onerror = null; playerStationLogo.src = fallbackArt(station.name); };
+  }
 
   function setPlayIcon(btn, playing) {
     if (!btn) return;
@@ -324,8 +337,7 @@ document.addEventListener('DOMContentLoaded', () => {
     currentArtworkKey = null;
     setArtwork(null); // ditto for its artwork/backdrop — this station hasn't reported a track yet
     playerBar.hidden = false;
-    playerName.textContent = station.name || station.url;
-    playerDesc.textContent = station.description || '';
+    renderStationInfo(station);
     renderPlayerStatusText();
     syncPlaybackUI();
   }
@@ -360,8 +372,7 @@ document.addEventListener('DOMContentLoaded', () => {
       return;
     }
     playerBar.hidden = false;
-    playerName.textContent = selectedStation.name || selectedStation.url;
-    playerDesc.textContent = selectedStation.description || '';
+    renderStationInfo(selectedStation);
     renderPlayerStatusText();
     syncPlaybackUI();
   });
@@ -716,6 +727,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const addDescriptionEl = document.getElementById('addDescription');
   const addTagsEl = document.getElementById('addTags');
   let editingIndex = null; // null = adding new; number = editing MyStations[index]
+  let editingOriginalUrl = null; // the station's url *before* this edit — how we recognize it below
 
   function openAddModal() {
     editingIndex = null;
@@ -727,6 +739,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function openEditModal(index, station) {
     editingIndex = index;
+    editingOriginalUrl = station.url;
     addNameEl.value = station.name || '';
     addUrlEl.value = station.url || '';
     addHomepageEl.value = station.homepage || '';
@@ -737,6 +750,24 @@ document.addEventListener('DOMContentLoaded', () => {
     addModalTitle.textContent = 'Edit station';
     addSubmitBtn.textContent = 'Save changes';
     addModal.showModal();
+  }
+
+  // `selectedStation`/`Player.current` hold their own snapshot of a
+  // station's fields, captured at select/play time — editing writes a new
+  // object into storage but never touches those snapshots, which is why the
+  // footer bar used to keep showing the old name/logo until you reselected.
+  // This re-points them at the freshly edited station when it's the one
+  // currently shown, and reconnects playback only if the stream URL itself
+  // changed (a plain name/description/logo edit shouldn't interrupt audio).
+  function applyStationEditToSelection(originalUrl, updatedStation) {
+    if (!selectedStation || selectedStation.url !== originalUrl) return;
+    const wasPlaying = Player.current && Player.current.url === originalUrl;
+    selectedStation = updatedStation;
+    renderStationInfo(updatedStation);
+    if (wasPlaying && updatedStation.url !== originalUrl) {
+      Player.play(updatedStation);
+    }
+    syncPlaybackUI();
   }
 
   document.getElementById('btnAddManual').addEventListener('click', openAddModal);
@@ -758,6 +789,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (editingIndex !== null) {
       MyStations.updateAt(editingIndex, station);
       toast(`Saved changes to “${station.name}”`);
+      applyStationEditToSelection(editingOriginalUrl, station);
     } else {
       MyStations.add(station);
       toast(`Added “${station.name}”`);

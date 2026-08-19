@@ -452,6 +452,17 @@ a.icon-btn { text-decoration: none; }
   flex-shrink: 0;
 }
 
+/* The station's own logo — same treatment as .station-art in the lists,
+   so it reads as the same kind of element. */
+.player-station-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: var(--surface-2);
+  flex-shrink: 0;
+}
+
 /* Reserves room for the art button, which is centered in the bar via
    absolute positioning (so it stays dead-center regardless of the toggle
    button's or app-version's width) and therefore isn't part of this flex
@@ -718,4 +729,5 @@ dialog.artwork-modal { width: min(480px, 92vw); }
      and would otherwise crowd out the station name/status text between them. */
   .player-art-btn { width: 38px; height: 38px; }
   .player-info { padding-right: 2.75rem; }
+  .player-station-logo { width: 32px; height: 32px; }
 }
