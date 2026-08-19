@@ -263,6 +263,7 @@ input:focus-visible, select:focus-visible, button:focus-visible {
   border-radius: var(--radius);
   padding: 0.65rem 0.75rem;
   transition: border-color 0.15s ease, background 0.15s ease;
+  cursor: pointer;
 }
 
 .station-row.is-selected {
@@ -383,6 +384,8 @@ a.icon-btn { text-decoration: none; }
 .btn-primary:hover { filter: brightness(1.08); }
 
 /* Player bar */
+.player-bar[hidden] { display: none; }
+
 .player-bar {
   position: fixed;
   left: 0; right: 0; bottom: 0;

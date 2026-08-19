@@ -70,10 +70,20 @@ document.addEventListener('DOMContentLoaded', () => {
     return 'data:image/svg+xml,' + encodeURIComponent(svg);
   }
 
-  function stationRow(station, { onPlay, onAdd, onRemove, onEdit } = {}) {
+  function stationRow(station, { onPlay, onAdd, onRemove, onEdit, onSelect } = {}) {
     const li = document.createElement('li');
     li.className = 'station-row';
     li.dataset.url = station.url || '';
+
+    // A bare click anywhere on the row (but not on one of the action
+    // buttons/links below, which have their own handlers) selects the
+    // station as the footer control bar's target, without playing it.
+    if (onSelect) {
+      li.addEventListener('click', (e) => {
+        if (e.target.closest('button, a')) return;
+        onSelect(station);
+      });
+    }
 
     const img = document.createElement('img');
     img.className = 'station-art';
@@ -215,25 +225,50 @@ document.addEventListener('DOMContentLoaded', () => {
       : '<svg viewBox="0 0 24 24" width="16" height="16"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>';
   }
 
-  // Single source of truth for "is this row the active station": Player.current.
-  // Re-applied to every rendered row on every state change and every list
-  // re-render, so it can never drift out of sync with what's actually playing.
+  // `selectedStation` is what the footer control bar shows and operates on.
+  // It's distinct from Player.current (which is only ever set while audio
+  // is actually connecting/playing): selecting a station just points the
+  // footer at it, and playing/stopping doesn't clear the selection, so the
+  // footer's toggle button always has a station to resume.
+  let selectedStation = null;
+
+  function selectStation(station) {
+    selectedStation = station;
+    lastStatus = 'stopped';
+    lastMetadata = null; // stale track info from a previous station shouldn't show here
+    playerBar.hidden = false;
+    playerName.textContent = station.name || station.url;
+    playerDesc.textContent = station.description || '';
+    renderPlayerStatusText();
+    syncPlaybackUI();
+  }
+
+  // Two independent things drive row/footer styling, and this is the only
+  // place either is read: `selectedStation` decides the yellow "selected"
+  // border (which row the footer bar currently targets), and Player.current
+  // decides which row's inline button (and the footer button) shows the
+  // pause icon (what's actually connecting/playing right now).
   function syncPlaybackUI() {
-    const activeUrl = Player.current ? Player.current.url : null;
+    const selectedUrl = selectedStation ? selectedStation.url : null;
+    const playingUrl = Player.current ? Player.current.url : null;
     document.querySelectorAll('.station-row[data-url]').forEach(row => {
-      const isActive = !!activeUrl && row.dataset.url === activeUrl;
-      row.classList.toggle('is-selected', isActive);
-      if (row._playBtn) setPlayIcon(row._playBtn, isActive);
+      row.classList.toggle('is-selected', !!selectedUrl && row.dataset.url === selectedUrl);
+      if (row._playBtn) setPlayIcon(row._playBtn, !!playingUrl && row.dataset.url === playingUrl);
     });
-    setPlayIcon(playerToggle, !!activeUrl);
+    // The footer button acts on selectedStation, so its icon must reflect
+    // whether THAT station is playing — not just whether anything is,
+    // otherwise it can show "Stop" while pointed at a different, silent
+    // station (e.g. right after selecting a row while something else plays).
+    setPlayIcon(playerToggle, !!playingUrl && playingUrl === selectedUrl);
   }
 
   Player.setOnStateChange(({ status, station }) => {
     lastStatus = status;
-    if (!station) { playerBar.hidden = true; syncPlaybackUI(); return; }
+    if (station) selectedStation = station; // actually playing something always selects it
+    if (!selectedStation) { playerBar.hidden = true; syncPlaybackUI(); return; }
     playerBar.hidden = false;
-    playerName.textContent = station.name || station.url;
-    playerDesc.textContent = station.description || '';
+    playerName.textContent = selectedStation.name || selectedStation.url;
+    playerDesc.textContent = selectedStation.description || '';
     renderPlayerStatusText();
     syncPlaybackUI();
   });
@@ -310,7 +345,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function handlePlay(station) {
     if (isVideoStation(station)) {
       Player.stop(); // don't let audio keep playing underneath the video
-      syncPlaybackUI();
+      selectStation(station);
       openVideoModal(station);
       return;
     }
@@ -323,8 +358,25 @@ document.addEventListener('DOMContentLoaded', () => {
     syncPlaybackUI();
   }
 
+  // Clicking a row (not its Play button) just points the footer bar at that
+  // station, without starting playback — lets you browse and pick a target
+  // for the footer's Play button instead of only ever being able to select
+  // whatever's already playing.
+  function handleSelect(station) {
+    if (Player.current && Player.current.url === station.url) return; // already the active one
+    if (selectedStation && selectedStation.url === station.url) return; // already selected
+    selectStation(station);
+  }
+
   playerToggle.addEventListener('click', () => {
-    Player.stop();
+    if (!selectedStation) return;
+    if (Player.current && Player.current.url === selectedStation.url) {
+      Player.stop();
+    } else if (isVideoStation(selectedStation)) {
+      openVideoModal(selectedStation);
+    } else {
+      Player.play(selectedStation);
+    }
     syncPlaybackUI();
   });
 
@@ -370,6 +422,7 @@ document.addEventListener('DOMContentLoaded', () => {
     for (const station of results) {
       appendRowSafely(searchResults, station, {
         onPlay: handlePlay,
+        onSelect: handleSelect,
         onAdd: (s) => {
           MyStations.add(s);
           refreshMyStations();
@@ -543,6 +596,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const index = allStations.indexOf(station); // real index in the unfiltered saved list
       appendRowSafely(myStationsList, station, {
         onPlay: handlePlay,
+        onSelect: handleSelect,
         onEdit: () => openEditModal(index, station),
         onRemove: () => {
           MyStations.removeAt(index);
