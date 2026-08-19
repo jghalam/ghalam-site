@@ -26,6 +26,15 @@ html, body {
 body {
   padding-bottom: 88px; /* room for the player bar */
   position: relative;
+  /* Without an explicit z-index, `position: relative` alone does NOT make
+     body establish its own stacking context — so body's own background and
+     its z-indexed fixed children (.bg-art, .dial-glow) end up competing for
+     paint order in the *parent* context instead, which is exactly the kind
+     of edge case that renders inconsistently. Giving body a real z-index
+     forces it to own its context, which guarantees — unconditionally, by
+     spec — that body's own background paints below ANY z-indexed child,
+     which is what actually makes .bg-art visible. */
+  z-index: 0;
   overflow-x: hidden;
 }
 
@@ -43,12 +52,16 @@ body {
 }
 
 /* Full-viewport backdrop built from the current track's album art, heavily
-   blurred and darkened so it reads as ambient color rather than a picture —
-   sits behind .dial-glow (z-index 0) so the amber accent still shows
-   through. `inset: -10%` overshoots the viewport on all sides so the blur's
-   soft edges fall outside what's visible, instead of a faint vignette. Only
-   toggling opacity (never swapping display) is what makes the crossfade
-   between tracks/stations smooth. */
+   blurred and darkened so it reads as ambient color rather than a picture.
+   z-index: 0 (not negative) and placed first in the DOM, same trick as
+   .dial-glow below it — a negative z-index here would actually render
+   *behind* body's own opaque background (body is `position: relative`,
+   which per the CSS stacking spec paints its background above negative-
+   z-index siblings even without forming its own stacking context), making
+   the whole layer invisible. `inset: -10%` overshoots the viewport on all
+   sides so the blur's soft edges fall outside what's visible, instead of a
+   faint vignette. Only toggling opacity (never swapping display) is what
+   makes the crossfade between tracks/stations smooth. */
 .bg-art {
   position: fixed;
   inset: -10%;
@@ -57,7 +70,7 @@ body {
   filter: blur(70px) saturate(1.4) brightness(0.4);
   opacity: 0;
   transition: opacity 0.7s ease;
-  z-index: -1;
+  z-index: 0;
   pointer-events: none;
 }
 .bg-art.is-active { opacity: 1; }
