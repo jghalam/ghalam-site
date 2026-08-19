@@ -237,20 +237,53 @@ document.addEventListener('DOMContentLoaded', () => {
 
   let currentArtworkUrl = null; // the "large" URL — what the popup opens to
   let currentArtworkKey = null; // guards a slow lookup from overwriting a newer track's result
+  let pendingFadeHandler = null; // the transitionend listener for an in-progress fade-out, if any
 
+  // Never swaps the backdrop image while it's visible — that would be an
+  // abrupt cut, not a transition. Instead: fade out to the plain background
+  // first, swap the image while it's invisible, then fade back in. Listens
+  // for the real `transitionend` event (rather than a guessed setTimeout
+  // duration) so this can't drift out of sync if the CSS transition timing
+  // ever changes.
   function setArtwork(result) {
+    currentArtworkUrl = result ? result.large : null;
     if (result) {
-      currentArtworkUrl = result.large;
       playerArt.src = result.small;
       playerArtBtn.hidden = false;
-      bgArt.style.backgroundImage = `url("${result.small}")`; // heavily blurred — the small size is plenty and loads faster
-      bgArt.classList.add('is-active');
     } else {
-      currentArtworkUrl = null;
       playerArtBtn.hidden = true;
       playerArt.removeAttribute('src');
-      bgArt.classList.remove('is-active');
     }
+
+    // A fade-out from a previous call may still be pending — cancel it so
+    // its (now stale) image can't flash in after this newer one.
+    if (pendingFadeHandler) {
+      bgArt.removeEventListener('transitionend', pendingFadeHandler);
+      pendingFadeHandler = null;
+    }
+
+    const swapAndFadeIn = () => {
+      if (result) {
+        bgArt.style.backgroundImage = `url("${result.small}")`; // heavily blurred — the small size is plenty and loads faster
+        bgArt.classList.add('is-active');
+      }
+    };
+
+    if (!bgArt.classList.contains('is-active')) {
+      // Nothing currently showing (first artwork, or already faded to
+      // black) — no fade-out needed, just swap and fade straight in.
+      swapAndFadeIn();
+      return;
+    }
+
+    bgArt.classList.remove('is-active'); // fade out to black first
+    pendingFadeHandler = (e) => {
+      if (e.propertyName !== 'opacity') return;
+      bgArt.removeEventListener('transitionend', pendingFadeHandler);
+      pendingFadeHandler = null;
+      swapAndFadeIn();
+    };
+    bgArt.addEventListener('transitionend', pendingFadeHandler);
   }
 
   async function updateArtworkForMetadata(info) {
