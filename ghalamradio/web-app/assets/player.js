@@ -79,6 +79,55 @@ const Player = (() => {
     return /\.m3u8(\?|$)/i.test(url || '');
   }
 
+  // .pls/.m3u files aren't audio — they're small text playlists pointing at
+  // the real stream, a format some directories (and StreamTheWorld/Triton,
+  // used by many broadcast affiliates including the CBC) still hand out
+  // instead of a direct URL. Native players like iOS's AVPlayer parse these
+  // transparently; <audio> and the ICY/HLS libraries here cannot, so handing
+  // one straight to them fails no matter what — the CORS error a browser
+  // reports when a metadata library tries to fetch() one is a symptom of
+  // that, not the root cause.
+  function isPlaylistUrl(url) {
+    return /\.(pls|m3u)(\?|$)/i.test(url || '');
+  }
+
+  function parsePlsBody(text) {
+    const m = /^\s*File1\s*=\s*(\S+)/im.exec(text || '');
+    return m ? m[1].trim() : null;
+  }
+
+  function parseM3uBody(text) {
+    const line = (text || '').split(/\r?\n/).find(l => l.trim() && !l.trim().startsWith('#'));
+    return line ? line.trim() : null;
+  }
+
+  // Resolves a playlist URL to the real stream URL it points at. Returns
+  // the original URL unchanged for anything that isn't a known playlist
+  // format, or if resolution fails — playback then fails the same way it
+  // would have without this step, just with a clearer error.
+  async function resolvePlaylistUrl(url) {
+    // StreamTheWorld publishes a documented redirect endpoint that resolves
+    // a .pls callsign straight to a playable stream. Using it sidesteps
+    // fetching the .pls text at all, which playerservices.streamtheworld.com
+    // blocks via CORS (no Access-Control-Allow-Origin) regardless.
+    const stw = /^https?:\/\/playerservices\.streamtheworld\.com\/pls\/([^./?#]+)\.pls/i.exec(url || '');
+    if (stw) return `https://playerservices.streamtheworld.com/api/livestream-redirect/${stw[1]}.mp3`;
+
+    if (!isPlaylistUrl(url)) return url;
+    try {
+      const res = await fetch(url);
+      if (!res.ok) return url;
+      const text = await res.text();
+      const resolved = /\.pls(\?|$)/i.test(url) ? parsePlsBody(text) : parseM3uBody(text);
+      return resolved || url;
+    } catch (err) {
+      // Most other playlist hosts don't set CORS headers either — nothing
+      // more we can do client-side.
+      console.warn('Could not fetch/parse playlist, playing URL as-is will likely fail:', url, err);
+      return url;
+    }
+  }
+
   function playPlain(station, playUrl) {
     audio.src = playUrl || station.url;
     audio.play().catch(err => {
@@ -181,12 +230,15 @@ const Player = (() => {
     onMetadata(null); // clear any previous track info immediately
     onStateChange({ status: 'loading', station });
 
-    const playUrl = toPlayableUrl(station.url);
-    if (isHlsUrl(playUrl)) {
-      playViaHls(station, playUrl);
-    } else {
-      playViaIcecast(station, playUrl);
-    }
+    resolvePlaylistUrl(station.url).then(resolvedUrl => {
+      if (currentStation !== station) return; // superseded by a newer play() call
+      const playUrl = toPlayableUrl(resolvedUrl);
+      if (isHlsUrl(playUrl)) {
+        playViaHls(station, playUrl);
+      } else {
+        playViaIcecast(station, playUrl);
+      }
+    });
   }
 
   function stop() {
