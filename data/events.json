@@ -1,6 +1,6 @@
 [
   {
-    "id": "draft_0407",
+    "id": "draft_0437",
     "date": "1969-03-11",
     "title": "Fed Funds Rate, Gold Price & 10Y Treasury Yield",
     "narrative": "Gold Price: $44 \u2192 $43 (-2.0%); 10Y Treasury Yield: 6.15% \u2192 6.06%; Fed Funds Rate: 7.41% \u2192 8.67%",
@@ -12,7 +12,7 @@
     "curated": false
   },
   {
-    "id": "draft_0402",
+    "id": "draft_0432",
     "date": "1969-10-20",
     "title": "Gold Price, Real 10Y Yield & 10Y Treasury Yield",
     "narrative": "10Y Treasury Yield: 6.99% \u2192 6.83%; Real 10Y Yield: 1.85% \u2192 1.01%; Gold Price: $38 \u2192 $37 (-2.4%)",
@@ -24,7 +24,7 @@
     "curated": false
   },
   {
-    "id": "draft_0398",
+    "id": "draft_0428",
     "date": "1970-10-30",
     "title": "Gold Price, 10Y Treasury Yield & Unemployment Rate",
     "narrative": "Gold Price: $38 \u2192 $37 (-2.4%); Unemployment Rate: 5.50% \u2192 5.90%; 10Y Treasury Yield: 6.72% \u2192 6.48%",
@@ -47,7 +47,7 @@
     "curated": true
   },
   {
-    "id": "draft_0383",
+    "id": "draft_0413",
     "date": "1973-01-01",
     "title": "Core CPI (YoY), Gold Price, Real 10Y Yield, 10Y Treasury Yield & Unemployment Rate",
     "narrative": "Unemployment Rate: 5.20% \u2192 4.90%; 10Y Treasury Yield: 6.54% \u2192 6.60%; Gold Price: $79 \u2192 $86 (+9.1%); Core CPI (YoY): 2.75% \u2192 3.21%; Real 10Y Yield: 2.73% \u2192 1.82%",
@@ -61,7 +61,7 @@
     "curated": false
   },
   {
-    "id": "draft_0382",
+    "id": "draft_0412",
     "date": "1973-07-01",
     "title": "CPI (YoY), Fed Funds Rate, Gold Price, Real 10Y Yield & 10Y Treasury Yield",
     "narrative": "Fed Funds Rate: 8.49% \u2192 10.40%; CPI (YoY): 5.74% \u2192 7.40%; 10Y Treasury Yield: 7.43% \u2192 7.55%; Real 10Y Yield: 1.27% \u2192 0.15%; Gold Price: $94 \u2192 $103 (+9.6%)",
@@ -85,7 +85,7 @@
     "curated": true
   },
   {
-    "id": "draft_0389",
+    "id": "draft_0419",
     "date": "1974-12-09",
     "title": "Fed Funds Rate, Gold Price, 10Y Treasury Yield & Unemployment Rate",
     "narrative": "10Y Treasury Yield: 7.59% \u2192 7.40%; Fed Funds Rate: 8.53% \u2192 7.13%; Unemployment Rate: 7.20% \u2192 8.10%; Gold Price: $186 \u2192 $175 (-6.2%)",
@@ -98,7 +98,7 @@
     "curated": false
   },
   {
-    "id": "draft_0397",
+    "id": "draft_0427",
     "date": "1975-03-24",
     "title": "Core CPI (YoY), CPI (YoY), Gold Price & 10Y Treasury Yield",
     "narrative": "10Y Treasury Yield: 7.84% \u2192 8.05%; CPI (YoY): 10.19% \u2192 9.26%; Core CPI (YoY): 11.27% \u2192 10.31%; Gold Price: $168 \u2192 $175 (+3.7%)",
@@ -111,7 +111,7 @@
     "curated": false
   },
   {
-    "id": "draft_0409",
+    "id": "draft_0439",
     "date": "1977-12-01",
     "title": "Gold Price, 10Y Treasury Yield & Unemployment Rate",
     "narrative": "Unemployment Rate: 6.80% \u2192 6.40%; Gold Price: $172 \u2192 $166 (-3.6%); 10Y Treasury Yield: 7.85% \u2192 8.01%",
@@ -123,7 +123,7 @@
     "curated": false
   },
   {
-    "id": "draft_0394",
+    "id": "draft_0424",
     "date": "1978-11-01",
     "title": "Fed Funds Rate, Gold Price & 10Y Treasury Yield",
     "narrative": "Fed Funds Rate: 8.96% \u2192 9.76%; 10Y Treasury Yield: 8.96% \u2192 8.66%; Gold Price: $243 \u2192 $228 (-6.2%)",
@@ -157,7 +157,7 @@
     "curated": true
   },
   {
-    "id": "draft_0385",
+    "id": "draft_0415",
     "date": "1986-01-08",
     "title": "CPI (YoY), Gold Price, 10Y Treasury Yield & Unemployment Rate",
     "narrative": "10Y Treasury Yield: 8.94% \u2192 9.13%; Gold Price: $347 \u2192 $363 (+4.7%); Unemployment Rate: 6.70% \u2192 7.20%; CPI (YoY): 3.20% \u2192 2.15%",
@@ -170,7 +170,7 @@
     "curated": false
   },
   {
-    "id": "draft_0408",
+    "id": "draft_0438",
     "date": "1987-03-01",
     "title": "CPI (YoY), Gold Price & 10Y Treasury Yield",
     "narrative": "CPI (YoY): 1.91% \u2192 2.84%; 10Y Treasury Yield: 7.33% \u2192 7.54%; Gold Price: $475 \u2192 $453 (-4.6%)",
@@ -204,7 +204,7 @@
     "curated": true
   },
   {
-    "id": "draft_0388",
+    "id": "draft_0418",
     "date": "1991-01-17",
     "title": "Core CPI (YoY), Fed Funds Rate, Gold Price & 10Y Treasury Yield",
     "narrative": "10Y Treasury Yield: 8.24% \u2192 8.05%; Gold Price: $403 \u2192 $379 (-6.0%); Fed Funds Rate: 6.91% \u2192 6.25%; Core CPI (YoY): 5.65% \u2192 5.24%",
@@ -217,7 +217,7 @@
     "curated": false
   },
   {
-    "id": "draft_0406",
+    "id": "draft_0436",
     "date": "1992-08-13",
     "title": "Gold Price, 10Y Treasury Yield & Unemployment Rate",
     "narrative": "Gold Price: $347 \u2192 $337 (-2.7%); 10Y Treasury Yield: 6.53% \u2192 6.68%; Unemployment Rate: 7.60% \u2192 7.30%",
@@ -240,7 +240,7 @@
     "curated": true
   },
   {
-    "id": "draft_0400",
+    "id": "draft_0430",
     "date": "1995-01-01",
     "title": "Core CPI (YoY), Fed Funds Rate, Gold Price & 10Y Treasury Yield",
     "narrative": "Core CPI (YoY): 2.59% \u2192 2.91%; Gold Price: $381 \u2192 $376 (-1.4%); Fed Funds Rate: 5.53% \u2192 5.92%; 10Y Treasury Yield: 7.68% \u2192 7.49%",
@@ -275,7 +275,7 @@
     "curated": true
   },
   {
-    "id": "draft_0404",
+    "id": "draft_0434",
     "date": "2000-01-01",
     "title": "Core CPI (YoY), Debt / GDP, Fed Funds Rate & Gold Price",
     "narrative": "Debt / GDP: 57.10% \u2192 57.75%; Fed Funds Rate: 5.45% \u2192 5.73%; Gold Price: $294 \u2192 $313 (+6.5%); Core CPI (YoY): 2.16% \u2192 2.45%",
@@ -298,7 +298,7 @@
     "curated": true
   },
   {
-    "id": "draft_0399",
+    "id": "draft_0429",
     "date": "2001-05-01",
     "title": "Fed Funds Rate, Gold Price & 10Y Treasury Yield",
     "narrative": "Fed Funds Rate: 4.80% \u2192 4.21%; 10Y Treasury Yield: 5.31% \u2192 5.51%; Gold Price: $273 \u2192 $291 (+6.7%)",
@@ -323,7 +323,7 @@
     "curated": true
   },
   {
-    "id": "draft_0395",
+    "id": "draft_0425",
     "date": "2006-08-01",
     "title": "CPI (YoY), Fed Funds Rate, Real 10Y Yield & Unemployment Rate",
     "narrative": "Fed Funds Rate: 5.24% \u2192 5.25%; CPI (YoY): 3.93% \u2192 2.01%; Real 10Y Yield: 1.06% \u2192 2.72%; Unemployment Rate: 4.70% \u2192 4.50%",
@@ -336,7 +336,7 @@
     "curated": false
   },
   {
-    "id": "draft_0391",
+    "id": "draft_0421",
     "date": "2007-09-20",
     "title": "Fed Funds Rate, Gold Price, 10Y Treasury Yield & USD Broad Index",
     "narrative": "10Y Treasury Yield: 4.53% \u2192 4.69%; USD Broad Index: 92.15 \u2192 91.42; Fed Funds Rate: 4.76% \u2192 4.49%; Gold Price: $832 \u2192 $804 (-3.4%)",
@@ -349,7 +349,7 @@
     "curated": false
   },
   {
-    "id": "draft_0380",
+    "id": "draft_0410",
     "date": "2008-08-08",
     "title": "Core CPI (YoY), Debt / GDP, Fed Funds Rate, 10Y Treasury Yield & USD Broad Index",
     "narrative": "USD Broad Index: 87.87 \u2192 88.89; 10Y Treasury Yield: 3.74% \u2192 3.47%; Core CPI (YoY): 2.44% \u2192 2.22%; Fed Funds Rate: 1.81% \u2192 0.97%; Debt / GDP: 63.54% \u2192 69.31%",
@@ -387,7 +387,7 @@
     "curated": true
   },
   {
-    "id": "draft_0405",
+    "id": "draft_0435",
     "date": "2011-08-01",
     "title": "Fed Funds Rate, Gold Price & USD Broad Index",
     "narrative": "Fed Funds Rate: 0.07% \u2192 0.10%; Gold Price: $1,876 \u2192 $1,770 (-5.7%); USD Broad Index: 90.35 \u2192 92.08",
@@ -410,7 +410,7 @@
     "curated": true
   },
   {
-    "id": "draft_0387",
+    "id": "draft_0417",
     "date": "2013-04-15",
     "title": "Fed Funds Rate, Gold Price & 10Y Treasury Yield",
     "narrative": "Gold Price: $1,536 \u2192 $1,395 (-9.2%); Fed Funds Rate: 0.15% \u2192 0.11%; 10Y Treasury Yield: 1.66% \u2192 1.78%",
@@ -459,7 +459,7 @@
     "curated": true
   },
   {
-    "id": "draft_0384",
+    "id": "draft_0414",
     "date": "2016-11-09",
     "title": "Fed Funds Rate, Gold Price, 10Y Treasury Yield & USD Broad Index",
     "narrative": "10Y Treasury Yield: 1.88% \u2192 2.07%; Fed Funds Rate: 0.41% \u2192 0.54%; Gold Price: $1,162 \u2192 $1,127 (-3.0%); USD Broad Index: 116.73 \u2192 118.81",
@@ -472,7 +472,7 @@
     "curated": false
   },
   {
-    "id": "draft_0396",
+    "id": "draft_0426",
     "date": "2018-04-01",
     "title": "Debt / GDP, Fed Funds Rate, Gold Price & 10Y Treasury Yield",
     "narrative": "Fed Funds Rate: 1.51% \u2192 1.69%; Debt / GDP: 100.81% \u2192 102.62%; Gold Price: $1,320 \u2192 $1,295 (-1.9%); 10Y Treasury Yield: 2.93% \u2192 2.77%",
@@ -485,7 +485,7 @@
     "curated": false
   },
   {
-    "id": "draft_0403",
+    "id": "draft_0433",
     "date": "2019-06-20",
     "title": "Fed Funds Rate, Gold Price & USD Broad Index",
     "narrative": "Gold Price: $1,344 \u2192 $1,380 (+2.6%); USD Broad Index: 115.79 \u2192 114.80; Fed Funds Rate: 2.40% \u2192 2.13%",
@@ -515,7 +515,7 @@
     "curated": true
   },
   {
-    "id": "draft_0381",
+    "id": "draft_0411",
     "date": "2021-02-25",
     "title": "Core CPI (YoY), CPI (YoY), Real 10Y Yield, 10Y Treasury Yield & USD Broad Index",
     "narrative": "10Y Treasury Yield: 1.38% \u2192 1.54%; USD Broad Index: 112.70 \u2192 113.75; CPI (YoY): 2.67% \u2192 4.13%; Core CPI (YoY): 1.65% \u2192 2.98%; Real 10Y Yield: -1.22% \u2192 -2.44%",
@@ -529,7 +529,7 @@
     "curated": false
   },
   {
-    "id": "draft_0401",
+    "id": "draft_0431",
     "date": "2021-06-17",
     "title": "Gold Price, 10Y Treasury Yield & USD Broad Index",
     "narrative": "Gold Price: $1,861 \u2192 $1,779 (-4.4%); USD Broad Index: 111.12 \u2192 112.58; 10Y Treasury Yield: 1.31% \u2192 1.19%",
@@ -541,7 +541,7 @@
     "curated": false
   },
   {
-    "id": "draft_0390",
+    "id": "draft_0420",
     "date": "2022-02-24",
     "title": "Gold Price, Real 10Y Yield, 10Y Treasury Yield & USD Broad Index",
     "narrative": "USD Broad Index: 114.67 \u2192 115.94; Gold Price: $1,936 \u2192 $1,885 (-2.7%); 10Y Treasury Yield: 1.97% \u2192 1.83%; Real 10Y Yield: -6.85% \u2192 -5.84%",
@@ -565,7 +565,7 @@
     "curated": true
   },
   {
-    "id": "draft_0392",
+    "id": "draft_0422",
     "date": "2022-10-01",
     "title": "Fed Funds Rate, Gold Price, Real 10Y Yield & 10Y Treasury Yield",
     "narrative": "Real 10Y Yield: -4.93% \u2192 -3.93%; Gold Price: $1,668 \u2192 $1,715 (+2.8%); Fed Funds Rate: 3.08% \u2192 3.78%; 10Y Treasury Yield: 4.12% \u2192 3.82%",
@@ -589,7 +589,7 @@
     "curated": true
   },
   {
-    "id": "draft_0393",
+    "id": "draft_0423",
     "date": "2024-10-01",
     "title": "Fed Funds Rate, Gold Price, 10Y Treasury Yield & USD Broad Index",
     "narrative": "Fed Funds Rate: 5.13% \u2192 4.83%; 10Y Treasury Yield: 4.26% \u2192 4.42%; Gold Price: $2,743 \u2192 $2,660 (-3.0%); USD Broad Index: 124.55 \u2192 125.70",
@@ -602,7 +602,7 @@
     "curated": false
   },
   {
-    "id": "draft_0386",
+    "id": "draft_0416",
     "date": "2026-01-26",
     "title": "CPI (YoY), Gold Price, 10Y Treasury Yield & USD Broad Index",
     "narrative": "USD Broad Index: 118.90 \u2192 118.05; Gold Price: $5,405 \u2192 $4,982 (-7.8%); CPI (YoY): 2.67% \u2192 3.32%; 10Y Treasury Yield: 4.25% \u2192 4.39%",

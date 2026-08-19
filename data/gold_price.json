@@ -1,8 +1,8 @@
 {
   "id": "gold_price",
   "source": "LBMA",
-  "updated": "2026-08-18T06:29:55.206497+00:00",
-  "count": 14663,
+  "updated": "2026-08-19T06:30:54.038013+00:00",
+  "count": 14664,
   "records": [
     {
       "date": "1968-04-01",
@@ -58655,6 +58655,10 @@
     {
       "date": "2026-08-17",
       "value": 4405.8
+    },
+    {
+      "date": "2026-08-18",
+      "value": 4403.5
     }
   ],
   "feed_url": "https://prices.lbma.org.uk/json/gold_pm.json"
