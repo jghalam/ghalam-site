@@ -83,11 +83,17 @@
     </div>
     <div id="playerStatus" class="player-status">—</div>
   </div>
-  <button id="playerArtBtn" class="player-art-btn" hidden aria-label="View album art" title="View album art">
-    <img id="playerArt" class="player-art" alt="">
-  </button>
   <span id="appVersion" class="app-version"></span>
 </div>
+<!-- Deliberately NOT nested inside #playerBar: that element's own
+     backdrop-filter makes it the containing block for any `position: fixed`
+     descendant, which would trap this button inside the bar's own tiny box
+     instead of the real viewport — exactly what the mobile layout below
+     needs to avoid. Positioned to sit centered over the bar on desktop and
+     pinned to the top-left corner on mobile (see styles.css). -->
+<button id="playerArtBtn" class="player-art-btn" hidden aria-label="View album art" title="View album art">
+  <img id="playerArt" class="player-art" alt="">
+</button>
 
 <!-- Album art popup -->
 <dialog id="artworkModal" class="modal artwork-modal">

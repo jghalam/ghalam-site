@@ -463,21 +463,27 @@ a.icon-btn { text-decoration: none; }
   flex-shrink: 0;
 }
 
-/* Reserves room for the art button, which is centered in the bar via
-   absolute positioning (so it stays dead-center regardless of the toggle
-   button's or app-version's width) and therefore isn't part of this flex
-   item's normal layout flow. Reserving the space unconditionally — rather
-   than only when art is actually showing — means nothing reflows/jumps
-   when a track's artwork appears or disappears mid-stream. */
+/* Reserves room for the art button (centered over the bar — see below) so
+   long station/track text doesn't run underneath it on desktop. Reserving
+   the space unconditionally, rather than only when art is actually
+   showing, means nothing reflows/jumps when a track's artwork appears or
+   disappears mid-stream. Mobile turns this off (see the 480px breakpoint
+   below) since the button isn't part of the bar's layout there at all. */
 .player-info { min-width: 0; flex: 1; padding-right: 3.25rem; }
 
-/* Centered in the player bar (not just "after the info text") so it reads
-   as a real focal point rather than trailing off to one side. */
+/* Deliberately NOT positioned relative to #playerBar — it isn't even a
+   descendant of it in the markup (see the comment in index.html: the bar's
+   own backdrop-filter would otherwise hijack the containing block for a
+   `position: fixed` child). Centered here using the viewport itself as the
+   reference, pinned to the bottom edge at an offset matching the bar's own
+   vertical padding, which reads as "centered in the bar" without actually
+   being nested in it. z-index just needs to clear the bar's (5). */
 .player-art-btn {
-  position: absolute;
+  position: fixed;
   left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
+  bottom: 0.75rem;
+  transform: translateX(-50%);
+  z-index: 6;
   width: 46px;
   height: 46px;
   padding: 0;
@@ -488,7 +494,7 @@ a.icon-btn { text-decoration: none; }
   cursor: pointer;
   transition: transform 0.15s ease, border-color 0.15s ease;
 }
-.player-art-btn:hover { border-color: var(--accent); transform: translate(-50%, -50%) scale(1.06); }
+.player-art-btn:hover { border-color: var(--accent); transform: translateX(-50%) scale(1.06); }
 .player-art-btn[hidden] { display: none; }
 
 .player-art { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -727,7 +733,27 @@ dialog.artwork-modal { width: min(480px, 92vw); }
   /* Same reasoning as the station-art shrink above — on a narrow phone the
      toggle button, art thumbnail, and app-version text are all fixed-width
      and would otherwise crowd out the station name/status text between them. */
-  .player-art-btn { width: 38px; height: 38px; }
-  .player-info { padding-right: 2.75rem; }
   .player-station-logo { width: 32px; height: 32px; }
+
+  /* On desktop the art button is centered relative to the whole bar, which
+     works because .player-info's text rarely reaches the middle. On a
+     narrow phone .player-info routinely spans nearly the full bar width,
+     so that same centering put the button right on top of the station
+     name/track text instead — reserving space at .player-info's right
+     edge didn't help, since the actual collision was at the bar's center,
+     a different point entirely. Pulling the button out of the bar and
+     pinning it to the top-left of the viewport (ignoring scroll, so it's
+     always reachable) sidesteps the collision rather than fighting it. */
+  .player-art-btn {
+    position: fixed;
+    top: max(0.6rem, env(safe-area-inset-top));
+    left: 0.6rem;
+    bottom: auto; /* explicit, rather than relying on being over-constrained-and-ignored alongside the top+height above */
+    transform: none;
+    width: 38px;
+    height: 38px;
+    z-index: 6;
+  }
+  .player-art-btn:hover { transform: scale(1.06); }
+  .player-info { padding-right: 0; } /* no longer needs to dodge a button centered in the bar */
 }
