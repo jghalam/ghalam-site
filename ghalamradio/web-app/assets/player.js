@@ -225,6 +225,10 @@ const Player = (() => {
       stop();
       return;
     }
+    teardown();
+    currentStation = station;
+    onMetadata(null); // clear any previous track info immediately
+    onStateChange({ status: 'loading', station });
     // iOS Safari/Chrome (same WebKit engine) only allow audio.play() to
     // start real playback when it's called synchronously inside the click
     // that triggered it — reject it otherwise, with no visible error. Below
@@ -232,17 +236,15 @@ const Player = (() => {
     // from a CDN are both async (the CDN fetch alone is a real network
     // round trip on first use), so by the time we'd normally call play(),
     // that window has already closed. Calling it here — synchronously,
-    // before any of that — "activates" this element for the gesture; once
-    // an element has been activated this way, WebKit continues to honor
+    // right before any of that starts — "activates" this element for the
+    // gesture; once activated this way, WebKit continues to honor
     // programmatic play() calls on it afterward, even asynchronous ones,
     // which is what actually starts the stream once the real URL is ready
-    // further down. It's harmless if this fails (nothing valid is loaded
-    // yet) or if it's not needed on a given browser.
+    // further down. This has to be the LAST synchronous touch on `audio`
+    // before the async chain begins — teardown()'s own audio.load() call
+    // (just above) resets the element's state, which would silently wipe
+    // out this same activation if it ran afterward instead.
     audio.play().catch(() => {});
-    teardown();
-    currentStation = station;
-    onMetadata(null); // clear any previous track info immediately
-    onStateChange({ status: 'loading', station });
 
     resolvePlaylistUrl(station.url).then(resolvedUrl => {
       if (currentStation !== station) return; // superseded by a newer play() call
