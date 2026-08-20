@@ -225,6 +225,20 @@ const Player = (() => {
       stop();
       return;
     }
+    // iOS Safari/Chrome (same WebKit engine) only allow audio.play() to
+    // start real playback when it's called synchronously inside the click
+    // that triggered it — reject it otherwise, with no visible error. Below
+    // this point, resolving playlists and lazy-loading the ICY/HLS library
+    // from a CDN are both async (the CDN fetch alone is a real network
+    // round trip on first use), so by the time we'd normally call play(),
+    // that window has already closed. Calling it here — synchronously,
+    // before any of that — "activates" this element for the gesture; once
+    // an element has been activated this way, WebKit continues to honor
+    // programmatic play() calls on it afterward, even asynchronous ones,
+    // which is what actually starts the stream once the real URL is ready
+    // further down. It's harmless if this fails (nothing valid is loaded
+    // yet) or if it's not needed on a given browser.
+    audio.play().catch(() => {});
     teardown();
     currentStation = station;
     onMetadata(null); // clear any previous track info immediately
