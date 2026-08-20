@@ -182,29 +182,61 @@ document.addEventListener('DOMContentLoaded', () => {
     return li;
   }
 
-  // ---------- tabs ----------
+  // ---------- top bar / view switching ----------
+  // "Tabs" no longer refers to visible pill buttons — just the two panels.
+  // The top bar's icons are contextual per view: hamburger + search glass
+  // on My Stations, back arrow + add button on Browse (see activateTab).
 
-  const tabs = document.querySelectorAll('.tab');
   const panels = { browse: document.getElementById('panel-browse'), mine: document.getElementById('panel-mine') };
+  const menuBtn = document.getElementById('menuBtn');
+  const menuPanel = document.getElementById('menuPanel');
+  const backToStationsBtn = document.getElementById('backToStationsBtn');
+  const browseBtn = document.getElementById('browseBtn');
+  const btnAddManualTop = document.getElementById('btnAddManual');
 
   function activateTab(name) {
-    const tab = Array.from(tabs).find(t => t.dataset.tab === name);
-    if (!tab) return;
-    tabs.forEach(t => { t.classList.remove('is-active'); t.setAttribute('aria-selected', 'false'); });
-    tab.classList.add('is-active');
-    tab.setAttribute('aria-selected', 'true');
-    Object.values(panels).forEach(p => { p.classList.remove('is-active'); p.hidden = true; });
-    panels[name].classList.add('is-active');
-    panels[name].hidden = false;
+    if (!panels[name]) return;
+    Object.entries(panels).forEach(([key, p]) => {
+      p.classList.toggle('is-active', key === name);
+      p.hidden = key !== name;
+    });
+    const inBrowse = name === 'browse';
+    menuBtn.hidden = inBrowse;
+    backToStationsBtn.hidden = !inBrowse;
+    browseBtn.hidden = inBrowse;
+    btnAddManualTop.hidden = !inBrowse;
+    if (inBrowse) closeMenuPanel();
   }
 
-  tabs.forEach(tab => {
-    tab.addEventListener('click', () => activateTab(tab.dataset.tab));
+  browseBtn.addEventListener('click', () => activateTab('browse'));
+  backToStationsBtn.addEventListener('click', () => activateTab('mine'));
+
+  function openMenuPanel() {
+    menuPanel.hidden = false;
+    menuBtn.setAttribute('aria-expanded', 'true');
+  }
+  function closeMenuPanel() {
+    menuPanel.hidden = true;
+    menuBtn.setAttribute('aria-expanded', 'false');
+  }
+  menuBtn.addEventListener('click', () => {
+    menuPanel.hidden ? openMenuPanel() : closeMenuPanel();
   });
+  document.addEventListener('click', (e) => {
+    if (!menuBtn.contains(e.target) && !menuPanel.contains(e.target)) closeMenuPanel();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeMenuPanel();
+  });
+  // Both menu items trigger their own action via their existing click
+  // handlers elsewhere (import file picker, backup/share modal) — this just
+  // additionally closes the menu once one of them has been used.
+  document.getElementById('btnImport').addEventListener('click', closeMenuPanel);
+  document.getElementById('btnExport').addEventListener('click', closeMenuPanel);
 
   // Land on My Stations if there's already a saved list — Browse only makes
   // sense as the starting point when there's nothing saved yet.
-  if (MyStations.load().length > 0) activateTab('mine');
+  activateTab(MyStations.load().length > 0 ? 'mine' : 'browse');
 
   // ---------- player ----------
 
@@ -912,7 +944,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (params.has('d')) {
     const incoming = Backup.parseShareUrl(location.href);
     // Switch to My Stations tab so the review modal has context behind it.
-    document.querySelector('.tab[data-tab="mine"]').click();
+    activateTab('mine');
     if (incoming.length) presentImport(incoming);
     // Clean the URL so reloading doesn't re-trigger the import.
     history.replaceState(null, '', location.pathname);

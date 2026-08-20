@@ -25,6 +25,7 @@ html, body {
 
 body {
   padding-bottom: 88px; /* room for the player bar */
+  padding-top: calc(56px + env(safe-area-inset-top)); /* room for the fixed top bar below */
   position: relative;
   /* Without an explicit z-index, `position: relative` alone does NOT make
      body establish its own stacking context — so body's own background and
@@ -111,41 +112,77 @@ body {
   font-size: 0.95rem;
 }
 
-.tabs {
-  position: relative;
-  z-index: 1;
+/* Fixed top bar — pinned regardless of scroll, same treatment as the
+   player bar at the bottom. Two slots (left/right), each holding whichever
+   of its two buttons is relevant to the current view; activateTab() in
+   app.js toggles which one shows via `hidden`, so exactly one per slot is
+   ever visible at a time. */
+.top-bar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 6;
   display: flex;
-  justify-content: center;
-  gap: 0.5rem;
-  padding: 0 1rem;
-  margin-bottom: 1.5rem;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: calc(0.6rem + env(safe-area-inset-top)) 1rem 0.6rem;
+  background: rgba(21, 24, 36, 0.92);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--border);
 }
 
-.tab {
+.top-bar-side { display: flex; align-items: center; gap: 0.5rem; }
+
+.top-bar-btn[hidden] { display: none; }
+
+.menu-wrap { position: relative; }
+
+.menu-panel {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 20;
+  min-width: 200px;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.4rem;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
   font-family: inherit;
   font-size: 0.9rem;
-  font-weight: 500;
-  color: var(--text-dim);
+  color: var(--text);
   background: transparent;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 0.5rem 1.1rem;
+  border: none;
+  border-radius: 8px;
+  padding: 0.55rem 0.6rem;
   cursor: pointer;
-  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+  text-align: left;
+  transition: background 0.15s ease, color 0.15s ease;
 }
+.menu-item:hover { background: var(--surface); color: var(--accent); }
+.menu-item svg { flex-shrink: 0; color: var(--text-dim); }
 
-.tab:hover { color: var(--text); }
-
-.tab.is-active {
-  color: var(--accent-text);
-  background: var(--accent);
-  border-color: var(--accent);
+.section-heading {
+  font-family: 'DM Serif Display', serif;
+  font-weight: 400;
+  font-size: 1.3rem;
+  margin: 0;
 }
 
 .tab-count {
   color: inherit;
   opacity: 0.75;
-  font-size: 0.8em;
+  font-size: 0.7em;
 }
 
 main {
@@ -746,7 +783,10 @@ dialog.artwork-modal { width: min(480px, 92vw); }
      always reachable) sidesteps the collision rather than fighting it. */
   .player-art-btn {
     position: fixed;
-    top: max(0.6rem, env(safe-area-inset-top));
+    /* Sits just below the fixed top bar now, rather than in its top-left
+       corner — that spot belongs to the menu/back button as of the top-bar
+       redesign, and the two would otherwise overlap. */
+    top: calc(56px + env(safe-area-inset-top) + 0.5rem);
     left: 0.6rem;
     bottom: auto; /* explicit, rather than relying on being over-constrained-and-ignored alongside the top+height above */
     transform: none;
