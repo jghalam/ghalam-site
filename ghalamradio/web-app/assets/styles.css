@@ -133,9 +133,16 @@ body {
 
 .top-bar-side { display: flex; align-items: center; gap: 0.5rem; }
 
+.top-bar-btn {
+  width: 44px;
+  height: 44px;
+}
+
 .top-bar-btn[hidden] { display: none; }
 
 .menu-wrap { position: relative; }
+
+.menu-panel[hidden] { display: none; }
 
 .menu-panel {
   position: absolute;
@@ -757,6 +764,11 @@ dialog.artwork-modal { width: min(480px, 92vw); }
   .icon-btn {
     width: 30px;
     height: 30px;
+  }
+
+  .top-bar-btn {
+    width: 40px;
+    height: 40px;
   }
 
   /* The description line stays single-line/ellipsis (it's secondary info),
