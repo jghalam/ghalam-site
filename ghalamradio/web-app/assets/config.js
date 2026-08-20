@@ -7,7 +7,7 @@
 //   MAJOR — a breaking change to stored data or the backup/share format
 //   MINOR — a new feature (e.g. video playback, metadata, tag filter)
 //   PATCH — a fix with no new feature
-const APP_VERSION = '1.3.1';
+const APP_VERSION = '1.3.2';
 
 const CONFIG = {
   DB_URL: 'data/stations.db.gz',

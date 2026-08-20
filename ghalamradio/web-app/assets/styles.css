@@ -24,7 +24,7 @@ html, body {
 }
 
 body {
-  padding-bottom: 88px; /* room for the player bar */
+  padding-bottom: 130px; /* room for the player bar, now that its text can wrap to more than one line */
   padding-top: calc(56px + env(safe-area-inset-top)); /* room for the fixed top bar below */
   position: relative;
   /* Without an explicit z-index, `position: relative` alone does NOT make
@@ -96,6 +96,13 @@ body {
   border-radius: 14px;
   box-shadow: 0 6px 24px rgba(0,0,0,0.45), 0 0 0 1px var(--border);
   margin-bottom: 0.75rem;
+}
+
+.wordmark-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
 .wordmark {
@@ -507,27 +514,15 @@ a.icon-btn { text-decoration: none; }
   flex-shrink: 0;
 }
 
-/* Reserves room for the art button (centered over the bar — see below) so
-   long station/track text doesn't run underneath it on desktop. Reserving
-   the space unconditionally, rather than only when art is actually
-   showing, means nothing reflows/jumps when a track's artwork appears or
-   disappears mid-stream. Mobile turns this off (see the 480px breakpoint
-   below) since the button isn't part of the bar's layout there at all. */
-.player-info { min-width: 0; flex: 1; padding-right: 3.25rem; }
+.player-info { min-width: 0; flex: 1; }
 
-/* Deliberately NOT positioned relative to #playerBar — it isn't even a
-   descendant of it in the markup (see the comment in index.html: the bar's
-   own backdrop-filter would otherwise hijack the containing block for a
-   `position: fixed` child). Centered here using the viewport itself as the
-   reference, pinned to the bottom edge at an offset matching the bar's own
-   vertical padding, which reads as "centered in the bar" without actually
-   being nested in it. z-index just needs to clear the bar's (5). */
+/* Simple in-flow flex child now — no longer fixed/centered-overlay
+   positioned. That whole approach existed only because it needed to sit
+   centered over the bar without colliding with the name/status text; now
+   that it just lives at the end of the bar (name text has the rest of the
+   row to itself), plain flex layout is all it needs. */
 .player-art-btn {
-  position: fixed;
-  left: 50%;
-  bottom: 0.75rem;
-  transform: translateX(-50%);
-  z-index: 6;
+  flex-shrink: 0;
   width: 46px;
   height: 46px;
   padding: 0;
@@ -538,26 +533,28 @@ a.icon-btn { text-decoration: none; }
   cursor: pointer;
   transition: transform 0.15s ease, border-color 0.15s ease;
 }
-.player-art-btn:hover { border-color: var(--accent); transform: translateX(-50%) scale(1.06); }
+.player-art-btn:hover { border-color: var(--accent); transform: scale(1.06); }
 .player-art-btn[hidden] { display: none; }
 
 .player-art { width: 100%; height: 100%; object-fit: cover; display: block; }
 
 .player-title-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
-  gap: 0.55rem;
+  gap: 0.2rem 0.55rem;
   min-width: 0;
 }
 
+/* No more truncation — full width to wrap into, and no fixed 60% cap that
+   was cutting names short even when the row had room to spare. */
 .player-name {
   font-weight: 500;
   font-size: 0.92rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  flex-shrink: 1;
-  max-width: 60%;
+  white-space: normal;
+  overflow-wrap: break-word;
+  flex: 1 1 auto;
+  min-width: 0;
 }
 
 .player-desc {
@@ -569,16 +566,16 @@ a.icon-btn { text-decoration: none; }
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  flex: 1;
+  flex-shrink: 1;
   min-width: 0;
+  max-width: 100%;
 }
 
 .player-status {
   font-size: 0.76rem;
   color: var(--text-dim);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  white-space: normal;
+  overflow-wrap: break-word;
 }
 
 .app-version {
@@ -784,28 +781,9 @@ dialog.artwork-modal { width: min(480px, 92vw); }
      and would otherwise crowd out the station name/status text between them. */
   .player-station-logo { width: 32px; height: 32px; }
 
-  /* On desktop the art button is centered relative to the whole bar, which
-     works because .player-info's text rarely reaches the middle. On a
-     narrow phone .player-info routinely spans nearly the full bar width,
-     so that same centering put the button right on top of the station
-     name/track text instead — reserving space at .player-info's right
-     edge didn't help, since the actual collision was at the bar's center,
-     a different point entirely. Pulling the button out of the bar and
-     pinning it to the top-left of the viewport (ignoring scroll, so it's
-     always reachable) sidesteps the collision rather than fighting it. */
-  .player-art-btn {
-    position: fixed;
-    /* Sits just below the fixed top bar now, rather than in its top-left
-       corner — that spot belongs to the menu/back button as of the top-bar
-       redesign, and the two would otherwise overlap. */
-    top: calc(56px + env(safe-area-inset-top) + 0.5rem);
-    left: 0.6rem;
-    bottom: auto; /* explicit, rather than relying on being over-constrained-and-ignored alongside the top+height above */
-    transform: none;
-    width: 38px;
-    height: 38px;
-    z-index: 6;
-  }
-  .player-art-btn:hover { transform: scale(1.06); }
-  .player-info { padding-right: 0; } /* no longer needs to dodge a button centered in the bar */
+  /* Now a plain in-flow flex item (see the base rule) — the old fixed/
+     pinned-corner treatment only existed to dodge the name text when this
+     button was centered over the bar. Just needs the same modest shrink as
+     the other bar icons on a narrow phone. */
+  .player-art-btn { width: 38px; height: 38px; }
 }

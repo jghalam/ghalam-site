@@ -53,7 +53,10 @@
 
 <header class="site-header">
   <img src="../images/ghalamradio.png" alt="" class="header-icon">
-  <h1 class="wordmark">GhalamRadio</h1>
+  <div class="wordmark-row">
+    <h1 class="wordmark">GhalamRadio</h1>
+    <span id="appVersion" class="app-version"></span>
+  </div>
   <p class="tagline">Internet radio, tuned by you.</p>
 </header>
 
@@ -110,17 +113,13 @@
     </div>
     <div id="playerStatus" class="player-status">—</div>
   </div>
-  <span id="appVersion" class="app-version"></span>
+  <!-- Now a normal in-flow child at the end of the bar, on the right —
+       simple flex layout is enough for that; it no longer needs the
+       fixed/centered-overlay positioning that lived here before. -->
+  <button id="playerArtBtn" class="player-art-btn" hidden aria-label="View album art" title="View album art">
+    <img id="playerArt" class="player-art" alt="">
+  </button>
 </div>
-<!-- Deliberately NOT nested inside #playerBar: that element's own
-     backdrop-filter makes it the containing block for any `position: fixed`
-     descendant, which would trap this button inside the bar's own tiny box
-     instead of the real viewport — exactly what the mobile layout below
-     needs to avoid. Positioned to sit centered over the bar on desktop and
-     pinned to the top-left corner on mobile (see styles.css). -->
-<button id="playerArtBtn" class="player-art-btn" hidden aria-label="View album art" title="View album art">
-  <img id="playerArt" class="player-art" alt="">
-</button>
 
 <!-- Album art popup -->
 <dialog id="artworkModal" class="modal artwork-modal">
