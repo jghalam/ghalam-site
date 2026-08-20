@@ -25,6 +25,28 @@ const Artwork = (() => {
     );
   }
 
+  function sleep(ms) {
+    return new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  // Retries on network-level failures only (fetch() rejecting outright —
+  // "Load failed" on WebKit, "Failed to fetch" on Chromium — which mobile
+  // connections hit far more often than desktop ones). An HTTP-level error
+  // response (res.ok false) isn't retried, since retrying won't change a
+  // real 4xx/5xx from the server.
+  async function fetchWithRetry(url, attempts) {
+    for (let i = 0; i < attempts; i++) {
+      try {
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`iTunes search returned ${res.status}`);
+        return res;
+      } catch (err) {
+        if (i === attempts - 1) throw err;
+        await sleep(400 * (i + 1)); // 400ms, then 800ms
+      }
+    }
+  }
+
   // Returns { small, large } on a match, or null (no match, or the lookup
   // failed) — either way it's cached, so a station with no clean metadata
   // doesn't retry the same failing query every few seconds.
@@ -38,8 +60,7 @@ const Artwork = (() => {
 
     let result = null;
     try {
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`iTunes search returned ${res.status}`);
+      const res = await fetchWithRetry(url, 3);
       const data = await res.json();
       const hit = data.results && data.results[0];
       if (hit && hit.artworkUrl100) {
