@@ -1,6 +1,6 @@
 [
   {
-    "id": "draft_0497",
+    "id": "draft_0527",
     "date": "1969-03-11",
     "significance": 23.35,
     "what_triggered_this": [
@@ -35,7 +35,7 @@
     ]
   },
   {
-    "id": "draft_0492",
+    "id": "draft_0522",
     "date": "1969-10-20",
     "significance": 24.17,
     "what_triggered_this": [
@@ -70,7 +70,7 @@
     ]
   },
   {
-    "id": "draft_0488",
+    "id": "draft_0518",
     "date": "1970-10-30",
     "significance": 27.4,
     "what_triggered_this": [
@@ -132,7 +132,7 @@
     ]
   },
   {
-    "id": "draft_0473",
+    "id": "draft_0503",
     "date": "1973-01-01",
     "significance": 50.52,
     "what_triggered_this": [
@@ -183,7 +183,7 @@
     ]
   },
   {
-    "id": "draft_0472",
+    "id": "draft_0502",
     "date": "1973-07-01",
     "significance": 58.24,
     "what_triggered_this": [
@@ -253,7 +253,7 @@
     ]
   },
   {
-    "id": "draft_0479",
+    "id": "draft_0509",
     "date": "1974-12-09",
     "significance": 32.76,
     "what_triggered_this": [
@@ -296,7 +296,7 @@
     ]
   },
   {
-    "id": "draft_0487",
+    "id": "draft_0517",
     "date": "1975-03-24",
     "significance": 28.47,
     "what_triggered_this": [
@@ -339,7 +339,7 @@
     ]
   },
   {
-    "id": "draft_0499",
+    "id": "draft_0529",
     "date": "1977-12-01",
     "significance": 22.88,
     "what_triggered_this": [
@@ -374,7 +374,7 @@
     ]
   },
   {
-    "id": "draft_0484",
+    "id": "draft_0514",
     "date": "1978-11-01",
     "significance": 28.73,
     "what_triggered_this": [
@@ -463,7 +463,7 @@
     ]
   },
   {
-    "id": "draft_0475",
+    "id": "draft_0505",
     "date": "1986-01-08",
     "significance": 35.86,
     "what_triggered_this": [
@@ -506,7 +506,7 @@
     ]
   },
   {
-    "id": "draft_0498",
+    "id": "draft_0528",
     "date": "1987-03-01",
     "significance": 23.0,
     "what_triggered_this": [
@@ -603,7 +603,7 @@
     ]
   },
   {
-    "id": "draft_0478",
+    "id": "draft_0508",
     "date": "1991-01-17",
     "significance": 32.8,
     "what_triggered_this": [
@@ -646,7 +646,7 @@
     ]
   },
   {
-    "id": "draft_0496",
+    "id": "draft_0526",
     "date": "1992-08-13",
     "significance": 23.67,
     "what_triggered_this": [
@@ -707,7 +707,7 @@
     ]
   },
   {
-    "id": "draft_0490",
+    "id": "draft_0520",
     "date": "1995-01-01",
     "significance": 25.21,
     "what_triggered_this": [
@@ -804,7 +804,7 @@
     ]
   },
   {
-    "id": "draft_0494",
+    "id": "draft_0524",
     "date": "2000-01-01",
     "significance": 23.87,
     "what_triggered_this": [
@@ -866,7 +866,7 @@
     ]
   },
   {
-    "id": "draft_0489",
+    "id": "draft_0519",
     "date": "2001-05-01",
     "significance": 26.68,
     "what_triggered_this": [
@@ -944,7 +944,7 @@
     ]
   },
   {
-    "id": "draft_0485",
+    "id": "draft_0515",
     "date": "2006-08-01",
     "significance": 28.67,
     "what_triggered_this": [
@@ -987,7 +987,7 @@
     ]
   },
   {
-    "id": "draft_0481",
+    "id": "draft_0511",
     "date": "2007-09-20",
     "significance": 30.4,
     "what_triggered_this": [
@@ -1030,7 +1030,7 @@
     ]
   },
   {
-    "id": "draft_0470",
+    "id": "draft_0500",
     "date": "2008-08-08",
     "significance": 65.47,
     "what_triggered_this": [
@@ -1151,7 +1151,7 @@
     ]
   },
   {
-    "id": "draft_0495",
+    "id": "draft_0525",
     "date": "2011-08-01",
     "significance": 23.78,
     "what_triggered_this": [
@@ -1212,7 +1212,7 @@
     ]
   },
   {
-    "id": "draft_0477",
+    "id": "draft_0507",
     "date": "2013-04-15",
     "significance": 33.95,
     "what_triggered_this": [
@@ -1360,7 +1360,7 @@
     ]
   },
   {
-    "id": "draft_0474",
+    "id": "draft_0504",
     "date": "2016-11-09",
     "significance": 40.55,
     "what_triggered_this": [
@@ -1403,7 +1403,7 @@
     ]
   },
   {
-    "id": "draft_0486",
+    "id": "draft_0516",
     "date": "2018-04-01",
     "significance": 28.53,
     "what_triggered_this": [
@@ -1446,7 +1446,7 @@
     ]
   },
   {
-    "id": "draft_0493",
+    "id": "draft_0523",
     "date": "2019-06-20",
     "significance": 24.16,
     "what_triggered_this": [
@@ -1564,7 +1564,7 @@
     ]
   },
   {
-    "id": "draft_0471",
+    "id": "draft_0501",
     "date": "2021-02-25",
     "significance": 63.67,
     "what_triggered_this": [
@@ -1615,7 +1615,7 @@
     ]
   },
   {
-    "id": "draft_0491",
+    "id": "draft_0521",
     "date": "2021-06-17",
     "significance": 24.19,
     "what_triggered_this": [
@@ -1650,7 +1650,7 @@
     ]
   },
   {
-    "id": "draft_0480",
+    "id": "draft_0510",
     "date": "2022-02-24",
     "significance": 31.53,
     "what_triggered_this": [
@@ -1719,7 +1719,7 @@
     ]
   },
   {
-    "id": "draft_0482",
+    "id": "draft_0512",
     "date": "2022-10-01",
     "significance": 30.25,
     "what_triggered_this": [
@@ -1789,7 +1789,7 @@
     ]
   },
   {
-    "id": "draft_0483",
+    "id": "draft_0513",
     "date": "2024-10-01",
     "significance": 28.8,
     "what_triggered_this": [
@@ -1832,7 +1832,7 @@
     ]
   },
   {
-    "id": "draft_0476",
+    "id": "draft_0506",
     "date": "2026-01-26",
     "significance": 34.25,
     "what_triggered_this": [
