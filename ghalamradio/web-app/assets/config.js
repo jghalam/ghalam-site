@@ -7,7 +7,7 @@
 //   MAJOR — a breaking change to stored data or the backup/share format
 //   MINOR — a new feature (e.g. video playback, metadata, tag filter)
 //   PATCH — a fix with no new feature
-const APP_VERSION = '1.3.2';
+const APP_VERSION = '1.4.0';
 
 const CONFIG = {
   DB_URL: 'data/stations.db.gz',
@@ -16,6 +16,7 @@ const CONFIG = {
   LOCAL_STORAGE_KEY: 'ghalamradio_my_stations',
   SEARCH_DEBOUNCE_MS: 300,
   SEARCH_RESULT_LIMIT: 200,        // cap results for a snappy UI on broad queries
+  REGION_FILTER_MIN_RESULTS: 15,   // show the region narrow-down once a search returns at least this many
   CSV_DELIMITER: '^%^',
   CSV_HEADER: 'name^%^url^%^image^%^tags^%^description^%^homepage^%^countrycode',
   GCSVX_MIME: 'text/plain'

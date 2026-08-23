@@ -45,11 +45,16 @@ const StationDB = (() => {
   }
 
   // Mirrors iOS's searchStations(byName:countryCode:): name is a substring
-  // match, country is an exact match, both optional but at least one required.
-  function search(name, countryCode) {
+  // match, country is an exact match, both optional but at least one
+  // required. `subcountry` narrows further within an already-selected
+  // country — it's an exact match against the same free-text field used to
+  // build the "state" part of a result's description; the underlying data
+  // has no separate city column (see listSubcountriesForSearch below).
+  function search(name, countryCode, subcountry) {
     if (!db) return [];
     const hasName = name && name.trim().length > 0;
     const hasCountry = countryCode && countryCode.trim().length > 0;
+    const hasSubcountry = subcountry && subcountry.trim().length > 0;
     if (!hasName && !hasCountry) return [];
 
     const clauses = [];
@@ -61,6 +66,10 @@ const StationDB = (() => {
     if (hasCountry) {
       clauses.push('CountryCode = $country');
       params['$country'] = countryCode.trim();
+    }
+    if (hasSubcountry) {
+      clauses.push('Subcountry = $subcountry');
+      params['$subcountry'] = subcountry.trim();
     }
 
     const sql = `
@@ -92,6 +101,45 @@ const StationDB = (() => {
     return results;
   }
 
+  // Distinct, non-empty Subcountry values among ALL matches for a given
+  // name/country query — deliberately not capped by SEARCH_RESULT_LIMIT
+  // like search() is, since the point is to offer a complete narrowing
+  // list even when the underlying match count is much larger than what's
+  // actually rendered. A DISTINCT list is typically far smaller than the
+  // full row count, so this stays cheap even for a broad query.
+  function listSubcountriesForSearch(name, countryCode) {
+    if (!db) return [];
+    const hasName = name && name.trim().length > 0;
+    const hasCountry = countryCode && countryCode.trim().length > 0;
+    if (!hasName && !hasCountry) return [];
+
+    const clauses = ["Subcountry IS NOT NULL", "Subcountry != ''"];
+    const params = {};
+    if (hasName) {
+      clauses.push('Name LIKE $name');
+      params['$name'] = `%${name.trim()}%`;
+    }
+    if (hasCountry) {
+      clauses.push('CountryCode = $country');
+      params['$country'] = countryCode.trim();
+    }
+
+    const sql = `
+      SELECT DISTINCT Subcountry FROM Station
+      WHERE ${clauses.join(' AND ')}
+      ORDER BY Subcountry ASC
+    `;
+    const stmt = db.prepare(sql);
+    stmt.bind(params);
+    const out = [];
+    while (stmt.step()) {
+      const row = stmt.getAsObject();
+      if (row.Subcountry) out.push(row.Subcountry);
+    }
+    stmt.free();
+    return out;
+  }
+
   // Distinct country codes for the country filter dropdown.
   function listCountries() {
     if (!db) return [];
@@ -104,5 +152,5 @@ const StationDB = (() => {
     return res[0].values.map(row => row[0]);
   }
 
-  return { load, search, listCountries, getStationCount };
+  return { load, search, listCountries, listSubcountriesForSearch, getStationCount };
 })();

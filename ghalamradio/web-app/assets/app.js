@@ -524,7 +524,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const searchHint = document.getElementById('searchHint');
   const searchCount = document.getElementById('searchCount');
   const dbStatus = document.getElementById('dbStatus');
+  const regionFilter = document.getElementById('regionFilter');
   let selectedCountryCode = '';
+  let selectedRegion = '';
+  let regionListQueryKey = null; // name+country the region dropdown's options currently reflect
 
   function appendRowSafely(list, station, callbacks) {
     try {
@@ -537,14 +540,48 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function renderSearch() {
-    const results = StationDB.search(searchName.value, selectedCountryCode);
-    searchResults.innerHTML = '';
-    if (!searchName.value.trim() && !selectedCountryCode) {
+    const name = searchName.value;
+    const queryKey = `${name.trim().toLowerCase()}|${selectedCountryCode}`;
+
+    if (!name.trim() && !selectedCountryCode) {
+      searchResults.innerHTML = '';
       searchHint.hidden = false;
       searchHint.textContent = 'Type a name or pick a country to search.';
       searchCount.hidden = true;
+      regionFilter.hidden = true;
+      regionListQueryKey = null;
+      selectedRegion = '';
       return;
     }
+
+    // The region dropdown's own option list only makes sense for the
+    // current name/country query — repopulate (and reset the selection)
+    // only when THAT changed, not on every re-render, which also fires when
+    // just the region selection itself changes.
+    if (queryKey !== regionListQueryKey) {
+      regionListQueryKey = queryKey;
+      selectedRegion = '';
+      const regions = StationDB.listSubcountriesForSearch(name, selectedCountryCode);
+      regionFilter.innerHTML = '';
+      const allOpt = document.createElement('option');
+      allOpt.value = '';
+      allOpt.textContent = 'All cities/regions';
+      regionFilter.appendChild(allOpt);
+      for (const r of regions) {
+        const opt = document.createElement('option');
+        opt.value = r;
+        opt.textContent = r;
+        regionFilter.appendChild(opt);
+      }
+      regionFilter.value = '';
+      // Only worth showing once there's enough to actually narrow down AND
+      // more than one option to pick between — otherwise it's just clutter.
+      const baseCount = StationDB.search(name, selectedCountryCode).length;
+      regionFilter.hidden = regions.length < 2 || baseCount < CONFIG.REGION_FILTER_MIN_RESULTS;
+    }
+
+    const results = StationDB.search(name, selectedCountryCode, selectedRegion);
+    searchResults.innerHTML = '';
     searchHint.hidden = results.length > 0;
     if (results.length === 0) {
       searchHint.hidden = false;
@@ -572,6 +609,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const debouncedSearch = debounce(renderSearch, CONFIG.SEARCH_DEBOUNCE_MS);
   searchName.addEventListener('input', debouncedSearch);
+  regionFilter.addEventListener('change', () => {
+    selectedRegion = regionFilter.value;
+    renderSearch();
+  });
 
   // ---------- custom country dropdown (flag + name) ----------
 
