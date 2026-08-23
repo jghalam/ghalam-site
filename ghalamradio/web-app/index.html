@@ -87,7 +87,14 @@
       </select>
     </div>
     <p id="dbStatus" class="status-line">Loading station database…</p>
-    <p id="searchCount" class="search-count" hidden></p>
+    <!-- Prev/Next appear here too (not just below the results — see
+         #searchPager) so paging doesn't require scrolling all the way down
+         first. Both pairs of buttons are kept in sync by the same code. -->
+    <div id="searchCountRow" class="search-count-row" hidden>
+      <p id="searchCount" class="search-count"></p>
+      <button type="button" id="searchPrevBtnTop" class="btn btn-ghost btn-compact" hidden title="Previous page">‹ Prev</button>
+      <button type="button" id="searchNextBtnTop" class="btn btn-ghost btn-compact" hidden title="Next page">Next ›</button>
+    </div>
     <ul id="searchResults" class="station-list" aria-live="polite"></ul>
     <!-- Only shown once there's more than one page of matches (see
          renderSearch in app.js) — no point cluttering a short result list. -->

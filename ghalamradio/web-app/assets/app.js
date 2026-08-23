@@ -522,12 +522,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const searchName = document.getElementById('searchName');
   const searchResults = document.getElementById('searchResults');
   const searchHint = document.getElementById('searchHint');
+  const searchCountRow = document.getElementById('searchCountRow');
   const searchCount = document.getElementById('searchCount');
   const dbStatus = document.getElementById('dbStatus');
   const regionFilter = document.getElementById('regionFilter');
   const searchPager = document.getElementById('searchPager');
   const searchPrevBtn = document.getElementById('searchPrevBtn');
   const searchNextBtn = document.getElementById('searchNextBtn');
+  const searchPrevBtnTop = document.getElementById('searchPrevBtnTop');
+  const searchNextBtnTop = document.getElementById('searchNextBtnTop');
   let selectedCountryCode = '';
   let selectedRegion = '';
   let regionListQueryKey = null; // name+country the region dropdown's options currently reflect
@@ -551,7 +554,7 @@ document.addEventListener('DOMContentLoaded', () => {
       searchResults.innerHTML = '';
       searchHint.hidden = false;
       searchHint.textContent = 'Type a name or pick a country to search.';
-      searchCount.hidden = true;
+      searchCountRow.hidden = true;
       searchPager.hidden = true;
       regionFilter.hidden = true;
       regionListQueryKey = null;
@@ -603,21 +606,31 @@ document.addEventListener('DOMContentLoaded', () => {
     if (total === 0) {
       searchHint.hidden = false;
       searchHint.textContent = 'No stations found.';
-      searchCount.hidden = true;
+      searchCountRow.hidden = true;
       searchPager.hidden = true;
       return;
     }
 
     const rangeStart = searchOffset + 1;
     const rangeEnd = Math.min(searchOffset + results.length, total);
-    searchCount.hidden = false;
+    searchCountRow.hidden = false;
     searchCount.textContent = total > CONFIG.SEARCH_RESULT_LIMIT
       ? `Showing ${rangeStart.toLocaleString()}–${rangeEnd.toLocaleString()} of ${total.toLocaleString()} stations`
       : `${total} station${total === 1 ? '' : 's'} found`;
 
-    searchPager.hidden = total <= CONFIG.SEARCH_RESULT_LIMIT;
-    searchPrevBtn.disabled = searchOffset <= 0;
-    searchNextBtn.disabled = rangeEnd >= total;
+    // Both pairs of Prev/Next (this inline row, and the one below the
+    // results — see index.html) always reflect the same page, so they're
+    // kept in sync here in one place rather than duplicating this logic.
+    const hasMultiplePages = total > CONFIG.SEARCH_RESULT_LIMIT;
+    const isFirstPage = searchOffset <= 0;
+    const isLastPage = rangeEnd >= total;
+    searchPager.hidden = !hasMultiplePages;
+    searchPrevBtn.disabled = isFirstPage;
+    searchNextBtn.disabled = isLastPage;
+    searchPrevBtnTop.hidden = !hasMultiplePages;
+    searchNextBtnTop.hidden = !hasMultiplePages;
+    searchPrevBtnTop.disabled = isFirstPage;
+    searchNextBtnTop.disabled = isLastPage;
 
     for (const station of results) {
       appendRowSafely(searchResults, station, {
@@ -633,6 +646,12 @@ document.addEventListener('DOMContentLoaded', () => {
     syncPlaybackUI();
   }
 
+  function goToSearchPage(deltaPages) {
+    searchOffset = Math.max(0, searchOffset + deltaPages * CONFIG.SEARCH_RESULT_LIMIT);
+    renderSearch();
+    searchResults.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  }
+
   const debouncedSearch = debounce(renderSearch, CONFIG.SEARCH_DEBOUNCE_MS);
   searchName.addEventListener('input', debouncedSearch);
   regionFilter.addEventListener('change', () => {
@@ -640,16 +659,10 @@ document.addEventListener('DOMContentLoaded', () => {
     searchOffset = 0; // a different region is a different match set — start over
     renderSearch();
   });
-  searchPrevBtn.addEventListener('click', () => {
-    searchOffset = Math.max(0, searchOffset - CONFIG.SEARCH_RESULT_LIMIT);
-    renderSearch();
-    searchResults.scrollIntoView({ block: 'start', behavior: 'smooth' });
-  });
-  searchNextBtn.addEventListener('click', () => {
-    searchOffset += CONFIG.SEARCH_RESULT_LIMIT;
-    renderSearch();
-    searchResults.scrollIntoView({ block: 'start', behavior: 'smooth' });
-  });
+  searchPrevBtn.addEventListener('click', () => goToSearchPage(-1));
+  searchNextBtn.addEventListener('click', () => goToSearchPage(1));
+  searchPrevBtnTop.addEventListener('click', () => goToSearchPage(-1));
+  searchNextBtnTop.addEventListener('click', () => goToSearchPage(1));
 
   // ---------- custom country dropdown (flag + name) ----------
 

@@ -330,11 +330,24 @@ input:focus-visible, select:focus-visible, button:focus-visible {
   padding: 1rem 0;
 }
 
+.search-count-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding-bottom: 0.6rem;
+}
+
 .search-count {
   color: var(--text-dim);
   font-size: 0.78rem;
-  padding: 0 0.1rem 0.6rem;
 }
+
+.btn-compact {
+  font-size: 0.78rem;
+  padding: 0.35rem 0.75rem;
+  flex-shrink: 0;
+}
+.btn-compact[hidden] { display: none; }
 
 .search-pager {
   display: flex;
