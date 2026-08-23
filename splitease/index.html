@@ -220,7 +220,27 @@
   .row { display: flex; gap: 10px; }
   .row input { flex: 1; }
 
+  .my-event-row-wrap {
+    position: relative;
+    overflow: hidden;
+    border-radius: 10px;
+    margin-bottom: 8px;
+  }
+  .my-event-swipe-bg {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 26px;
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 13px;
+  }
+  .my-event-swipe-bg.action-delete { background: #dc2626; }
+  .my-event-swipe-bg.action-leave { background: #b45309; }
   .my-event-row {
+    position: relative;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -228,9 +248,9 @@
     background: var(--surface-raised);
     border: 1px solid var(--border);
     border-radius: 10px;
-    margin-bottom: 8px;
     cursor: pointer;
-    transition: border-color 0.15s ease;
+    transition: border-color 0.15s ease, transform 0.2s ease;
+    touch-action: pan-y;
   }
   .my-event-row:hover { border-color: var(--blue); }
   .my-event-name { font-weight: 600; font-size: 14px; }
@@ -1178,7 +1198,7 @@
     getAuth, signInAnonymously, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
-  const APP_VERSION = "2.9.5";
+  const APP_VERSION = "2.10.0";
   document.getElementById("app-footer").textContent =
     `SplitEase v${APP_VERSION} — Share Together. Settle Smarter.`;
   console.log(`%cSplitEase v${APP_VERSION}`, "color:#3d8bfd;font-weight:bold;");
@@ -1574,19 +1594,24 @@
         const dotColor = STATUS_COLORS[e.status] || "var(--border)";
         const dotTitle = STATUS_LABELS[e.status] || "Status unknown";
         return `
-        <div class="my-event-row">
-          <div class="my-event-row-main" data-event-id="${e.id}">
-            <div class="my-event-name">
-              <span class="legend-dot" style="background:${dotColor}; margin-right:7px;" title="${dotTitle}"></span>${escapeHtml(e.name)}
-            </div>
-            <div class="my-event-meta">Last opened ${timeAgo({ seconds: Math.floor(e.lastVisitedAt / 1000) })}</div>
+        <div class="my-event-row-wrap">
+          <div class="my-event-swipe-bg action-${actionType}" data-event-id="${e.id}" data-event-name="${escapeHtml(e.name)}" data-action="${actionType}">
+            ${actionLabel}
           </div>
-          <button class="btn-ghost my-event-menu-btn" data-event-id="${e.id}" data-event-name="${escapeHtml(e.name)}"
-            data-action="${actionType}" data-action-label="${actionLabel}"
-            title="More options" aria-label="More options"
-            style="padding:6px 10px; font-size:17px; line-height:1; flex-shrink:0;">
-            ⋯
-          </button>
+          <div class="my-event-row" data-event-id="${e.id}">
+            <div class="my-event-row-main" data-event-id="${e.id}">
+              <div class="my-event-name">
+                <span class="legend-dot" style="background:${dotColor}; margin-right:7px;" title="${dotTitle}"></span>${escapeHtml(e.name)}
+              </div>
+              <div class="my-event-meta">Last opened ${timeAgo({ seconds: Math.floor(e.lastVisitedAt / 1000) })}</div>
+            </div>
+            <button class="btn-ghost my-event-menu-btn" data-event-id="${e.id}" data-event-name="${escapeHtml(e.name)}"
+              data-action="${actionType}" data-action-label="${actionLabel}"
+              title="More options" aria-label="More options"
+              style="padding:6px 10px; font-size:17px; line-height:1; flex-shrink:0;">
+              ⋯
+            </button>
+          </div>
         </div>
       `;
       }).join("")}
@@ -1760,35 +1785,53 @@
     shareEventLink(id, name);
   });
 
+  async function performRowAction(id, action) {
+    if (action === "delete") {
+      if (!confirm("Delete this event? This permanently removes it and every participant's and expense record inside it — for everyone. This can't be undone.")) return false;
+      try {
+        await deleteEventCompletely(id);
+        renderMyEvents();
+        showToast("Event deleted");
+        return true;
+      } catch (err) {
+        console.error(err);
+        showToast("Couldn't delete that event — try again");
+        return false;
+      }
+    } else {
+      if (!confirm("Leave this event? This removes your name and deletes any expenses you added.")) return false;
+      try {
+        await leaveEventById(id);
+        renderMyEvents();
+        showToast("You've left the event");
+        return true;
+      } catch (err) {
+        console.error(err);
+        showToast("Couldn't leave that event — try again");
+        return false;
+      }
+    }
+  }
+
   document.getElementById("my-event-menu-action").addEventListener("click", async () => {
     const menu = document.getElementById("my-event-menu");
     const id = menu.dataset.eventId;
     const action = menu.dataset.action;
     closeRowMenu();
-    if (action === "delete") {
-      if (!confirm("Delete this event? This permanently removes it and every participant's and expense record inside it — for everyone. This can't be undone.")) return;
-      try {
-        await deleteEventCompletely(id);
-        renderMyEvents();
-        showToast("Event deleted");
-      } catch (err) {
-        console.error(err);
-        showToast("Couldn't delete that event — try again");
-      }
-    } else {
-      if (!confirm("Leave this event? This removes your name and deletes any expenses you added.")) return;
-      try {
-        await leaveEventById(id);
-        renderMyEvents();
-        showToast("You've left the event");
-      } catch (err) {
-        console.error(err);
-        showToast("Couldn't leave that event — try again");
-      }
-    }
+    await performRowAction(id, action);
   });
 
   document.getElementById("my-events-list").addEventListener("click", async (e) => {
+    const swipeBg = e.target.closest(".my-event-swipe-bg");
+    if (swipeBg) {
+      const id = swipeBg.dataset.eventId;
+      const action = swipeBg.dataset.action;
+      const rowEl = swipeBg.closest(".my-event-row-wrap")?.querySelector(".my-event-row");
+      await performRowAction(id, action);
+      if (openSwipeRow === rowEl) openSwipeRow = null;
+      return;
+    }
+
     const menuBtn = e.target.closest(".my-event-menu-btn");
     if (menuBtn) {
       e.stopPropagation();
@@ -1816,6 +1859,77 @@
     } catch (err) {
       console.error(err);
       showToast("Couldn't open that event — check your connection and try again");
+    }
+  });
+
+  // ---------- swipe-to-reveal delete/leave (touch devices) ----------
+  let swipeState = null;
+  let openSwipeRow = null;
+
+  function closeSwipeRow(rowEl) {
+    if (!rowEl) return;
+    rowEl.style.transform = "translateX(0px)";
+  }
+
+  const myEventsListEl = document.getElementById("my-events-list");
+
+  myEventsListEl.addEventListener("touchstart", (e) => {
+    const rowEl = e.target.closest(".my-event-row");
+    if (!rowEl) return;
+    const wrapEl = rowEl.closest(".my-event-row-wrap");
+    const bgEl = wrapEl.querySelector(".my-event-swipe-bg");
+    const touch = e.touches[0];
+    if (openSwipeRow && openSwipeRow !== rowEl) {
+      closeSwipeRow(openSwipeRow);
+      openSwipeRow = null;
+    }
+    swipeState = {
+      rowEl,
+      startX: touch.clientX,
+      startY: touch.clientY,
+      actionWidth: Math.min(110, bgEl.offsetWidth || 90),
+      isHorizontal: null,
+      currentTranslate: 0
+    };
+    rowEl.style.transition = "none";
+  }, { passive: true });
+
+  myEventsListEl.addEventListener("touchmove", (e) => {
+    if (!swipeState) return;
+    const touch = e.touches[0];
+    const dx = touch.clientX - swipeState.startX;
+    const dy = touch.clientY - swipeState.startY;
+    if (swipeState.isHorizontal === null) {
+      if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+      swipeState.isHorizontal = Math.abs(dx) > Math.abs(dy);
+    }
+    if (!swipeState.isHorizontal) return;
+    e.preventDefault();
+    const translate = Math.min(0, Math.max(-swipeState.actionWidth, dx));
+    swipeState.currentTranslate = translate;
+    swipeState.rowEl.style.transform = `translateX(${translate}px)`;
+  }, { passive: false });
+
+  myEventsListEl.addEventListener("touchend", () => {
+    if (!swipeState) return;
+    const { rowEl, actionWidth, currentTranslate, isHorizontal } = swipeState;
+    rowEl.style.transition = "";
+    if (isHorizontal) {
+      if (currentTranslate < -actionWidth * 0.4) {
+        rowEl.style.transform = `translateX(${-actionWidth}px)`;
+        openSwipeRow = rowEl;
+      } else {
+        rowEl.style.transform = "translateX(0px)";
+        if (openSwipeRow === rowEl) openSwipeRow = null;
+      }
+    }
+    swipeState = null;
+  });
+
+  document.addEventListener("click", (e) => {
+    if (openSwipeRow && !openSwipeRow.contains(e.target)) {
+      closeSwipeRow(openSwipeRow);
+      openSwipeRow = null;
     }
   });
 
