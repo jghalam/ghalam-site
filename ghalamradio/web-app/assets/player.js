@@ -249,7 +249,13 @@ const Player = (() => {
     resolvePlaylistUrl(station.url).then(resolvedUrl => {
       if (currentStation !== station) return; // superseded by a newer play() call
       const playUrl = toPlayableUrl(resolvedUrl);
-      if (isHlsUrl(playUrl)) {
+      // station.hls (from the station database, when present) is an
+      // explicit signal from radio-browser, not a guess — checked alongside
+      // the URL-extension guess (isHlsUrl) rather than instead of it, so a
+      // station with no such metadata (anything manually added, or any
+      // station from a not-yet-regenerated database) still gets the same
+      // detection as before.
+      if (station.hls || isHlsUrl(playUrl)) {
         playViaHls(station, playUrl);
       } else {
         playViaIcecast(station, playUrl);

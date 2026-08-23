@@ -2,13 +2,33 @@
 //
 // Loads the gzip-compressed, read-only station DB shipped alongside the app
 // (built by conv.py from the radio-browser.info dump) and exposes search.
-// Schema matches the iOS app's `stations.swift` exactly:
+// Schema matches the iOS app's `stations.swift`, plus one addition:
 //   Station(StationID, Name, Url, Homepage, Favicon, Language, Tags,
-//           Subcountry, CountryCode, GeoLat, GeoLong)
+//           Subcountry, CountryCode, GeoLat, GeoLong, Hls)
+// `Hls` is web-only — an explicit flag from radio-browser for whether a
+// stream is HLS, appended at the end of the schema so it doesn't disturb
+// the columns/positions the iOS app already reads.
 
 const StationDB = (() => {
   let db = null;
   let loadPromise = null;
+  // Detected once per DB load — the deployed stations.db.gz might not have
+  // been regenerated with the new Hls column yet even after this code is
+  // live, so this can't be assumed; without it, Hls is just left out of
+  // results entirely and stream-type detection falls back to what it did
+  // before (guessing from the URL), rather than the SELECT below throwing.
+  let hasHlsColumn = false;
+
+  function detectHlsColumn(database) {
+    try {
+      const res = database.exec('PRAGMA table_info(Station)');
+      if (!res.length) return false;
+      const nameColIdx = res[0].columns.indexOf('name');
+      return res[0].values.some(row => row[nameColIdx] === 'Hls');
+    } catch (err) {
+      return false;
+    }
+  }
 
   async function load(onProgress) {
     if (db) return db;
@@ -30,6 +50,7 @@ const StationDB = (() => {
         locateFile: file => `https://cdn.jsdelivr.net/npm/sql.js@1.10.3/dist/${file}`
       });
       db = new SQL.Database(decompressed);
+      hasHlsColumn = detectHlsColumn(db);
 
       onProgress?.('Ready');
       return db;
@@ -73,7 +94,7 @@ const StationDB = (() => {
     }
 
     const sql = `
-      SELECT Name, Url, Homepage, Favicon, Language, Tags, Subcountry, CountryCode
+      SELECT Name, Url, Homepage, Favicon, Language, Tags, Subcountry, CountryCode${hasHlsColumn ? ', Hls' : ''}
       FROM Station
       WHERE ${clauses.join(' AND ')}
       LIMIT ${CONFIG.SEARCH_RESULT_LIMIT}
@@ -94,7 +115,10 @@ const StationDB = (() => {
         tags: row.Tags || '',
         description: [lang, state].filter(Boolean).join(' - ') + (country ? `, ${country}` : ''),
         homepage: row.Homepage || '',
-        countrycode: country
+        countrycode: country,
+        // Only ever present (and only ever true) once the deployed DB has
+        // actually been regenerated with this column — see hasHlsColumn.
+        hls: hasHlsColumn ? !!row.Hls : false
       });
     }
     stmt.free();
