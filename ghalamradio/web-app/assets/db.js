@@ -65,18 +65,14 @@ const StationDB = (() => {
     return res.length ? res[0].values[0][0] : 0;
   }
 
-  // Mirrors iOS's searchStations(byName:countryCode:): name is a substring
-  // match, country is an exact match, both optional but at least one
-  // required. `subcountry` narrows further within an already-selected
-  // country — it's an exact match against the same free-text field used to
-  // build the "state" part of a result's description; the underlying data
-  // has no separate city column (see listSubcountriesForSearch below).
-  function search(name, countryCode, subcountry) {
-    if (!db) return [];
+  // Shared WHERE-clause builder for search() and count() below, so the two
+  // can never disagree about what counts as a match. Returns null when
+  // there's nothing to search on (mirrors the old early-return in each).
+  function buildWhereClause(name, countryCode, subcountry) {
     const hasName = name && name.trim().length > 0;
     const hasCountry = countryCode && countryCode.trim().length > 0;
     const hasSubcountry = subcountry && subcountry.trim().length > 0;
-    if (!hasName && !hasCountry) return [];
+    if (!hasName && !hasCountry) return null;
 
     const clauses = [];
     const params = {};
@@ -92,16 +88,31 @@ const StationDB = (() => {
       clauses.push('Subcountry = $subcountry');
       params['$subcountry'] = subcountry.trim();
     }
+    return { clauses, params };
+  }
+
+  // Mirrors iOS's searchStations(byName:countryCode:): name is a substring
+  // match, country is an exact match, both optional but at least one
+  // required. `subcountry` narrows further within an already-selected
+  // country — it's an exact match against the same free-text field used to
+  // build the "state" part of a result's description; the underlying data
+  // has no separate city column (see listSubcountriesForSearch below).
+  // `offset` pages through matches beyond SEARCH_RESULT_LIMIT — see count().
+  function search(name, countryCode, subcountry, offset) {
+    if (!db) return [];
+    const where = buildWhereClause(name, countryCode, subcountry);
+    if (!where) return [];
+    const safeOffset = Math.max(0, offset || 0);
 
     const sql = `
       SELECT Name, Url, Homepage, Favicon, Language, Tags, Subcountry, CountryCode${hasHlsColumn ? ', Hls' : ''}
       FROM Station
-      WHERE ${clauses.join(' AND ')}
-      LIMIT ${CONFIG.SEARCH_RESULT_LIMIT}
+      WHERE ${where.clauses.join(' AND ')}
+      LIMIT ${CONFIG.SEARCH_RESULT_LIMIT} OFFSET ${safeOffset}
     `;
 
     const stmt = db.prepare(sql);
-    stmt.bind(params);
+    stmt.bind(where.params);
     const results = [];
     while (stmt.step()) {
       const row = stmt.getAsObject();
@@ -123,6 +134,22 @@ const StationDB = (() => {
     }
     stmt.free();
     return results;
+  }
+
+  // Total matches for a query, ignoring SEARCH_RESULT_LIMIT entirely — what
+  // renderSearch() uses to show "X–Y of Z" and to know how many pages exist,
+  // since search() itself only ever returns one page at a time.
+  function count(name, countryCode, subcountry) {
+    if (!db) return 0;
+    const where = buildWhereClause(name, countryCode, subcountry);
+    if (!where) return 0;
+    const sql = `SELECT COUNT(*) AS total FROM Station WHERE ${where.clauses.join(' AND ')}`;
+    const stmt = db.prepare(sql);
+    stmt.bind(where.params);
+    stmt.step();
+    const row = stmt.getAsObject();
+    stmt.free();
+    return row.total || 0;
   }
 
   // Distinct, non-empty Subcountry values among ALL matches for a given
@@ -176,5 +203,5 @@ const StationDB = (() => {
     return res[0].values.map(row => row[0]);
   }
 
-  return { load, search, listCountries, listSubcountriesForSearch, getStationCount };
+  return { load, search, count, listCountries, listSubcountriesForSearch, getStationCount };
 })();

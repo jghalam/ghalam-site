@@ -525,9 +525,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const searchCount = document.getElementById('searchCount');
   const dbStatus = document.getElementById('dbStatus');
   const regionFilter = document.getElementById('regionFilter');
+  const searchPager = document.getElementById('searchPager');
+  const searchPrevBtn = document.getElementById('searchPrevBtn');
+  const searchNextBtn = document.getElementById('searchNextBtn');
   let selectedCountryCode = '';
   let selectedRegion = '';
   let regionListQueryKey = null; // name+country the region dropdown's options currently reflect
+  let searchOffset = 0; // start index of the current page within the total matches
 
   function appendRowSafely(list, station, callbacks) {
     try {
@@ -548,19 +552,22 @@ document.addEventListener('DOMContentLoaded', () => {
       searchHint.hidden = false;
       searchHint.textContent = 'Type a name or pick a country to search.';
       searchCount.hidden = true;
+      searchPager.hidden = true;
       regionFilter.hidden = true;
       regionListQueryKey = null;
       selectedRegion = '';
+      searchOffset = 0;
       return;
     }
 
     // The region dropdown's own option list only makes sense for the
-    // current name/country query — repopulate (and reset the selection)
-    // only when THAT changed, not on every re-render, which also fires when
-    // just the region selection itself changes.
+    // current name/country query — repopulate (and reset the region
+    // selection and pagination) only when THAT changed, not on every
+    // re-render, which also fires when just the region or page changes.
     if (queryKey !== regionListQueryKey) {
       regionListQueryKey = queryKey;
       selectedRegion = '';
+      searchOffset = 0;
       const regions = StationDB.listSubcountriesForSearch(name, selectedCountryCode);
       regionFilter.innerHTML = '';
       const allOpt = document.createElement('option');
@@ -576,23 +583,38 @@ document.addEventListener('DOMContentLoaded', () => {
       regionFilter.value = '';
       // Only worth showing once there's enough to actually narrow down AND
       // more than one option to pick between — otherwise it's just clutter.
-      const baseCount = StationDB.search(name, selectedCountryCode).length;
-      regionFilter.hidden = regions.length < 2 || baseCount < CONFIG.REGION_FILTER_MIN_RESULTS;
+      const baseTotal = StationDB.count(name, selectedCountryCode);
+      regionFilter.hidden = regions.length < 2 || baseTotal < CONFIG.REGION_FILTER_MIN_RESULTS;
     }
 
-    const results = StationDB.search(name, selectedCountryCode, selectedRegion);
+    const total = StationDB.count(name, selectedCountryCode, selectedRegion);
+    // Defensive clamp — offset resets alongside every query/region change
+    // above, so this shouldn't normally trigger, but guards against an
+    // out-of-range page if it ever does.
+    if (searchOffset > 0 && searchOffset >= total) searchOffset = 0;
+
+    const results = StationDB.search(name, selectedCountryCode, selectedRegion, searchOffset);
     searchResults.innerHTML = '';
-    searchHint.hidden = results.length > 0;
-    if (results.length === 0) {
+    searchHint.hidden = total > 0;
+    if (total === 0) {
       searchHint.hidden = false;
       searchHint.textContent = 'No stations found.';
       searchCount.hidden = true;
+      searchPager.hidden = true;
       return;
     }
+
+    const rangeStart = searchOffset + 1;
+    const rangeEnd = Math.min(searchOffset + results.length, total);
     searchCount.hidden = false;
-    searchCount.textContent = results.length >= CONFIG.SEARCH_RESULT_LIMIT
-      ? `Showing first ${results.length} matches — refine your search to narrow it down`
-      : `${results.length} station${results.length === 1 ? '' : 's'} found`;
+    searchCount.textContent = total > CONFIG.SEARCH_RESULT_LIMIT
+      ? `Showing ${rangeStart.toLocaleString()}–${rangeEnd.toLocaleString()} of ${total.toLocaleString()} stations`
+      : `${total} station${total === 1 ? '' : 's'} found`;
+
+    searchPager.hidden = total <= CONFIG.SEARCH_RESULT_LIMIT;
+    searchPrevBtn.disabled = searchOffset <= 0;
+    searchNextBtn.disabled = rangeEnd >= total;
+
     for (const station of results) {
       appendRowSafely(searchResults, station, {
         onPlay: handlePlay,
@@ -611,7 +633,18 @@ document.addEventListener('DOMContentLoaded', () => {
   searchName.addEventListener('input', debouncedSearch);
   regionFilter.addEventListener('change', () => {
     selectedRegion = regionFilter.value;
+    searchOffset = 0; // a different region is a different match set — start over
     renderSearch();
+  });
+  searchPrevBtn.addEventListener('click', () => {
+    searchOffset = Math.max(0, searchOffset - CONFIG.SEARCH_RESULT_LIMIT);
+    renderSearch();
+    searchResults.scrollIntoView({ block: 'start', behavior: 'smooth' });
+  });
+  searchNextBtn.addEventListener('click', () => {
+    searchOffset += CONFIG.SEARCH_RESULT_LIMIT;
+    renderSearch();
+    searchResults.scrollIntoView({ block: 'start', behavior: 'smooth' });
   });
 
   // ---------- custom country dropdown (flag + name) ----------

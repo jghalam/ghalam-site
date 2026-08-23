@@ -89,6 +89,12 @@
     <p id="dbStatus" class="status-line">Loading station database…</p>
     <p id="searchCount" class="search-count" hidden></p>
     <ul id="searchResults" class="station-list" aria-live="polite"></ul>
+    <!-- Only shown once there's more than one page of matches (see
+         renderSearch in app.js) — no point cluttering a short result list. -->
+    <div id="searchPager" class="search-pager" hidden>
+      <button type="button" id="searchPrevBtn" class="btn btn-ghost" title="Previous page">‹ Prev</button>
+      <button type="button" id="searchNextBtn" class="btn btn-ghost" title="Next page">Next ›</button>
+    </div>
     <p id="searchHint" class="hint">Type a name or pick a country to search.</p>
   </section>
 
