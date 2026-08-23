@@ -581,10 +581,14 @@ document.addEventListener('DOMContentLoaded', () => {
         regionFilter.appendChild(opt);
       }
       regionFilter.value = '';
-      // Only worth showing once there's enough to actually narrow down AND
-      // more than one option to pick between — otherwise it's just clutter.
+      // Matches the iOS app's behavior: shown whenever there's at least one
+      // real value, even if (as happens for some countries, e.g. China —
+      // where radio-browser's data gives every station the exact same
+      // non-region-specific code) picking it wouldn't actually narrow
+      // anything further. Consistency with the iOS app's UI won out over
+      // hiding a technically-unhelpful-but-expected filter.
       const baseTotal = StationDB.count(name, selectedCountryCode);
-      regionFilter.hidden = regions.length < 2 || baseTotal < CONFIG.REGION_FILTER_MIN_RESULTS;
+      regionFilter.hidden = regions.length < 1 || baseTotal < CONFIG.REGION_FILTER_MIN_RESULTS;
     }
 
     const total = StationDB.count(name, selectedCountryCode, selectedRegion);
