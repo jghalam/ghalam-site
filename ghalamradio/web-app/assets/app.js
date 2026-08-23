@@ -549,17 +549,29 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderSearch() {
     const name = searchName.value;
     const queryKey = `${name.trim().toLowerCase()}|${selectedCountryCode}`;
+    if (window.GHALAM_DEBUG) console.log('[renderSearch] enter', { name, selectedCountryCode, selectedRegion, searchOffset });
+
+    // Unconditional reset, before any of the branches below decide whether
+    // to show something again — whatever showed on the PREVIOUS render
+    // can't survive into this one by accident. Cheaper and more robust
+    // than trying to guarantee every exit path below individually remembers
+    // to clean up everything that could have been left showing.
+    searchCountRow.hidden = true;
+    searchCount.textContent = '';
+    searchPager.hidden = true;
+    searchPrevBtnTop.hidden = true;
+    searchNextBtnTop.hidden = true;
 
     if (!name.trim() && !selectedCountryCode) {
+      if (window.GHALAM_DEBUG) console.log('[renderSearch] early-return: empty name+country, hiding everything');
       searchResults.innerHTML = '';
       searchHint.hidden = false;
       searchHint.textContent = 'Type a name or pick a country to search.';
-      searchCountRow.hidden = true;
-      searchPager.hidden = true;
       regionFilter.hidden = true;
       regionListQueryKey = null;
       selectedRegion = '';
       searchOffset = 0;
+      if (Player.current) Player.stop(); // nothing left to show it playing from
       return;
     }
 
@@ -601,13 +613,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (searchOffset > 0 && searchOffset >= total) searchOffset = 0;
 
     const results = StationDB.search(name, selectedCountryCode, selectedRegion, searchOffset);
+    if (window.GHALAM_DEBUG) console.log('[renderSearch] computed', { name, selectedCountryCode, selectedRegion, total, resultsLength: results.length });
     searchResults.innerHTML = '';
     searchHint.hidden = total > 0;
     if (total === 0) {
       searchHint.hidden = false;
       searchHint.textContent = 'No stations found.';
-      searchCountRow.hidden = true;
-      searchPager.hidden = true;
+      if (Player.current) Player.stop(); // nothing left to show it playing from
       return;
     }
 
