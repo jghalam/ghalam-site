@@ -86,7 +86,14 @@ const StationDB = (() => {
     }
     if (hasSubcountry) {
       clauses.push('Subcountry = $subcountry');
-      params['$subcountry'] = subcountry.trim();
+      // Deliberately NOT trimmed, unlike `name` above: this value comes
+      // verbatim from an existing Subcountry cell (via the region dropdown,
+      // populated from listSubcountriesForSearch()'s raw, untrimmed rows),
+      // not typed by the user. This is uncurated radio-browser data, and
+      // some Subcountry values carry stray leading/trailing whitespace —
+      // trimming here would silently stop matching the very row this exact
+      // string came from, without any error, just an empty result set.
+      params['$subcountry'] = subcountry;
     }
     return { clauses, params };
   }
