@@ -1,0 +1,75 @@
+name: Update GhalamRadio station DB
+
+on:
+  schedule:
+    # Sundays at 03:00 UTC. Radio-browser's dataset doesn't churn fast
+    # enough to need this more often — change the cron below if you'd
+    # rather run daily/monthly (crontab.guru is handy for that).
+    - cron: '0 3 * * 0'
+  workflow_dispatch: {}   # lets you trigger it manually from the Actions tab too
+
+permissions:
+  contents: write   # needed to commit + push the updated DB/meta files
+
+jobs:
+  update-stations:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Fetch stations, build DB, generate meta
+        working-directory: ghalamradio/web-app/data
+        run: python3 ../../tools/fetch_stations.py
+
+      - name: Sanity check station count before publishing
+        working-directory: ghalamradio/web-app/data
+        run: |
+          python3 - <<'EOF'
+          import gzip
+          import os
+          import sqlite3
+          import sys
+          import tempfile
+
+          # Current live count is ~57.5k. This isn't tuned precisely — it's a
+          # trip-wire against an API outage or truncated response silently
+          # publishing a broken/half-empty DB to every user's app, not an
+          # exact expected value (the real count drifts over time).
+          MIN_STATIONS = 45000
+
+          with gzip.open("stations.db.gz", "rb") as f_in:
+              data = f_in.read()
+
+          with tempfile.NamedTemporaryFile(suffix=".db", delete=False) as tmp:
+              tmp.write(data)
+              tmp_path = tmp.name
+
+          try:
+              conn = sqlite3.connect(tmp_path)
+              count = conn.execute("SELECT COUNT(*) FROM Station").fetchone()[0]
+              conn.close()
+          finally:
+              os.remove(tmp_path)
+
+          print(f"Station count: {count}")
+          if count < MIN_STATIONS:
+              print(f"::error::Station count {count} is below minimum {MIN_STATIONS} — aborting, not publishing")
+              sys.exit(1)
+          EOF
+
+      - name: Commit and push if changed
+        working-directory: ghalamradio/web-app/data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add stations.db.gz stations_meta.json
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Automated station DB update"
+            git push
+          fi
