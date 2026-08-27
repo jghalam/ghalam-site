@@ -1198,7 +1198,7 @@
     getAuth, signInAnonymously, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
-  const APP_VERSION = "2.10.0";
+  const APP_VERSION = "2.10.1";
   document.getElementById("app-footer").textContent =
     `SplitEase v${APP_VERSION} — Share Together. Settle Smarter.`;
   console.log(`%cSplitEase v${APP_VERSION}`, "color:#3d8bfd;font-weight:bold;");
@@ -2237,9 +2237,16 @@
     document.getElementById("event-body").classList.add("hidden");
   }
 
+  function splitConcatenatedName(raw) {
+    const trimmed = raw.trim();
+    if (/\s/.test(trimmed)) return trimmed; // already has a space, nothing to split
+    const m = trimmed.match(/^([A-Z][a-z]+)([A-Z][a-z]*)$/);
+    return m ? `${m[1]} ${m[2]}` : trimmed;
+  }
+
   function namesLikelyMatch(nameA, nameB) {
-    const a = nameA.trim().toLowerCase().split(/\s+/);
-    const b = nameB.trim().toLowerCase().split(/\s+/);
+    const a = splitConcatenatedName(nameA).toLowerCase().split(/\s+/);
+    const b = splitConcatenatedName(nameB).toLowerCase().split(/\s+/);
     if (!a[0] || !b[0] || a[0] !== b[0]) return false; // first names must match
     const aRest = a.slice(1).join(" ");
     const bRest = b.slice(1).join(" ");
