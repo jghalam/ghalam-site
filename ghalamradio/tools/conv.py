@@ -30,12 +30,13 @@ def stations_to_db(data, db_file_path):
         cursor.execute("DROP TABLE IF EXISTS Station")
 
         # Create Station table
-        # NOTE: `Hls` is appended at the END, after every column the iOS app's
-        # stations.swift already expects. This file is shared with that app —
-        # adding a column here is safe (an extra column an old/positional
-        # reader doesn't ask for is simply ignored), but inserting one in the
-        # MIDDLE would shift every later column's index for any code that
-        # reads by position rather than by name. Keep new columns at the end.
+        # NOTE: `Hls` and `LanguageCode` are appended at the END, after every
+        # column the iOS app's stations.swift already expects when this was
+        # written. This file is shared with that app — adding a column here
+        # is safe (an extra column an old/positional reader doesn't ask for
+        # is simply ignored), but inserting one in the MIDDLE would shift
+        # every later column's index for any code that reads by position
+        # rather than by name. Keep new columns at the end.
         cursor.execute("""
             CREATE TABLE Station (
                 StationID INTEGER PRIMARY KEY,
@@ -49,7 +50,8 @@ def stations_to_db(data, db_file_path):
                 CountryCode VARCHAR(2) NOT NULL DEFAULT '',
                 GeoLat DOUBLE,
                 GeoLong DOUBLE,
-                Hls INTEGER NOT NULL DEFAULT 0
+                Hls INTEGER NOT NULL DEFAULT 0,
+                LanguageCode VARCHAR(50) NOT NULL DEFAULT ''
             )
         """)
 
@@ -79,17 +81,23 @@ def stations_to_db(data, db_file_path):
             # radio-browser sends this as an int (0/1) today, but coerce
             # defensively in case a future dump sends a JSON boolean instead.
             hls = 1 if station.get('hls') else 0
+            # Normalized ISO codes (e.g. "en" or "ar,en" for a multi-language
+            # station) — distinct from the free-text `language` field above
+            # ("english", "Arabic", inconsistent capitalization/spelling
+            # across stations). This is what a real language FILTER should
+            # be built on; `language` stays as-is for display purposes only.
+            language_code = station.get('languagecodes') or ''
 
             cursor.execute("""
                 INSERT INTO Station (
                     StationID, Name, Url, Homepage, Favicon, 
                     Language, Tags, Subcountry, CountryCode, 
-                    GeoLat, GeoLong, Hls
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    GeoLat, GeoLong, Hls, LanguageCode
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 station_id, name, url, homepage, favicon,
                 language, tags, subcountry, country_code,
-                geo_lat, geo_long, hls
+                geo_lat, geo_long, hls, language_code
             ))
 
             if idx % 1000 == 0:

@@ -85,6 +85,15 @@
       <select id="regionFilter" class="tag-filter" aria-label="Narrow by city or region" title="Narrow by city or region" hidden>
         <option value="">All cities/regions</option>
       </select>
+      <!-- Same idea as regionFilter above, one step further: narrows by
+           radio-browser's normalized language code (not the free-text
+           Language column used for display), scoped to whatever the
+           name/country/region filters above currently match. Hidden
+           entirely on a stations.db.gz built before the LanguageCode
+           column existed — see hasLanguageCodeColumn in db.js. -->
+      <select id="languageFilter" class="tag-filter" aria-label="Narrow by language" title="Narrow by language" hidden>
+        <option value="">All languages</option>
+      </select>
     </div>
     <p id="dbStatus" class="status-line">Loading station database…</p>
     <!-- Prev/Next appear here too (not just below the results — see

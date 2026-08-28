@@ -4,27 +4,33 @@
 // (built by conv.py from the radio-browser.info dump) and exposes search.
 // Schema matches the iOS app's `stations.swift`, plus one addition:
 //   Station(StationID, Name, Url, Homepage, Favicon, Language, Tags,
-//           Subcountry, CountryCode, GeoLat, GeoLong, Hls)
+//           Subcountry, CountryCode, GeoLat, GeoLong, Hls, LanguageCode)
 // `Hls` is web-only — an explicit flag from radio-browser for whether a
-// stream is HLS, appended at the end of the schema so it doesn't disturb
-// the columns/positions the iOS app already reads.
+// stream is HLS. `LanguageCode` holds radio-browser's normalized ISO
+// language code(s) (e.g. "en", or "ar,fr" for a multi-language station) —
+// distinct from `Language`, which is free text ("english", "Arabic",
+// inconsistent casing/spelling) used only for display. Both are appended
+// at the end of the schema so they don't disturb the columns/positions the
+// iOS app already reads.
 
 const StationDB = (() => {
   let db = null;
   let loadPromise = null;
   // Detected once per DB load — the deployed stations.db.gz might not have
-  // been regenerated with the new Hls column yet even after this code is
-  // live, so this can't be assumed; without it, Hls is just left out of
-  // results entirely and stream-type detection falls back to what it did
-  // before (guessing from the URL), rather than the SELECT below throwing.
+  // been regenerated with these columns yet even after this code is live,
+  // so this can't be assumed; without it, the affected feature is just left
+  // out of results entirely (Hls-based stream detection falls back to
+  // guessing from the URL; the language filter dropdown stays hidden)
+  // rather than the SELECT below throwing.
   let hasHlsColumn = false;
+  let hasLanguageCodeColumn = false;
 
-  function detectHlsColumn(database) {
+  function hasColumn(database, columnName) {
     try {
       const res = database.exec('PRAGMA table_info(Station)');
       if (!res.length) return false;
       const nameColIdx = res[0].columns.indexOf('name');
-      return res[0].values.some(row => row[nameColIdx] === 'Hls');
+      return res[0].values.some(row => row[nameColIdx] === columnName);
     } catch (err) {
       return false;
     }
@@ -50,7 +56,8 @@ const StationDB = (() => {
         locateFile: file => `https://cdn.jsdelivr.net/npm/sql.js@1.10.3/dist/${file}`
       });
       db = new SQL.Database(decompressed);
-      hasHlsColumn = detectHlsColumn(db);
+      hasHlsColumn = hasColumn(db, 'Hls');
+      hasLanguageCodeColumn = hasColumn(db, 'LanguageCode');
 
       onProgress?.('Ready');
       return db;
@@ -68,10 +75,11 @@ const StationDB = (() => {
   // Shared WHERE-clause builder for search() and count() below, so the two
   // can never disagree about what counts as a match. Returns null when
   // there's nothing to search on (mirrors the old early-return in each).
-  function buildWhereClause(name, countryCode, subcountry) {
+  function buildWhereClause(name, countryCode, subcountry, languageCode) {
     const hasName = name && name.trim().length > 0;
     const hasCountry = countryCode && countryCode.trim().length > 0;
     const hasSubcountry = subcountry && subcountry.trim().length > 0;
+    const hasLanguage = hasLanguageCodeColumn && languageCode && languageCode.trim().length > 0;
     if (!hasName && !hasCountry) return null;
 
     const clauses = [];
@@ -95,6 +103,16 @@ const StationDB = (() => {
       // string came from, without any error, just an empty result set.
       params['$subcountry'] = subcountry;
     }
+    if (hasLanguage) {
+      // LanguageCode can hold multiple comma-separated codes for a
+      // multi-language station (e.g. "ar,fr") — a plain `=` would only
+      // ever match a single-language station. Wrapping both sides in
+      // commas and using LIKE turns this into a proper "is this code one
+      // of the tokens" check, matching regardless of position, with exact
+      // token boundaries so "en" can't accidentally match inside "sven".
+      clauses.push("(',' || LanguageCode || ',') LIKE $language");
+      params['$language'] = `%,${languageCode.trim()},%`;
+    }
     return { clauses, params };
   }
 
@@ -104,10 +122,13 @@ const StationDB = (() => {
   // country — it's an exact match against the same free-text field used to
   // build the "state" part of a result's description; the underlying data
   // has no separate city column (see listSubcountriesForSearch below).
+  // `languageCode` narrows by normalized ISO language code (see
+  // listLanguagesForSearch below); ignored entirely if the deployed DB
+  // predates the LanguageCode column (see hasLanguageCodeColumn).
   // `offset` pages through matches beyond SEARCH_RESULT_LIMIT — see count().
-  function search(name, countryCode, subcountry, offset) {
+  function search(name, countryCode, subcountry, languageCode, offset) {
     if (!db) return [];
-    const where = buildWhereClause(name, countryCode, subcountry);
+    const where = buildWhereClause(name, countryCode, subcountry, languageCode);
     if (!where) return [];
     const safeOffset = Math.max(0, offset || 0);
 
@@ -146,9 +167,9 @@ const StationDB = (() => {
   // Total matches for a query, ignoring SEARCH_RESULT_LIMIT entirely — what
   // renderSearch() uses to show "X–Y of Z" and to know how many pages exist,
   // since search() itself only ever returns one page at a time.
-  function count(name, countryCode, subcountry) {
+  function count(name, countryCode, subcountry, languageCode) {
     if (!db) return 0;
-    const where = buildWhereClause(name, countryCode, subcountry);
+    const where = buildWhereClause(name, countryCode, subcountry, languageCode);
     if (!where) return 0;
     const sql = `SELECT COUNT(*) AS total FROM Station WHERE ${where.clauses.join(' AND ')}`;
     const stmt = db.prepare(sql);
@@ -198,6 +219,52 @@ const StationDB = (() => {
     return out;
   }
 
+  // Distinct, individual language codes among ALL matches for a given
+  // name/country/subcountry query. LanguageCode can hold multiple
+  // comma-separated codes per row (e.g. "ar,fr"), so a plain DISTINCT
+  // would list whole combos rather than individual languages — instead,
+  // this pulls the (still small) set of distinct raw combo strings via
+  // SQL, then splits/dedupes them in JS. That two-step keeps the actual
+  // per-row scan in SQL (cheap even at 57k+ rows) while still ending up
+  // with real single-code options for the dropdown.
+  function listLanguagesForSearch(name, countryCode, subcountry) {
+    if (!db || !hasLanguageCodeColumn) return [];
+    const hasName = name && name.trim().length > 0;
+    const hasCountry = countryCode && countryCode.trim().length > 0;
+    const hasSubcountry = subcountry && subcountry.trim().length > 0;
+    if (!hasName && !hasCountry) return [];
+
+    const clauses = ["LanguageCode IS NOT NULL", "LanguageCode != ''"];
+    const params = {};
+    if (hasName) {
+      clauses.push('Name LIKE $name');
+      params['$name'] = `%${name.trim()}%`;
+    }
+    if (hasCountry) {
+      clauses.push('CountryCode = $country');
+      params['$country'] = countryCode.trim();
+    }
+    if (hasSubcountry) {
+      clauses.push('Subcountry = $subcountry');
+      params['$subcountry'] = subcountry;
+    }
+
+    const sql = `SELECT DISTINCT LanguageCode FROM Station WHERE ${clauses.join(' AND ')}`;
+    const stmt = db.prepare(sql);
+    stmt.bind(params);
+    const codes = new Set();
+    while (stmt.step()) {
+      const row = stmt.getAsObject();
+      (row.LanguageCode || '')
+        .split(',')
+        .map(c => c.trim())
+        .filter(Boolean)
+        .forEach(c => codes.add(c));
+    }
+    stmt.free();
+    return Array.from(codes).sort((a, b) => a.localeCompare(b));
+  }
+
   // Distinct country codes for the country filter dropdown.
   function listCountries() {
     if (!db) return [];
@@ -210,5 +277,5 @@ const StationDB = (() => {
     return res[0].values.map(row => row[0]);
   }
 
-  return { load, search, count, listCountries, listSubcountriesForSearch, getStationCount };
+  return { load, search, count, listCountries, listSubcountriesForSearch, listLanguagesForSearch, getStationCount };
 })();

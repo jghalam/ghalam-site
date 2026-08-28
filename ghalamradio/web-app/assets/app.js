@@ -526,6 +526,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const searchCount = document.getElementById('searchCount');
   const dbStatus = document.getElementById('dbStatus');
   const regionFilter = document.getElementById('regionFilter');
+  const languageFilter = document.getElementById('languageFilter');
   const searchPager = document.getElementById('searchPager');
   const searchPrevBtn = document.getElementById('searchPrevBtn');
   const searchNextBtn = document.getElementById('searchNextBtn');
@@ -533,8 +534,34 @@ document.addEventListener('DOMContentLoaded', () => {
   const searchNextBtnTop = document.getElementById('searchNextBtnTop');
   let selectedCountryCode = '';
   let selectedRegion = '';
+  let selectedLanguageCode = '';
   let regionListQueryKey = null; // name+country the region dropdown's options currently reflect
+  let languageListQueryKey = null; // name+country+region the language dropdown's options currently reflect
   let searchOffset = 0; // start index of the current page within the total matches
+
+  // Uses the browser's own locale data rather than a hand-maintained table
+  // like country_names.js — language codes are a much larger, more
+  // volatile set (BCP-47 variants, regional forms) than the ~250 country
+  // codes that table covers, and Intl.DisplayNames has had solid support
+  // for years. Shows in whatever language the visitor's browser is set to,
+  // which is a reasonable default for this. Falls back to the raw code for
+  // anything the browser doesn't recognize (very old browsers, or an
+  // unusual code) rather than showing nothing.
+  let languageDisplayNames = null;
+  try {
+    languageDisplayNames = new Intl.DisplayNames(undefined, { type: 'language' });
+  } catch (err) {
+    languageDisplayNames = null;
+  }
+  function languageName(code) {
+    if (!code) return '';
+    if (!languageDisplayNames) return code;
+    try {
+      return languageDisplayNames.of(code) || code;
+    } catch (err) {
+      return code;
+    }
+  }
 
   function appendRowSafely(list, station, callbacks) {
     try {
@@ -549,7 +576,7 @@ document.addEventListener('DOMContentLoaded', () => {
   function renderSearch() {
     const name = searchName.value;
     const queryKey = `${name.trim().toLowerCase()}|${selectedCountryCode}`;
-    if (window.GHALAM_DEBUG) console.log('[renderSearch] enter', { name, selectedCountryCode, selectedRegion, searchOffset });
+    if (window.GHALAM_DEBUG) console.log('[renderSearch] enter', { name, selectedCountryCode, selectedRegion, selectedLanguageCode, searchOffset });
 
     // Unconditional reset, before any of the branches below decide whether
     // to show something again — whatever showed on the PREVIOUS render
@@ -570,6 +597,9 @@ document.addEventListener('DOMContentLoaded', () => {
       regionFilter.hidden = true;
       regionListQueryKey = null;
       selectedRegion = '';
+      languageFilter.hidden = true;
+      languageListQueryKey = null;
+      selectedLanguageCode = '';
       searchOffset = 0;
       if (Player.current) Player.stop(); // nothing left to show it playing from
       return;
@@ -606,14 +636,41 @@ document.addEventListener('DOMContentLoaded', () => {
       regionFilter.hidden = regions.length < 1 || baseTotal < CONFIG.REGION_FILTER_MIN_RESULTS;
     }
 
-    const total = StationDB.count(name, selectedCountryCode, selectedRegion);
+    // Same idea, one level further in: the language dropdown depends on
+    // name+country+region (region included, unlike the region block above
+    // which only depends on name+country — region is upstream of language
+    // in the filter chain, so a region change should reconsider what
+    // languages are actually available within it).
+    const languageQueryKey = `${queryKey}|${selectedRegion}`;
+    if (languageQueryKey !== languageListQueryKey) {
+      languageListQueryKey = languageQueryKey;
+      selectedLanguageCode = '';
+      searchOffset = 0;
+      const languages = StationDB.listLanguagesForSearch(name, selectedCountryCode, selectedRegion);
+      languageFilter.innerHTML = '';
+      const allLangOpt = document.createElement('option');
+      allLangOpt.value = '';
+      allLangOpt.textContent = 'All languages';
+      languageFilter.appendChild(allLangOpt);
+      for (const code of languages) {
+        const opt = document.createElement('option');
+        opt.value = code;
+        opt.textContent = languageName(code);
+        languageFilter.appendChild(opt);
+      }
+      languageFilter.value = '';
+      const baseTotalForLanguage = StationDB.count(name, selectedCountryCode, selectedRegion);
+      languageFilter.hidden = languages.length < 1 || baseTotalForLanguage < CONFIG.REGION_FILTER_MIN_RESULTS;
+    }
+
+    const total = StationDB.count(name, selectedCountryCode, selectedRegion, selectedLanguageCode);
     // Defensive clamp — offset resets alongside every query/region change
     // above, so this shouldn't normally trigger, but guards against an
     // out-of-range page if it ever does.
     if (searchOffset > 0 && searchOffset >= total) searchOffset = 0;
 
-    const results = StationDB.search(name, selectedCountryCode, selectedRegion, searchOffset);
-    if (window.GHALAM_DEBUG) console.log('[renderSearch] computed', { name, selectedCountryCode, selectedRegion, total, resultsLength: results.length });
+    const results = StationDB.search(name, selectedCountryCode, selectedRegion, selectedLanguageCode, searchOffset);
+    if (window.GHALAM_DEBUG) console.log('[renderSearch] computed', { name, selectedCountryCode, selectedRegion, selectedLanguageCode, total, resultsLength: results.length });
     searchResults.innerHTML = '';
     searchHint.hidden = total > 0;
     if (total === 0) {
@@ -669,6 +726,11 @@ document.addEventListener('DOMContentLoaded', () => {
   regionFilter.addEventListener('change', () => {
     selectedRegion = regionFilter.value;
     searchOffset = 0; // a different region is a different match set — start over
+    renderSearch();
+  });
+  languageFilter.addEventListener('change', () => {
+    selectedLanguageCode = languageFilter.value;
+    searchOffset = 0; // a different language is a different match set — start over
     renderSearch();
   });
   searchPrevBtn.addEventListener('click', () => goToSearchPage(-1));
