@@ -65,6 +65,7 @@ RETRY_DELAY_SECONDS = 5
 DEFAULT_DB_GZ = "stations.db.gz"
 DEFAULT_META = "stations_meta.json"
 DEFAULT_BASE_URL = "https://ghalam.net/ghalamradio/web-app/data/stations.db.gz"
+DEFAULT_LIVE_META_URL = "https://ghalam.net/ghalamradio/web-app/data/stations_meta.json"
 
 
 def fetch_page(offset, hidebroken):
@@ -110,7 +111,7 @@ def gzip_file(src_path, dst_path):
         shutil.copyfileobj(f_in, f_out)
 
 
-def write_meta(db_gz_path, base_url, meta_path, meta_gen):
+def write_meta(db_gz_path, base_url, meta_path, meta_gen, live_meta_url):
     """
     Writes meta_path using generate_stations_meta.py's own sha256_of() /
     next_version() — same logic, same file, called directly instead of via
@@ -118,7 +119,7 @@ def write_meta(db_gz_path, base_url, meta_path, meta_gen):
     rule to keep in sync.
     """
     meta = {
-        "version": meta_gen.next_version(meta_path),
+        "version": meta_gen.next_version(meta_path, live_meta_url),
         "url": base_url,
         "sha256": meta_gen.sha256_of(db_gz_path),
     }
@@ -156,6 +157,16 @@ def main():
     parser.add_argument(
         "--skip-meta", action="store_true",
         help="only produce the gzipped DB; don't touch stations_meta.json",
+    )
+    parser.add_argument(
+        "--live-meta-url", default=DEFAULT_LIVE_META_URL,
+        help=f"live stations_meta.json to check the version floor against, so a fresh "
+             f"local run can't regress the version below what's already deployed "
+             f"(default: {DEFAULT_LIVE_META_URL})",
+    )
+    parser.add_argument(
+        "--offline-meta", action="store_true",
+        help="skip the live version check entirely (local file only) — use if you know you're offline",
     )
     parser.add_argument(
         "--keep-intermediate-db", action="store_true",
@@ -227,7 +238,10 @@ def main():
         )
         sys.exit(1)
 
-    meta = write_meta(args.db_gz_out, args.base_url, args.meta_out, meta_gen)
+    meta = write_meta(
+        args.db_gz_out, args.base_url, args.meta_out, meta_gen,
+        "" if args.offline_meta else args.live_meta_url,
+    )
     print(f"Wrote {args.meta_out}: version {meta['version']}, sha256 {meta['sha256'][:12]}...")
 
     print(f"\nDone. Ready to push:\n  {args.db_gz_out}\n  {args.meta_out}")
