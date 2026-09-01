@@ -1,232 +1,232 @@
 {
   "cpi_headline": {
     "source": "FRED",
-    "updated": "2026-08-31T12:17:03.327449+00:00",
+    "updated": "2026-09-01T10:52:02.354546+00:00",
     "count": 954
   },
   "cpi_core": {
     "source": "FRED",
-    "updated": "2026-08-31T12:17:04.252170+00:00",
+    "updated": "2026-09-01T10:52:03.121731+00:00",
     "count": 834
   },
   "pce_headline": {
     "source": "FRED",
-    "updated": "2026-08-31T12:17:05.025886+00:00",
+    "updated": "2026-09-01T10:52:03.888904+00:00",
     "count": 811
   },
   "pce_core": {
     "source": "FRED",
-    "updated": "2026-08-31T12:17:05.794077+00:00",
+    "updated": "2026-09-01T10:52:04.766619+00:00",
     "count": 811
   },
   "fed_funds": {
     "source": "FRED",
-    "updated": "2026-08-31T12:17:06.599013+00:00",
+    "updated": "2026-09-01T10:52:05.577546+00:00",
     "count": 865
   },
   "treasury_2y": {
     "source": "FRED",
-    "updated": "2026-08-31T12:17:07.483581+00:00",
-    "count": 12557
+    "updated": "2026-09-01T10:52:06.386285+00:00",
+    "count": 12558
   },
   "treasury_5y": {
     "source": "FRED",
-    "updated": "2026-08-31T12:17:08.400555+00:00",
-    "count": 16149
+    "updated": "2026-09-01T10:52:07.333521+00:00",
+    "count": 16150
   },
   "treasury_10y": {
     "source": "FRED",
-    "updated": "2026-08-31T12:17:09.219469+00:00",
-    "count": 16149
+    "updated": "2026-09-01T10:52:08.768765+00:00",
+    "count": 16150
   },
   "treasury_30y": {
     "source": "FRED",
-    "updated": "2026-08-31T12:17:10.480910+00:00",
-    "count": 12379
+    "updated": "2026-09-01T10:52:10.078529+00:00",
+    "count": 12380
   },
   "unemployment": {
     "source": "FRED",
-    "updated": "2026-08-31T12:17:11.292434+00:00",
+    "updated": "2026-09-01T10:52:10.878579+00:00",
     "count": 942
   },
   "gdp": {
     "source": "FRED",
-    "updated": "2026-08-31T12:17:12.220766+00:00",
+    "updated": "2026-09-01T10:52:11.619069+00:00",
     "count": 318
   },
   "m2": {
     "source": "FRED",
-    "updated": "2026-08-31T12:17:13.019154+00:00",
+    "updated": "2026-09-01T10:52:12.429981+00:00",
     "count": 811
   },
   "usd_broad_index": {
     "source": "FRED",
-    "updated": "2026-08-31T12:17:13.802867+00:00",
-    "count": 5174
+    "updated": "2026-09-01T10:52:13.224501+00:00",
+    "count": 5179
   },
   "usd_vs_eur": {
     "source": "FRED",
-    "updated": "2026-08-31T12:17:14.632355+00:00",
-    "count": 6931
+    "updated": "2026-09-01T10:52:14.073942+00:00",
+    "count": 6936
   },
   "usd_vs_jpy": {
     "source": "FRED",
-    "updated": "2026-08-31T12:17:15.539159+00:00",
-    "count": 13946
+    "updated": "2026-09-01T10:52:14.978610+00:00",
+    "count": 13951
   },
   "usd_vs_gbp": {
     "source": "FRED",
-    "updated": "2026-08-31T12:17:16.369964+00:00",
-    "count": 13952
+    "updated": "2026-09-01T10:52:16.015699+00:00",
+    "count": 13957
   },
   "usd_vs_cny": {
     "source": "FRED",
-    "updated": "2026-08-31T12:17:17.303629+00:00",
-    "count": 11392
+    "updated": "2026-09-01T10:52:16.995749+00:00",
+    "count": 11397
   },
   "sp500": {
     "source": "FRED",
-    "updated": "2026-08-31T12:17:18.300164+00:00",
-    "count": 2514
+    "updated": "2026-09-01T10:52:17.841787+00:00",
+    "count": 2512
   },
   "djia": {
     "source": "FRED",
-    "updated": "2026-08-31T12:17:19.088365+00:00",
-    "count": 2514
+    "updated": "2026-09-01T10:52:18.609689+00:00",
+    "count": 2512
   },
   "nasdaq_composite": {
     "source": "FRED",
-    "updated": "2026-08-31T12:17:19.893617+00:00",
-    "count": 14009
+    "updated": "2026-09-01T10:52:19.429823+00:00",
+    "count": 14010
   },
   "treasury_3mo": {
     "source": "FRED",
-    "updated": "2026-08-31T12:17:20.732025+00:00",
-    "count": 11247
+    "updated": "2026-09-01T10:52:20.530792+00:00",
+    "count": 11248
   },
   "debt_to_penny": {
     "source": "Treasury Fiscal Data",
-    "updated": "2026-08-31T12:17:28.117706+00:00",
-    "count": 8381
+    "updated": "2026-09-01T10:52:28.003371+00:00",
+    "count": 8382
   },
   "interest_expense": {
     "source": "Treasury Fiscal Data",
-    "updated": "2026-08-31T12:17:35.942097+00:00",
+    "updated": "2026-09-01T10:52:34.950969+00:00",
     "count": 7283
   },
   "deficit": {
     "source": "Treasury Fiscal Data",
-    "updated": "2026-08-31T12:17:39.607627+00:00",
+    "updated": "2026-09-01T10:52:38.459438+00:00",
     "count": 144
   },
   "legacy_futures_only_gold": {
     "source": "CFTC",
-    "updated": "2026-08-31T12:17:50.032788+00:00",
+    "updated": "2026-09-01T10:52:46.897643+00:00",
     "count": 2216
   },
   "gold_price": {
     "source": "LBMA",
-    "updated": "2026-08-31T12:17:50.784830+00:00",
+    "updated": "2026-09-01T10:52:47.693597+00:00",
     "count": 14672
   },
   "cofer_usd_share": {
     "source": "IMF COFER",
-    "updated": "2026-08-31T12:17:51.135499+00:00",
+    "updated": "2026-09-01T10:52:48.183398+00:00",
     "count": 109
   },
   "cofer_eur_share": {
     "source": "IMF COFER",
-    "updated": "2026-08-31T12:17:51.136703+00:00",
+    "updated": "2026-09-01T10:52:48.184487+00:00",
     "count": 109
   },
   "cofer_jpy_share": {
     "source": "IMF COFER",
-    "updated": "2026-08-31T12:17:51.137683+00:00",
+    "updated": "2026-09-01T10:52:48.185447+00:00",
     "count": 109
   },
   "cofer_gbp_share": {
     "source": "IMF COFER",
-    "updated": "2026-08-31T12:17:51.138689+00:00",
+    "updated": "2026-09-01T10:52:48.186426+00:00",
     "count": 109
   },
   "cofer_cny_share": {
     "source": "IMF COFER",
-    "updated": "2026-08-31T12:17:51.139641+00:00",
+    "updated": "2026-09-01T10:52:48.187359+00:00",
     "count": 38
   },
   "cpi_yoy": {
     "source": "Derived",
-    "updated": "2026-08-31T12:17:51.189045+00:00",
+    "updated": "2026-09-01T10:52:48.231734+00:00",
     "count": 942
   },
   "cpi_core_yoy": {
     "source": "Derived",
-    "updated": "2026-08-31T12:17:51.194214+00:00",
+    "updated": "2026-09-01T10:52:48.236687+00:00",
     "count": 822
   },
   "real_yield_10y": {
     "source": "Derived",
-    "updated": "2026-08-31T12:17:51.327783+00:00",
+    "updated": "2026-09-01T10:52:48.375462+00:00",
     "count": 774
   },
   "recession_probability": {
     "source": "Derived",
-    "updated": "2026-08-31T12:17:51.531893+00:00",
-    "count": 11251
+    "updated": "2026-09-01T10:52:48.571554+00:00",
+    "count": 11252
   },
   "debt_to_gdp": {
     "source": "Derived",
-    "updated": "2026-08-31T12:17:51.635464+00:00",
+    "updated": "2026-09-01T10:52:48.669646+00:00",
     "count": 133
   },
   "total_debt": {
     "source": "Derived",
-    "updated": "2026-08-31T12:17:51.647720+00:00",
-    "count": 8381
+    "updated": "2026-09-01T10:52:48.682602+00:00",
+    "count": 8382
   },
   "forecast_cpi_yoy": {
     "source": "Forecast",
-    "updated": "2026-08-31T12:17:51.771868+00:00",
+    "updated": "2026-09-01T10:52:48.822563+00:00",
     "count": 24
   },
   "forecast_cpi_core_yoy": {
     "source": "Forecast",
-    "updated": "2026-08-31T12:17:51.782474+00:00",
+    "updated": "2026-09-01T10:52:48.832790+00:00",
     "count": 24
   },
   "forecast_fed_funds": {
     "source": "Forecast",
-    "updated": "2026-08-31T12:17:51.793583+00:00",
+    "updated": "2026-09-01T10:52:48.843636+00:00",
     "count": 24
   },
   "forecast_treasury_10y": {
     "source": "Forecast",
-    "updated": "2026-08-31T12:17:51.987746+00:00",
+    "updated": "2026-09-01T10:52:49.031119+00:00",
     "count": 180
   },
   "forecast_real_yield_10y": {
     "source": "Forecast",
-    "updated": "2026-08-31T12:17:51.999116+00:00",
+    "updated": "2026-09-01T10:52:49.042144+00:00",
     "count": 180
   },
   "forecast_unemployment": {
     "source": "Forecast",
-    "updated": "2026-08-31T12:17:52.011836+00:00",
+    "updated": "2026-09-01T10:52:49.054555+00:00",
     "count": 24
   },
   "forecast_debt_to_gdp": {
     "source": "Forecast",
-    "updated": "2026-08-31T12:17:52.014359+00:00",
+    "updated": "2026-09-01T10:52:49.056965+00:00",
     "count": 8
   },
   "forecast_gold_price": {
     "source": "Forecast",
-    "updated": "2026-08-31T12:17:52.187139+00:00",
+    "updated": "2026-09-01T10:52:49.225395+00:00",
     "count": 180
   },
   "forecast_usd_broad_index": {
     "source": "Forecast",
-    "updated": "2026-08-31T12:17:52.249519+00:00",
+    "updated": "2026-09-01T10:52:49.285881+00:00",
     "count": 180
   }
 }
