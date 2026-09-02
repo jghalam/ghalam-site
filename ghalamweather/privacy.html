@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="images/favicon-32.png">
+<link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+<title>Privacy Policy – GhalamWeather</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#0d0f14; --surface:#161820; --border:#2a2d3a; --text:#e8eaf0; --muted:#8b8fa8; --accent:#e09452; --radius:14px; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-weight: 300; line-height: 1.75; min-height: 100vh; }
+  nav { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 2rem; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: rgba(13,15,20,0.92); backdrop-filter: blur(12px); z-index: 100; }
+  nav .brand { font-family: 'DM Serif Display', serif; font-size: 1.2rem; color: var(--accent); text-decoration: none; }
+  nav .nav-links { display: flex; gap: 2rem; list-style: none; }
+  nav .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.9rem; font-weight: 400; letter-spacing: 0.04em; transition: color 0.2s; }
+  nav .nav-links a:hover { color: var(--text); }
+  nav .nav-links a.active { color: var(--accent); }
+  .page-header { max-width: 760px; margin: 0 auto; padding: 3.5rem 2rem 2rem; border-bottom: 1px solid var(--border); }
+  .page-header .label { font-size: 0.78rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.6rem; }
+  .page-header h1 { font-family: 'DM Serif Display', serif; font-size: 2.4rem; font-weight: 400; color: var(--text); line-height: 1.15; }
+  .page-header .updated { margin-top: 0.75rem; font-size: 0.85rem; color: var(--muted); }
+  article { max-width: 760px; margin: 0 auto; padding: 2.5rem 2rem 4rem; }
+  article h2 { font-family: 'DM Serif Display', serif; font-size: 1.3rem; font-weight: 400; color: var(--text); margin: 2.5rem 0 0.75rem; padding-top: 2rem; border-top: 1px solid var(--border); }
+  article h2:first-child { border-top: none; padding-top: 0; margin-top: 0; }
+  article p { color: var(--muted); margin-bottom: 1rem; }
+  article ul { color: var(--muted); padding-left: 1.5rem; margin-bottom: 1rem; }
+  article ul li { margin-bottom: 0.4rem; }
+  article a { color: var(--accent); text-decoration: none; }
+  article a:hover { text-decoration: underline; }
+  footer { text-align: center; padding: 2rem; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.82rem; }
+  footer a { color: var(--muted); text-decoration: none; }
+  footer a:hover { color: var(--accent); }
+  @media (max-width: 600px) { nav { padding: 1rem; } .page-header, article { padding-left: 1.25rem; padding-right: 1.25rem; } }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="brand">GhalamWeather</a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="privacy.html" class="active">Privacy</a></li>
+    <li><a href="support.html">Support</a></li>
+    <li><a href="https://ghalam.net/" target="_blank">Ghalam.net</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <p class="label">Legal</p>
+  <h1>Privacy Policy</h1>
+  <p class="updated">Last updated: September 2026</p>
+</div>
+
+<article>
+
+  <p>GhalamWeather ("the App") is a weather app for iOS. This Privacy Policy explains what information the App accesses and how it's used. Joe Ghalam built GhalamWeather, and this service is provided by Joe Ghalam as-is.</p>
+
+  <h2>Location</h2>
+  <p>GhalamWeather uses your location to show current-location weather. The first time you use this feature, iOS asks for "While Using the App" access — this is all the App needs for normal use.</p>
+  <p>You can optionally enable "Enable Background Location" in Settings, which upgrades to "Always" access so your current-location widget can keep updating as you travel, even when the App isn't open. This is entirely opt-in, off by default, and uses iOS's low-power "significant location change" service (roughly city-block accuracy, not continuous GPS tracking) rather than constant background tracking.</p>
+  <p>Your location is sent only to the weather data sources described below, as coordinates, in order to fetch weather for that location. It is not collected, logged, or transmitted anywhere else.</p>
+
+  <h2>Weather Data</h2>
+  <p>By default, GhalamWeather fetches weather data from <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo</a>, a free weather data provider that does not require an account or API key. Requests to Open-Meteo include only the coordinates needed to fetch weather for a location — no other information about you or your device.</p>
+  <p>Air quality data comes from Open-Meteo's air quality service, in the same way.</p>
+
+  <h2>Optional: OpenWeatherMap</h2>
+  <p>GhalamWeather can optionally show a minute-by-minute rain intensity forecast for the next hour, using <a href="https://openweathermap.org/" target="_blank" rel="noopener">OpenWeatherMap's</a> data. This feature is off by default and requires you to enable it yourself and supply your own free OpenWeatherMap API key in Settings. When enabled, your location coordinates and your API key are sent directly to OpenWeatherMap to fetch this specific forecast. Your key is stored only on your device.</p>
+
+  <h2>Radar Map</h2>
+  <p>The live radar map displays precipitation tiles from <a href="https://www.rainviewer.com/" target="_blank" rel="noopener">RainViewer</a>, a free, keyless radar tile service. Viewing the radar map sends your currently viewed map coordinates to RainViewer to fetch the relevant tiles.</p>
+
+  <h2>Device Sensors</h2>
+  <p>GhalamWeather reads your iPhone's own barometer to show a real-time atmospheric pressure reading and trend (rising, falling, or steady), and uses your device's location to show altitude above sea level. These sensor readings stay on your device and are never transmitted anywhere.</p>
+
+  <h2>Location Search &amp; Place Names</h2>
+  <p>When you search for a city to add as a saved location, or when GhalamWeather looks up the name of your current location, this uses Apple's own MapKit search and reverse-geocoding services directly — the same service used by Apple Maps. These requests go from your device to Apple; GhalamWeather does not see or log them.</p>
+
+  <h2>Widgets</h2>
+  <p>Home Screen and Lock Screen widgets read cached weather data from a storage area shared between the App and its widgets on your own device. This data never leaves your device as part of showing a widget.</p>
+
+  <h2>Information We Don't Collect</h2>
+  <ul>
+    <li>No account creation or sign-in of any kind</li>
+    <li>No analytics, crash reporting, or usage tracking</li>
+    <li>No advertising identifiers or third-party advertising SDKs</li>
+    <li>No access to your contacts, photos, or other apps' data</li>
+  </ul>
+
+  <h2>Data Sharing</h2>
+  <p>GhalamWeather does not sell, rent, or share your data with third parties, beyond sending location coordinates to the weather data sources described above as needed to fetch weather for that location.</p>
+
+  <h2>Deleting Your Data</h2>
+  <p>You can remove a saved location at any time from within the App. Deleting the App removes everything stored locally, including any saved OpenWeatherMap key and cached weather data.</p>
+
+  <h2>Children's Privacy</h2>
+  <p>GhalamWeather is intended for general audiences and is not directed at children under the age of 13. The App does not knowingly collect information from children.</p>
+
+  <h2>Changes to This Policy</h2>
+  <p>This Privacy Policy may be updated from time to time. Updates will be posted on this page with a revised effective date. Continued use of the App after changes are posted constitutes your acceptance of the revised policy.</p>
+
+  <h2>Contact</h2>
+  <p>If you have questions or concerns about this Privacy Policy, please contact:</p>
+  <p><a href="mailto:jghalam@yahoo.com">jghalam@yahoo.com</a></p>
+
+</article>
+
+<footer>
+  <p>© 2026 GhalamWeather &nbsp;·&nbsp; <a href="index.html">Home</a> &nbsp;·&nbsp; <a href="support.html">Support</a> &nbsp;·&nbsp; <a href="https://ghalam.net/">Ghalam.net</a></p>
+</footer>
+
+</body>
+</html>
