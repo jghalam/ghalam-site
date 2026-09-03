@@ -1,8 +1,8 @@
 {
   "id": "total_debt",
   "source": "Derived",
-  "updated": "2026-09-02T10:17:58.625169+00:00",
-  "count": 8383,
+  "updated": "2026-09-03T10:28:10.873345+00:00",
+  "count": 8384,
   "records": [
     {
       "date": "1993-04-01",
@@ -33535,6 +33535,10 @@
     {
       "date": "2026-08-31",
       "value": 40175641071634.14
+    },
+    {
+      "date": "2026-09-01",
+      "value": 40112464593206.3
     }
   ],
   "label": "Total public debt outstanding (USD)",
