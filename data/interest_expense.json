@@ -1,8 +1,8 @@
 {
   "id": "interest_expense",
   "source": "Treasury Fiscal Data",
-  "updated": "2026-09-04T10:15:55.323020+00:00",
-  "count": 7283,
+  "updated": "2026-09-05T09:44:01.747431+00:00",
+  "count": 7321,
   "records": [
     {
       "date": "2010-05-31",
@@ -36418,6 +36418,196 @@
       "date": "2026-07-31",
       "expense_category": "INTEREST EXPENSE ON GOVT ACCOUNT SERIES",
       "month_expense_amt": 401520057.75
+    },
+    {
+      "date": "2026-08-31",
+      "expense_category": "INTEREST EXPENSE ON PUBLIC ISSUES",
+      "month_expense_amt": 44307873395.41
+    },
+    {
+      "date": "2026-08-31",
+      "expense_category": "INTEREST EXPENSE ON PUBLIC ISSUES",
+      "month_expense_amt": 15730057453.14
+    },
+    {
+      "date": "2026-08-31",
+      "expense_category": "INTEREST EXPENSE ON PUBLIC ISSUES",
+      "month_expense_amt": 2180651736.1
+    },
+    {
+      "date": "2026-08-31",
+      "expense_category": "INTEREST EXPENSE ON PUBLIC ISSUES",
+      "month_expense_amt": -6803092265.63
+    },
+    {
+      "date": "2026-08-31",
+      "expense_category": "INTEREST EXPENSE ON PUBLIC ISSUES",
+      "month_expense_amt": 2208328153.0
+    },
+    {
+      "date": "2026-08-31",
+      "expense_category": "INTEREST EXPENSE ON PUBLIC ISSUES",
+      "month_expense_amt": 506268.27
+    },
+    {
+      "date": "2026-08-31",
+      "expense_category": "INTEREST EXPENSE ON PUBLIC ISSUES",
+      "month_expense_amt": 0.0
+    },
+    {
+      "date": "2026-08-31",
+      "expense_category": "INTEREST EXPENSE ON PUBLIC ISSUES",
+      "month_expense_amt": 0.0
+    },
+    {
+      "date": "2026-08-31",
+      "expense_category": "INTEREST EXPENSE ON PUBLIC ISSUES",
+      "month_expense_amt": 220818484.64
+    },
+    {
+      "date": "2026-08-31",
+      "expense_category": "INTEREST EXPENSE ON PUBLIC ISSUES",
+      "month_expense_amt": 0.0
+    },
+    {
+      "date": "2026-08-31",
+      "expense_category": "INTEREST EXPENSE ON PUBLIC ISSUES",
+      "month_expense_amt": 22586389446.2
+    },
+    {
+      "date": "2026-08-31",
+      "expense_category": "INTEREST EXPENSE ON PUBLIC ISSUES",
+      "month_expense_amt": 956372396.86
+    },
+    {
+      "date": "2026-08-31",
+      "expense_category": "INTEREST EXPENSE ON PUBLIC ISSUES",
+      "month_expense_amt": 251740515.57
+    },
+    {
+      "date": "2026-08-31",
+      "expense_category": "INTEREST EXPENSE ON PUBLIC ISSUES",
+      "month_expense_amt": 178545140.14
+    },
+    {
+      "date": "2026-08-31",
+      "expense_category": "INTEREST EXPENSE ON PUBLIC ISSUES",
+      "month_expense_amt": 2451096.46
+    },
+    {
+      "date": "2026-08-31",
+      "expense_category": "INTEREST EXPENSE ON PUBLIC ISSUES",
+      "month_expense_amt": 50703843.21
+    },
+    {
+      "date": "2026-08-31",
+      "expense_category": "INTEREST EXPENSE ON PUBLIC ISSUES",
+      "month_expense_amt": 0.0
+    },
+    {
+      "date": "2026-08-31",
+      "expense_category": "INTEREST EXPENSE ON PUBLIC ISSUES",
+      "month_expense_amt": 0.0
+    },
+    {
+      "date": "2026-08-31",
+      "expense_category": "INTEREST EXPENSE ON PUBLIC ISSUES",
+      "month_expense_amt": -138682302.29
+    },
+    {
+      "date": "2026-08-31",
+      "expense_category": "INTEREST EXPENSE ON PUBLIC ISSUES",
+      "month_expense_amt": -112278725.72
+    },
+    {
+      "date": "2026-08-31",
+      "expense_category": "INTEREST EXPENSE ON PUBLIC ISSUES",
+      "month_expense_amt": -270836187.53
+    },
+    {
+      "date": "2026-08-31",
+      "expense_category": "INTEREST EXPENSE ON PUBLIC ISSUES",
+      "month_expense_amt": -5209985.78
+    },
+    {
+      "date": "2026-08-31",
+      "expense_category": "INTEREST EXPENSE ON PUBLIC ISSUES",
+      "month_expense_amt": 0.0
+    },
+    {
+      "date": "2026-08-31",
+      "expense_category": "INTEREST EXPENSE ON PUBLIC ISSUES",
+      "month_expense_amt": 68975674.88
+    },
+    {
+      "date": "2026-08-31",
+      "expense_category": "INTEREST EXPENSE ON PUBLIC ISSUES",
+      "month_expense_amt": 0.0
+    },
+    {
+      "date": "2026-08-31",
+      "expense_category": "INTEREST EXPENSE ON PUBLIC ISSUES",
+      "month_expense_amt": 313841767.11
+    },
+    {
+      "date": "2026-08-31",
+      "expense_category": "INTEREST EXPENSE ON PUBLIC ISSUES",
+      "month_expense_amt": 152164.18
+    },
+    {
+      "date": "2026-08-31",
+      "expense_category": "INTEREST EXPENSE ON PUBLIC ISSUES",
+      "month_expense_amt": 0.0
+    },
+    {
+      "date": "2026-08-31",
+      "expense_category": "INTEREST EXPENSE ON PUBLIC ISSUES",
+      "month_expense_amt": 0.0
+    },
+    {
+      "date": "2026-08-31",
+      "expense_category": "INTEREST EXPENSE ON GOVT ACCOUNT SERIES",
+      "month_expense_amt": -81287311.97
+    },
+    {
+      "date": "2026-08-31",
+      "expense_category": "INTEREST EXPENSE ON GOVT ACCOUNT SERIES",
+      "month_expense_amt": 0.0
+    },
+    {
+      "date": "2026-08-31",
+      "expense_category": "INTEREST EXPENSE ON GOVT ACCOUNT SERIES",
+      "month_expense_amt": 0.0
+    },
+    {
+      "date": "2026-08-31",
+      "expense_category": "INTEREST EXPENSE ON GOVT ACCOUNT SERIES",
+      "month_expense_amt": 1420923926.79
+    },
+    {
+      "date": "2026-08-31",
+      "expense_category": "INTEREST EXPENSE ON GOVT ACCOUNT SERIES",
+      "month_expense_amt": -427051374.96
+    },
+    {
+      "date": "2026-08-31",
+      "expense_category": "INTEREST EXPENSE ON GOVT ACCOUNT SERIES",
+      "month_expense_amt": 20832330844.28
+    },
+    {
+      "date": "2026-08-31",
+      "expense_category": "INTEREST EXPENSE ON GOVT ACCOUNT SERIES",
+      "month_expense_amt": -6104251945.23
+    },
+    {
+      "date": "2026-08-31",
+      "expense_category": "INTEREST EXPENSE ON GOVT ACCOUNT SERIES",
+      "month_expense_amt": 0.0
+    },
+    {
+      "date": "2026-08-31",
+      "expense_category": "INTEREST EXPENSE ON GOVT ACCOUNT SERIES",
+      "month_expense_amt": 400597338.87
     }
   ]
 }
