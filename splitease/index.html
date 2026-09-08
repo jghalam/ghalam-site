@@ -915,6 +915,11 @@
       <label class="field-label">Event name</label>
       <input id="new-event-name" type="text" placeholder="e.g. Tahoe cabin weekend" maxlength="60">
     </div>
+    <div class="field" style="margin-bottom:0; margin-top:14px;">
+      <label class="field-label">Currency</label>
+      <select id="new-event-currency"></select>
+      <p style="font-size:12px;color:var(--text-dim);margin:8px 0 0;">All expenses will be converted to this currency for settling up.</p>
+    </div>
     <div class="modal-close-row" style="display:flex; justify-content:flex-end; gap:10px;">
       <button class="btn-ghost" id="new-event-cancel-btn">Cancel</button>
       <button class="btn-primary" id="create-event-btn">Create</button>
@@ -1128,9 +1133,25 @@
             <input id="expense-desc" type="text" placeholder="e.g. Groceries" maxlength="80">
           </div>
 
-          <div class="field">
-            <label class="field-label">Amount</label>
-            <input id="expense-amount" type="number" step="0.01" min="0" placeholder="0.00">
+          <div class="field" style="display:flex; gap:10px;">
+            <div style="flex:1;">
+              <label class="field-label">Amount</label>
+              <input id="expense-amount" type="number" step="0.01" min="0" placeholder="0.00">
+            </div>
+            <div style="width:130px;">
+              <label class="field-label">Currency</label>
+              <select id="expense-currency"></select>
+            </div>
+          </div>
+
+          <div class="field hidden" id="expense-rate-section">
+            <label class="field-label" id="expense-rate-label">Exchange rate</label>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span id="expense-rate-prefix" style="font-size:13px;color:var(--text-dim); white-space:nowrap;"></span>
+              <input id="expense-rate-input" type="number" step="0.0001" min="0" style="flex:1;">
+            </div>
+            <p style="font-size:12px;color:var(--text-dim);margin:8px 0 0;" id="expense-rate-note">Suggested via exchangerate-api.com — adjust if needed.</p>
+            <p style="font-size:12.5px;color:var(--text);margin:6px 0 0;font-weight:600;" id="expense-converted-preview"></p>
           </div>
 
           <div class="field">
@@ -1198,7 +1219,7 @@
     getAuth, signInAnonymously, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
-  const APP_VERSION = "2.10.1";
+  const APP_VERSION = "2.11.0";
   document.getElementById("app-footer").textContent =
     `SplitEase v${APP_VERSION} — Share Together. Settle Smarter.`;
   console.log(`%cSplitEase v${APP_VERSION}`, "color:#3d8bfd;font-weight:bold;");
@@ -1236,7 +1257,75 @@
     if (parts.length === 1) return parts[0].slice(0, 1).toUpperCase();
     return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
   };
-  const money = (n) => `$${n.toFixed(2)}`;
+
+  const CURRENCIES = [
+    ["USD", "US Dollar"], ["EUR", "Euro"], ["GBP", "British Pound"], ["JPY", "Japanese Yen"],
+    ["CNY", "Chinese Yuan"], ["CAD", "Canadian Dollar"], ["AUD", "Australian Dollar"],
+    ["CHF", "Swiss Franc"], ["HKD", "Hong Kong Dollar"], ["SGD", "Singapore Dollar"],
+    ["INR", "Indian Rupee"], ["MXN", "Mexican Peso"], ["BRL", "Brazilian Real"],
+    ["ZAR", "South African Rand"], ["KRW", "South Korean Won"], ["SEK", "Swedish Krona"],
+    ["NOK", "Norwegian Krone"], ["DKK", "Danish Krone"], ["NZD", "New Zealand Dollar"],
+    ["THB", "Thai Baht"], ["IDR", "Indonesian Rupiah"], ["MYR", "Malaysian Ringgit"],
+    ["PHP", "Philippine Peso"], ["VND", "Vietnamese Dong"], ["TRY", "Turkish Lira"],
+    ["RUB", "Russian Ruble"], ["PLN", "Polish Zloty"], ["CZK", "Czech Koruna"],
+    ["HUF", "Hungarian Forint"], ["ILS", "Israeli Shekel"], ["AED", "UAE Dirham"],
+    ["SAR", "Saudi Riyal"], ["EGP", "Egyptian Pound"], ["NGN", "Nigerian Naira"],
+    ["KES", "Kenyan Shilling"], ["ARS", "Argentine Peso"], ["CLP", "Chilean Peso"],
+    ["COP", "Colombian Peso"], ["PEN", "Peruvian Sol"], ["PKR", "Pakistani Rupee"],
+    ["BDT", "Bangladeshi Taka"], ["UAH", "Ukrainian Hryvnia"], ["RON", "Romanian Leu"],
+    ["BGN", "Bulgarian Lev"], ["ISK", "Icelandic Krona"], ["TWD", "Taiwan Dollar"],
+    ["QAR", "Qatari Riyal"], ["KWD", "Kuwaiti Dinar"], ["BHD", "Bahraini Dinar"],
+    ["OMR", "Omani Rial"], ["JOD", "Jordanian Dinar"], ["MAD", "Moroccan Dirham"],
+    ["GHS", "Ghanaian Cedi"], ["XOF", "West African CFA Franc"], ["XAF", "Central African CFA Franc"]
+  ];
+
+  function currencyOptionsHtml(selected) {
+    return CURRENCIES.map(([code, name]) =>
+      `<option value="${code}" ${code === selected ? "selected" : ""}>${code} — ${name}</option>`
+    ).join("");
+  }
+
+  function formatMoney(amount, currencyCode) {
+    const code = currencyCode || "USD";
+    try {
+      return new Intl.NumberFormat(undefined, { style: "currency", currency: code }).format(amount);
+    } catch {
+      return `${code} ${amount.toFixed(2)}`;
+    }
+  }
+
+  function getMyCreateEventCurrency() {
+    return localStorage.getItem("splitease:lastEventCurrency") || "";
+  }
+  function setMyCreateEventCurrency(code) {
+    localStorage.setItem("splitease:lastEventCurrency", code);
+  }
+  function getEventExpenseCurrency(id) {
+    return localStorage.getItem(`splitease:${id}:lastExpenseCurrency`) || "";
+  }
+  function setEventExpenseCurrency(id, code) {
+    localStorage.setItem(`splitease:${id}:lastExpenseCurrency`, code);
+  }
+
+  // ---------- exchange rates (open.er-api.com — free, no API key, CORS-enabled) ----------
+  const exchangeRateCache = {};
+  async function fetchExchangeRate(fromCode, toCode) {
+    if (!fromCode || !toCode || fromCode === toCode) return 1;
+    const cached = exchangeRateCache[fromCode];
+    if (cached && Date.now() - cached.fetchedAt < 12 * 60 * 60 * 1000) {
+      return cached.rates[toCode] ?? null;
+    }
+    try {
+      const res = await fetch(`https://open.er-api.com/v6/latest/${fromCode}`);
+      const data = await res.json();
+      if (data.result !== "success") return null;
+      exchangeRateCache[fromCode] = { rates: data.rates, fetchedAt: Date.now() };
+      return data.rates[toCode] ?? null;
+    } catch (err) {
+      console.warn("Exchange rate lookup failed:", err);
+      return null;
+    }
+  }
 
   function todayStr() {
     const d = new Date();
@@ -1720,6 +1809,7 @@
     isEventCreator = false;
     eventCreatorUid = "";
     currentEventName = "";
+    currentEventCurrency = "USD";
     applyEventAppearance({});
     window.history.pushState({}, "", window.location.pathname);
     document.getElementById("event-screen").classList.add("hidden");
@@ -1956,6 +2046,7 @@
   let isEventCreator = false;
   let eventCreatorUid = "";
   let currentEventName = "";
+  let currentEventCurrency = "USD";
 
   onAuthStateChanged(auth, async (user) => {
     if (!user) return;
@@ -1973,6 +2064,8 @@
   // ---------- landing actions ----------
   function openNewEventModal() {
     document.getElementById("new-event-name").value = "";
+    const currencySelect = document.getElementById("new-event-currency");
+    currencySelect.innerHTML = currencyOptionsHtml(getMyCreateEventCurrency() || "USD");
     document.getElementById("new-event-overlay").classList.remove("hidden");
     document.getElementById("new-event-name").focus();
   }
@@ -1989,11 +2082,13 @@
     const nameInput = document.getElementById("new-event-name");
     const name = nameInput.value.trim();
     if (!name) { nameInput.focus(); return; }
+    const currency = document.getElementById("new-event-currency").value || "USD";
     const btn = document.getElementById("create-event-btn");
     btn.disabled = true;
     try {
       const eventRef = doc(collection(db, "events"));
-      await setDoc(eventRef, { name, creatorUid: auth.currentUser?.uid || null, createdAt: serverTimestamp() });
+      await setDoc(eventRef, { name, currency, creatorUid: auth.currentUser?.uid || null, createdAt: serverTimestamp() });
+      setMyCreateEventCurrency(currency);
       window.history.pushState({}, "", `?event=${eventRef.id}`);
       eventId = eventRef.id;
       closeNewEventModal();
@@ -2074,6 +2169,7 @@
     document.getElementById("event-screen").classList.remove("hidden");
     document.getElementById("event-name-display").textContent = eventSnap.data().name;
     currentEventName = eventSnap.data().name;
+    currentEventCurrency = eventSnap.data().currency || "USD";
     document.getElementById("event-id-display").textContent = `${location.origin}${location.pathname}?event=${id}`;
     document.getElementById("delete-event-btn").classList.toggle("hidden", !isEventCreator);
     rememberEvent(id, eventSnap.data().name, isEventCreator);
@@ -2514,7 +2610,10 @@
     const sorted = [...currentExpenses].sort((a, b) =>
       (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0)
     );
-    log.innerHTML = sorted.map((e) => `
+    log.innerHTML = sorted.map((e) => {
+      const expCurrency = e.currency || currentEventCurrency;
+      const showsConverted = expCurrency !== currentEventCurrency;
+      return `
       <div class="expense-row">
         <div>
           <div class="expense-desc">${escapeHtml(e.description)}</div>
@@ -2528,16 +2627,22 @@
             <button class="btn-ghost expense-edit-btn" data-expense-id="${e.id}" style="padding:6px 12px; font-size:12.5px;">Edit</button>
             <button class="btn-ghost expense-delete-btn" data-expense-id="${e.id}" style="padding:6px 12px; font-size:12.5px; border-color: var(--coral); color: var(--coral);">Delete</button>
           ` : ""}
-          <div class="expense-amount amount">${money(e.amount)}</div>
+          <div style="text-align:right;">
+            <div class="expense-amount amount">${formatMoney(e.amount, expCurrency)}</div>
+            ${showsConverted ? `<div style="font-size:11.5px;color:var(--text-dim);">≈ ${formatMoney(e.convertedAmount ?? e.amount, currentEventCurrency)}</div>` : ""}
+          </div>
         </div>
       </div>
-    `).join("");
+    `;
+    }).join("");
   }
 
   document.getElementById("add-expense-btn").addEventListener("click", async () => {
     const descInput = document.getElementById("expense-desc");
     const amountInput = document.getElementById("expense-amount");
     const dateInput = document.getElementById("expense-date");
+    const currencySelect = document.getElementById("expense-currency");
+    const rateInput = document.getElementById("expense-rate-input");
     const paidBy = currentParticipantId;
     const splitAmong = Array.from(
       document.querySelectorAll("#expense-split-list input:checked")
@@ -2546,33 +2651,42 @@
     const description = descInput.value.trim();
     const amount = parseFloat(amountInput.value);
     const date = dateInput.value || todayStr();
+    const currency = currencySelect.value || currentEventCurrency;
+    const needsRate = currency !== currentEventCurrency;
+    const enteredRate = parseFloat(rateInput.value);
 
     if (!description) { descInput.focus(); return; }
     if (!amount || amount <= 0) { amountInput.focus(); return; }
     if (splitAmong.length === 0) { showToast("Select who this expense was shared with"); return; }
+    if (needsRate && (!enteredRate || enteredRate <= 0)) { showToast("Enter an exchange rate"); rateInput.focus(); return; }
+
+    const exchangeRate = needsRate ? enteredRate : 1;
+    const convertedAmount = Math.round(amount * exchangeRate * 100) / 100;
 
     const btn = document.getElementById("add-expense-btn");
     btn.disabled = true;
     try {
       if (editingExpenseId) {
         await updateDoc(doc(db, "events", eventId, "expenses", editingExpenseId), {
-          description, amount, splitAmong, date
+          description, amount, splitAmong, date, currency, exchangeRate, convertedAmount
         });
         showToast("Expense updated");
         logActivity("expense_edited", `<b>${escapeHtml(participantName(currentParticipantId))}</b> edited “${escapeHtml(description)}”`);
         await resetOwnDoneStatus(`edited “${escapeHtml(description)}”`);
+        setEventExpenseCurrency(eventId, currency);
         exitEditMode();
         closeExpenseModal();
       } else {
         await addDoc(collection(db, "events", eventId, "expenses"), {
-          description, amount, paidBy, splitAmong, date,
+          description, amount, paidBy, splitAmong, date, currency, exchangeRate, convertedAmount,
           createdBy: currentParticipantId,
           createdByUid: auth.currentUser?.uid || null,
           createdAt: serverTimestamp()
         });
         showToast("Expense added");
-        logActivity("expense_added", `<b>${escapeHtml(participantName(paidBy))}</b> paid ${money(amount)} for “${escapeHtml(description)}”`);
+        logActivity("expense_added", `<b>${escapeHtml(participantName(paidBy))}</b> paid ${formatMoney(amount, currency)} for “${escapeHtml(description)}”`);
         await resetOwnDoneStatus(`added “${escapeHtml(description)}”`);
+        setEventExpenseCurrency(eventId, currency);
         descInput.value = "";
         amountInput.value = "";
         dateInput.value = todayStr();
@@ -2585,6 +2699,49 @@
       btn.disabled = false;
     }
   });
+
+  function updateRateSectionVisibility() {
+    const currency = document.getElementById("expense-currency").value;
+    const section = document.getElementById("expense-rate-section");
+    const needsRate = currency && currency !== currentEventCurrency;
+    section.classList.toggle("hidden", !needsRate);
+    document.getElementById("expense-rate-prefix").textContent = needsRate ? `1 ${currency} =` : "";
+    document.getElementById("expense-rate-label").textContent = `Exchange rate (${currency} → ${currentEventCurrency})`;
+    return needsRate;
+  }
+
+  function updateConvertedPreview() {
+    const currency = document.getElementById("expense-currency").value;
+    const amount = parseFloat(document.getElementById("expense-amount").value) || 0;
+    const rate = parseFloat(document.getElementById("expense-rate-input").value) || 0;
+    const preview = document.getElementById("expense-converted-preview");
+    if (currency === currentEventCurrency || !amount || !rate) {
+      preview.textContent = "";
+      return;
+    }
+    preview.textContent = `≈ ${formatMoney(amount * rate, currentEventCurrency)}`;
+  }
+
+  async function refreshSuggestedRate() {
+    const currency = document.getElementById("expense-currency").value;
+    const needsRate = updateRateSectionVisibility();
+    if (!needsRate) { updateConvertedPreview(); return; }
+    const rateInput = document.getElementById("expense-rate-input");
+    const note = document.getElementById("expense-rate-note");
+    note.textContent = "Looking up a suggested rate…";
+    const rate = await fetchExchangeRate(currency, currentEventCurrency);
+    if (rate) {
+      rateInput.value = rate.toFixed(4);
+      note.textContent = "Suggested via exchangerate-api.com — adjust if needed.";
+    } else {
+      note.textContent = "Couldn't fetch a suggested rate — enter it manually.";
+    }
+    updateConvertedPreview();
+  }
+
+  document.getElementById("expense-currency").addEventListener("change", refreshSuggestedRate);
+  document.getElementById("expense-amount").addEventListener("input", updateConvertedPreview);
+  document.getElementById("expense-rate-input").addEventListener("input", updateConvertedPreview);
 
   function openExpenseModal() {
     document.getElementById("expense-modal-overlay").classList.remove("hidden");
@@ -2640,6 +2797,15 @@
     document.getElementById("expense-amount").value = exp.amount;
     document.getElementById("expense-date").value = exp.date || todayStr();
 
+    const expCurrency = exp.currency || currentEventCurrency;
+    document.getElementById("expense-currency").innerHTML = currencyOptionsHtml(expCurrency);
+    const needsRate = updateRateSectionVisibility();
+    if (needsRate) {
+      document.getElementById("expense-rate-input").value = exp.exchangeRate || "";
+      document.getElementById("expense-rate-note").textContent = "The rate used when this expense was added — adjust if needed.";
+    }
+    updateConvertedPreview();
+
     document.querySelectorAll("#expense-split-list .split-pill").forEach((pill) => {
       const input = pill.querySelector("input");
       const checked = exp.splitAmong.includes(input.value);
@@ -2661,6 +2827,10 @@
     document.getElementById("expense-desc").value = "";
     document.getElementById("expense-amount").value = "";
     document.getElementById("expense-date").value = todayStr();
+    document.getElementById("expense-currency").innerHTML = currencyOptionsHtml(getEventExpenseCurrency(eventId) || currentEventCurrency);
+    document.getElementById("expense-rate-input").value = "";
+    document.getElementById("expense-converted-preview").textContent = "";
+    updateRateSectionVisibility();
   }
 
   function timeAgo(ts) {
@@ -2692,8 +2862,9 @@
     participants.forEach((p) => (balances[p.id] = 0));
 
     expenses.forEach((exp) => {
-      const share = exp.amount / exp.splitAmong.length;
-      balances[exp.paidBy] = (balances[exp.paidBy] || 0) + exp.amount;
+      const resolvedAmount = exp.convertedAmount ?? exp.amount;
+      const share = resolvedAmount / exp.splitAmong.length;
+      balances[exp.paidBy] = (balances[exp.paidBy] || 0) + resolvedAmount;
       exp.splitAmong.forEach((pid) => {
         balances[pid] = (balances[pid] || 0) - share;
       });
@@ -2766,7 +2937,7 @@
                 <span>${escapeHtml(participantName(s.from))}<span class="receipt-arrow">→</span>${escapeHtml(participantName(s.to))}</span>
                 <span style="display:flex; align-items:center; gap:10px;">
                   ${isPaid ? `<span class="paid-badge">Paid</span>` : ""}
-                  <span class="receipt-amount amount">${money(s.amount)}</span>
+                  <span class="receipt-amount amount">${formatMoney(s.amount, currentEventCurrency)}</span>
                   ${canToggle ? `
                     <span style="display:flex; align-items:center; gap:6px;">
                       <span style="font-size:11px; color:var(--text-dim);">Paid</span>
@@ -2854,7 +3025,7 @@
     const amount = parseFloat(link.dataset.amount);
     payConfirmPending = { from, to, amount };
     document.getElementById("pay-confirm-text").textContent =
-      `Sent ${money(amount)} to ${participantName(to)}?`;
+      `Sent ${formatMoney(amount, currentEventCurrency)} to ${participantName(to)}?`;
     document.getElementById("pay-confirm-toast").classList.add("show");
     if (payConfirmTimeout) clearTimeout(payConfirmTimeout);
     payConfirmTimeout = setTimeout(hidePayConfirm, 12000);

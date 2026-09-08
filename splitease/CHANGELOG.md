@@ -1,5 +1,83 @@
 # SplitEase changelog
 
+## 2.11.0
+
+- Added multi-currency support. Each event now has a resolution currency, picked from a dropdown when creating it (defaults to whatever you picked last time). All settle-up math, and the amounts everyone sees when settling up, are always in that currency
+- When logging an expense, you can pick a different currency for that specific expense. The app remembers the last currency you used *within that event* (not globally), so entering several expenses in the same foreign currency in a row doesn't require reselecting it each time — but a different event still defaults sensibly to its own currency
+- When an expense's currency differs from the event's, a suggested exchange rate is looked up automatically (via exchangerate-api.com's free, no-signup endpoint) and shown as an editable field — accept it as-is or type your own. If the lookup fails, the field is just left blank for manual entry, no error, no blocked flow
+- The expense list shows the amount in the currency it was actually entered in, with a small "≈ converted" line underneath when that differs from the event's currency
+- Money is now formatted properly per-currency everywhere (correct symbol placement, decimal handling, etc. via the browser's built-in `Intl` formatting) instead of a hardcoded `$` prefix
+- Existing expenses from before this update are treated as already being in the event's currency (no conversion applied) — nothing changes for events that only ever use one currency
+
+## 2.10.1
+
+- Extended the join-time fuzzy name match to catch no-space forms like "DavidM" or "DavidMarkham" against "David Markham" — splits on the capital-letter boundary before comparing. Requires that capitalization, though: "davidm" typed with no capitals has no reliable place to split and won't match — same limitation as any name entered without the usual capitalization
+- Nicknames (e.g. "Dave" for "David") are intentionally out of scope — that requires a maintained nickname dictionary, not text comparison, and is a separate feature with its own trade-offs (incomplete coverage, ambiguous mappings like Alex→Alexander/Alexandra) if ever wanted
+
+## 2.10.0
+
+- Added swipe-to-reveal on "Your events" rows: swiping a row left reveals a colored Delete (red) or Leave (amber) panel underneath, tap it to trigger the same confirm-and-action flow as the "⋯" menu. Only one row can be revealed at a time; swiping another row, or tapping elsewhere, closes it
+- The "⋯" menu stays exactly as it was, for mouse-based desktop use — both paths call the same underlying delete/leave logic, so there's no behavior difference between them, just two ways to trigger it
+
+## 2.9.5
+
+- More breathing room between the "not everyone's done" warning banner and the settle-up content below it
+- "Delete event" now uses the same rich red in both themes instead of dark mode's lighter/washed-out coral
+
+## 2.9.4
+
+- Fixed the actual cause of "I clicked and nothing happened": several places made a Firestore read with no error handling around it — opening an event from the home list, joining via a pasted link/code, and (most importantly) `openEvent` itself, which every entry point funnels through, including opening a direct event link fresh. If that read failed (e.g. during the kind of network hiccup covered in 2.9.3), the click just silently did nothing with no message and no recovery — in the direct-link case, it could leave someone stuck on "Loading event…" indefinitely. All of these now show a clear error toast and return you to a working screen instead of failing silently
+
+## 2.9.3
+
+- Firestore now initializes with `experimentalAutoDetectLongPolling` — if the browser's default realtime connection (WebChannel over QUIC) proves unreliable on the current network, the SDK automatically falls back to HTTP long-polling instead. This addresses console errors like "WebChannelConnection RPC 'Listen' stream transport errored" / QUIC_PUBLIC_RESET / QUIC_TOO_MANY_RTOS seen on some networks (proxies, VPNs, certain ISPs) — a known, documented Firebase SDK issue, not an app bug. The app still auto-reconnects on its own even without this change; this just makes that connection more stable to begin with
+
+## 2.9.2
+
+- Fixed: a device merged (by name match) into the event creator's identity now actually gets creator permissions — deleting the event, editing anyone's expenses, and customizing background/logo — not just the "Delete event" button showing without working. This needed both a client fix (creator status is now rechecked once merged-participant data loads, not just once at page load) and a rules change (creator recognition now also accepts a device linked via the merge to the same participant as the original creator)
+- Each event now records which participant record belongs to its creator (`creatorParticipantId`), set automatically the first time the creator joins their own event, and backfilled for existing events the next time the creator visits
+
+## 2.9.1
+
+- Joining no longer merges automatically and silently. If the name you enter exactly matches, or closely matches (same first name, and either just a first name or an initial like "John C" vs "John Campbell"), someone already in the event, you're asked "Is this the same person?" before anything happens — confirm to merge, or decline to go back and adjust the name. Applies to both manual and automatic joins
+- The fuzzy match deliberately does NOT flag two different full last names (e.g. "John Campbell" and "John Smith") — only first-name-only entries and initial-style abbreviations
+
+## 2.9.0
+
+- Joining an event (manually or automatically) now checks for an existing participant with the exact same name (case-insensitive) in that event. If found, this device is merged into that identity instead of creating a duplicate — useful for the same person joining from both phone and desktop
+- Participant records now support multiple linked devices (a new `authUids` list, alongside the older single `authUid` for existing data) so any merged device can act as that participant, including leaving the event
+- Known trade-off: this matches purely on name text, so two different people with the exact same name in one event would also be merged into a single identity. There's no prompt or confirmation step — matches are merged silently
+
+## 2.8.5
+
+- Light mode: deepened and saturated the green used for "Your events" and "Join an event" (was a pale mint that washed into the background, now a clearly visible sage green) and pulled back the page's white glow/beige balance so the overall look reads less uniformly pale
+
+## 2.8.4
+
+- Light mode: replaced the flat white page background with a warm beige base and a soft white light glow biased toward the top-center — same design language as the dark mode gradient, just inverted (light source instead of colored glow). Cards keep their existing light gray so they still stand out against the warmer backdrop
+
+## 2.8.3
+
+- Dark mode background gradient: both glows now center at top-center instead of top-left/top-right, reading as one unified light source overhead rather than two separate corner glows
+
+## 2.8.2
+
+- Dark mode: "Your events" now uses the same charcoal gray as "Join an event" too, instead of the dark green tint — both landing cards match each other and the event-detail cards
+
+## 2.8.1
+
+- Dark mode: page background is now a subtle gradient (warm amber glow top-right, faint plum glow top-left, fading to near-black) instead of a flat color, similar to the reference look provided. A custom event background image still always takes priority over this when one's set
+- "Join an event" box now uses the same charcoal gray as event-detail cards in dark mode, instead of the dark green tint. "Your events" keeps its distinct color for now
+
+## 2.8.0
+
+- Fixed: the status dot on each row of "Your events" was invisible — `.legend-dot` is a `<span>` (inline by default), and outside the one spot that happened to be a flex container, browsers ignore width/height on inline elements entirely. It's now explicitly `display: inline-block`, so the dot renders everywhere it's used
+- Changed event status colors to match: New is now red, In progress is now yellow, Closed stays green (previously New was gray and In progress was purple) — updated on the status banner, the home screen legend, and each event row's dot
+
+## 2.7.5
+
+- Dark mode: lightened card/box backgrounds (Who's in, Settle up, Activity, etc.) so they stand out more clearly from the page background instead of nearly blending into it
+
 ## 2.7.4
 
 - Section headings (Expenses, Settle up, Activity) are now bold serif headings in full-contrast text instead of small dim uppercase labels
