@@ -1,8 +1,8 @@
 {
   "id": "recession_probability",
   "source": "Derived",
-  "updated": "2026-09-08T10:21:38.504577+00:00",
-  "count": 11256,
+  "updated": "2026-09-09T10:30:06.362971+00:00",
+  "count": 11257,
   "records": [
     {
       "date": "1981-08-27",
@@ -45027,6 +45027,10 @@
     {
       "date": "2026-09-03",
       "value": 13.21
+    },
+    {
+      "date": "2026-09-04",
+      "value": 13.35
     }
   ],
   "label": "12-month-ahead recession probability (Estrella-Mishkin yield curve model), %",
