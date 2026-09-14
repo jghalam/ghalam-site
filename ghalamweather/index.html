@@ -9,10 +9,10 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://ghalam.net/ghalamweather/">
 <meta property="og:title" content="GhalamWeather – Weather, Your Way">
-<meta property="og:description" content="Dual-unit forecasts, live radar, air quality, moon phase, and a barometric trend from your device's own sensor — with home and lock screen widgets, in English and French.">
+<meta property="og:description" content="Dual-unit forecasts, weather alerts, live radar, air quality, moon phase, and a barometric trend from your device's own sensor — with home and lock screen widgets, in English and French.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="GhalamWeather – Weather, Your Way">
-<meta name="twitter:description" content="Dual-unit forecasts, live radar, air quality, moon phase, and a barometric trend from your device's own sensor — with home and lock screen widgets, in English and French.">
+<meta name="twitter:description" content="Dual-unit forecasts, weather alerts, live radar, air quality, moon phase, and a barometric trend from your device's own sensor — with home and lock screen widgets, in English and French.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -132,6 +132,8 @@
     font-size: 0.8rem;
     color: var(--muted);
   }
+  .badge-link { display: inline-block; margin-bottom: 1.25rem; }
+  .badge-link img { height: 44px; }
 
   section {
     max-width: 760px;
@@ -246,11 +248,13 @@
   <img src="images/icon-512.png" alt="GhalamWeather App Icon" class="app-icon">
   <h1>Weather that shows<br><span>both sides of the story</span></h1>
   <p class="tagline">GhalamWeather shows both temperature units side by side, adds a live radar map, air quality, moon phase, and a barometric pressure trend straight from your device's own sensor — with widgets that keep working on your Home Screen and Lock Screen.</p>
+  <a href="https://apps.apple.com/us/app/ghalamweather/id6807653184" class="badge-link" target="_blank">
+    <img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="Download on the App Store">
+  </a>
   <div class="hero-ctas">
     <a href="support.html" class="btn-secondary">Get Support</a>
     <a href="#about" class="btn-secondary">Learn more</a>
   </div>
-  <p class="platform-note">Coming soon to the App Store · iOS</p>
 </div>
 
 <section id="about">
@@ -268,6 +272,11 @@
       <p>Every temperature shows °F and °C together — no digging through Settings to check the other unit.</p>
     </div>
     <div class="feature-card">
+      <span class="icon">⚠️</span>
+      <h3>Weather Alerts</h3>
+      <p>Active alerts for your saved locations, sourced from the National Weather Service, Environment Canada, or MeteoAlarm depending on where you are.</p>
+    </div>
+    <div class="feature-card">
       <span class="icon">🗺️</span>
       <h3>Live Radar</h3>
       <p>An animated precipitation radar map, so you can see rain moving in before it arrives.</p>
@@ -280,7 +289,7 @@
     <div class="feature-card">
       <span class="icon">📊</span>
       <h3>Real Barometric Trend</h3>
-      <p>Reads your device's own barometer over time to show whether pressure is rising, falling, or steady.</p>
+      <p>Reads your iPhone's own barometer over time to show whether pressure is rising, falling, or steady.</p>
     </div>
     <div class="feature-card">
       <span class="icon">💨</span>
@@ -296,6 +305,11 @@
       <span class="icon">🌧️</span>
       <h3>Next-Hour Rain Intensity</h3>
       <p>An optional minute-by-minute rain graph for the next hour, using your own free OpenWeatherMap key.</p>
+    </div>
+    <div class="feature-card">
+      <span class="icon">📍</span>
+      <h3>Compare Locations</h3>
+      <p>Long-press current conditions, air quality, or moon data to see it side by side across all your saved locations — tap any one to jump straight to its page.</p>
     </div>
     <div class="feature-card">
       <span class="icon">🌐</span>
