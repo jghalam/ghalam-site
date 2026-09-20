@@ -532,7 +532,9 @@
     align-items: center;
     gap: 12px;
   }
-  .expense-who { color: var(--text-dim); font-size: 12.5px; }
+  .expense-who { display: flex; align-items: baseline; gap: 8px; font-size: 15px; }
+  .expense-date { color: var(--text-dim); font-weight: 500; }
+  .expense-payer { color: var(--text); font-weight: 700; font-size: 16.5px; }
   .expense-desc { font-weight: 500; }
   .expense-amount { font-size: 16px; font-weight: 600; text-align: right; }
 
@@ -2642,7 +2644,10 @@
       return `
       <div class="expense-row">
         <div class="expense-line">
-          <div class="expense-who">${e.date ? `${formatDate(e.date)} · ` : ""}Paid by ${escapeHtml(participantName(e.paidBy))}</div>
+          <div class="expense-who">
+            ${e.date ? `<span class="expense-date">${formatDate(e.date)}</span>` : ""}
+            <span class="expense-payer">${escapeHtml(participantName(e.paidBy))}</span>
+          </div>
           <div class="expense-row-actions">
             ${e.createdBy === currentParticipantId ? `
               <button class="icon-btn expense-edit-btn" data-expense-id="${e.id}" title="Edit expense" aria-label="Edit expense">✎</button>
@@ -2659,7 +2664,10 @@
         </div>
         <div class="split-avatars">
           ${involved.map((p) => `
-            <span class="avatar-dot" style="background:${statusColorFor(p)}" title="${escapeHtml(p.name)}">${initials(p.name)}</span>
+            <span class="participant-chip">
+              <span class="avatar-dot" style="background:${statusColorFor(p)}" title="${statusLabelFor(p)}">${initials(p.name)}</span>
+              ${escapeHtml(p.name)}
+            </span>
           `).join("")}
         </div>
       </div>
