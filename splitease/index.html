@@ -26,6 +26,7 @@
     --surface-rgb: 246, 247, 249;
     --surface-raised: #edeff3;
     --border: #dde1e7;
+    --border-strong: #b9c0cc;
     --text: #14171f;
     --text-dim: #6b7280;
     --blue: #2563eb;
@@ -46,6 +47,7 @@
     --surface-rgb: 30, 36, 50;
     --surface-raised: #272f42;
     --border: #333c52;
+    --border-strong: #4d5a7a;
     --text: #f2f4f8;
     --text-dim: #8b92a5;
     --blue: #3d8bfd;
@@ -518,7 +520,7 @@
 
   /* expense log */
   .expense-row {
-    border: 1px solid var(--border);
+    border: 2px solid var(--border-strong);
     border-radius: 12px;
     overflow: hidden;
     margin-bottom: 14px;
@@ -532,7 +534,7 @@
     gap: 12px;
     background: var(--surface-raised);
     padding: 10px 14px;
-    border-bottom: 1px solid var(--border);
+    border-bottom: 2px solid var(--border-strong);
   }
   .expense-body {
     display: flex;
@@ -547,7 +549,7 @@
     gap: 6px;
     background: var(--surface-raised);
     padding: 10px 14px;
-    border-top: 1px solid var(--border);
+    border-top: 2px solid var(--border-strong);
   }
   .expense-who { font-size: 15px; }
   .expense-payer { font-weight: 700; font-size: 16.5px; }
@@ -591,12 +593,14 @@
     background-size: 14px 14px;
     background-color: var(--surface);
   }
-  .receipt-inner { padding: 18px 22px 4px; }
+  .receipt-inner { padding: 18px 22px; }
   .receipt-row-wrap {
-    padding: 12px 0;
-    border-bottom: 1px dashed var(--border);
+    border: 2px solid var(--border-strong);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
   }
-  .receipt-row-wrap:last-child { border-bottom: none; }
+  .receipt-row-wrap:last-child { margin-bottom: 0; }
   .receipt-row {
     display: flex;
     justify-content: space-between;
