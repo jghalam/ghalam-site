@@ -772,6 +772,48 @@
   }
   .modal-close-row { text-align: right; margin-top: 20px; }
 
+  /* audit report */
+  .audit-status {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 14px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: 16px;
+  }
+  .audit-status-good { background: rgba(5,150,105,0.12); color: var(--green); }
+  .audit-status-bad { background: rgba(220,38,38,0.1); color: var(--coral); }
+  .audit-issues {
+    margin: 0 0 18px;
+    padding-left: 20px;
+    font-size: 13px;
+    color: var(--coral);
+  }
+  .audit-issues li { margin-bottom: 5px; }
+  .audit-section-title {
+    font-weight: 600;
+    font-size: 14px;
+    margin: 18px 0 8px;
+  }
+  .audit-summary-line { font-size: 13.5px; color: var(--text-dim); margin-bottom: 4px; }
+  .audit-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13.5px;
+  }
+  .audit-table th, .audit-table td {
+    text-align: left;
+    padding: 7px 8px;
+    border-bottom: 1px solid var(--border);
+  }
+  .audit-table th { color: var(--text-dim); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.02em; }
+  .audit-table td.audit-amount, .audit-table th.audit-amount { text-align: right; }
+  .audit-settlements { margin: 0; padding-left: 20px; font-size: 13.5px; }
+  .audit-settlements li { margin-bottom: 6px; }
+  .audit-paid-tag { color: var(--green); font-size: 12px; font-weight: 600; margin-left: 6px; }
+
   .theme-option {
     flex: 1;
     display: flex;
@@ -943,6 +985,7 @@
 <div class="dropdown-menu hidden" id="settings-menu">
   <button class="dropdown-item" id="settings-menu-profile">Edit profile</button>
   <button class="dropdown-item" id="settings-menu-appearance">Appearance…</button>
+  <button class="dropdown-item hidden" id="settings-menu-audit">Audit report…</button>
 </div>
 
 <div class="modal-overlay hidden" id="new-event-overlay">
@@ -1038,6 +1081,17 @@
 
     <div class="modal-close-row" style="display:flex; justify-content:flex-end; gap:10px;">
       <button class="btn-primary" id="appearance-close-btn">Done</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay hidden" id="audit-overlay">
+  <div class="modal-panel" style="max-width:560px;">
+    <h2>Audit report</h2>
+    <p id="audit-meta" style="font-size:13px;color:var(--text-dim);margin:-8px 0 16px;"></p>
+    <div id="audit-content"></div>
+    <div class="modal-close-row" style="display:flex; justify-content:flex-end; gap:10px; margin-top:18px;">
+      <button class="btn-primary" id="audit-close-btn">Close</button>
     </div>
   </div>
 </div>
@@ -1259,7 +1313,7 @@
     getAuth, signInAnonymously, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
-  const APP_VERSION = "2.12.0";
+  const APP_VERSION = "2.13.0";
   document.getElementById("app-footer").textContent =
     `SplitEase v${APP_VERSION} — Share Together. Settle Smarter.`;
   console.log(`%cSplitEase v${APP_VERSION}`, "color:#3d8bfd;font-weight:bold;");
@@ -1894,6 +1948,7 @@
     eventCreatorUid = "";
     currentEventName = "";
     currentEventCurrency = "USD";
+    document.getElementById("settings-menu-audit").classList.add("hidden");
     applyEventAppearance({});
     window.history.pushState({}, "", window.location.pathname);
     document.getElementById("event-screen").classList.add("hidden");
@@ -2256,6 +2311,7 @@
     currentEventCurrency = eventSnap.data().currency || "USD";
     document.getElementById("event-id-display").textContent = `${location.origin}${location.pathname}?event=${id}`;
     document.getElementById("delete-event-btn").classList.toggle("hidden", !isEventCreator);
+    document.getElementById("settings-menu-audit").classList.toggle("hidden", !isEventCreator);
     rememberEvent(id, eventSnap.data().name, isEventCreator);
     applyEventAppearance(eventSnap.data());
 
@@ -2296,6 +2352,7 @@
         }
       }
       document.getElementById("delete-event-btn").classList.toggle("hidden", !isEventCreator);
+      document.getElementById("settings-menu-audit").classList.toggle("hidden", !isEventCreator);
       renderParticipants();
       renderExpenses();
       renderSettleUp();
@@ -3041,6 +3098,130 @@
   function paidPairId(from, to) {
     return `${from}__${to}`;
   }
+
+  // ---------- audit report (event creator only) ----------
+  function runEventAudit() {
+    const issues = [];
+    const participantsById = new Map(currentParticipants.map((p) => [p.id, p]));
+    const paidTotals = {};
+    const owedTotals = {};
+    currentParticipants.forEach((p) => { paidTotals[p.id] = 0; owedTotals[p.id] = 0; });
+
+    let totalSpent = 0;
+
+    currentExpenses.forEach((exp) => {
+      const label = exp.description || "Untitled expense";
+      const amt = exp.convertedAmount ?? exp.amount;
+
+      if (typeof amt !== "number" || !isFinite(amt) || amt <= 0) {
+        issues.push(`“${label}” has an invalid amount and was left out of these totals`);
+        return;
+      }
+      if (!Array.isArray(exp.splitAmong) || exp.splitAmong.length === 0) {
+        issues.push(`“${label}” isn't split among anyone and was left out of these totals`);
+        return;
+      }
+      if (!participantsById.has(exp.paidBy)) {
+        issues.push(`“${label}” was paid by someone no longer in this event`);
+      }
+      const missingSplit = exp.splitAmong.filter((id) => !participantsById.has(id));
+      if (missingSplit.length > 0) {
+        issues.push(`“${label}” is split with ${missingSplit.length} participant${missingSplit.length === 1 ? "" : "s"} no longer in this event`);
+      }
+      const expCurrency = exp.currency || currentEventCurrency;
+      if (expCurrency !== currentEventCurrency && (exp.convertedAmount === undefined || exp.convertedAmount === null)) {
+        issues.push(`“${label}” is in ${expCurrency} but has no converted amount on record`);
+      }
+
+      totalSpent += amt;
+      paidTotals[exp.paidBy] = (paidTotals[exp.paidBy] || 0) + amt;
+      const share = amt / exp.splitAmong.length;
+      exp.splitAmong.forEach((id) => {
+        owedTotals[id] = (owedTotals[id] || 0) + share;
+      });
+    });
+
+    currentPayments.forEach((pmt) => {
+      if (!participantsById.has(pmt.from) || !participantsById.has(pmt.to)) {
+        issues.push("A payment record references someone no longer in this event");
+      }
+    });
+
+    const totalPaid = Object.values(paidTotals).reduce((a, b) => a + b, 0);
+    const totalOwed = Object.values(owedTotals).reduce((a, b) => a + b, 0);
+    const diff = Math.round((totalPaid - totalOwed) * 100) / 100;
+    if (Math.abs(diff) > 0.01) {
+      issues.push(`Total paid (${formatMoney(totalPaid, currentEventCurrency)}) doesn't match total owed (${formatMoney(totalOwed, currentEventCurrency)}) — off by ${formatMoney(Math.abs(diff), currentEventCurrency)}`);
+    }
+
+    const settlements = calculateSettlements(currentParticipants, currentExpenses);
+
+    return { issues, totalSpent, paidTotals, owedTotals, settlements };
+  }
+
+  function renderAuditModal() {
+    const { issues, totalSpent, paidTotals, owedTotals, settlements } = runEventAudit();
+
+    document.getElementById("audit-meta").textContent =
+      `${currentEventName} — run by ${participantName(currentParticipantId)} on ${new Date().toLocaleString()}`;
+
+    const statusHtml = issues.length === 0
+      ? `<div class="audit-status audit-status-good">✓ No issues found — spending and payouts balance</div>`
+      : `<div class="audit-status audit-status-bad">⚠️ ${issues.length} issue${issues.length === 1 ? "" : "s"} found</div>
+         <ul class="audit-issues">${issues.map((i) => `<li>${escapeHtml(i)}</li>`).join("")}</ul>`;
+
+    const summaryHtml = `
+      <div class="audit-summary-line">${currentExpenses.length} expense${currentExpenses.length === 1 ? "" : "s"} totaling ${formatMoney(totalSpent, currentEventCurrency)} across ${currentParticipants.length} participant${currentParticipants.length === 1 ? "" : "s"}</div>
+    `;
+
+    const tableRows = currentParticipants.map((p) => {
+      const paid = paidTotals[p.id] || 0;
+      const owed = owedTotals[p.id] || 0;
+      const net = Math.round((paid - owed) * 100) / 100;
+      const netColor = net > 0.005 ? "var(--green)" : net < -0.005 ? "var(--coral)" : "var(--text-dim)";
+      return `
+        <tr>
+          <td>${escapeHtml(p.name)}</td>
+          <td class="audit-amount">${formatMoney(paid, currentEventCurrency)}</td>
+          <td class="audit-amount">${formatMoney(owed, currentEventCurrency)}</td>
+          <td class="audit-amount" style="color:${netColor}; font-weight:600;">${net > 0 ? "+" : ""}${formatMoney(net, currentEventCurrency)}</td>
+        </tr>
+      `;
+    }).join("");
+
+    const tableHtml = `
+      <div class="audit-section-title">By participant</div>
+      <table class="audit-table">
+        <thead><tr><th>Name</th><th class="audit-amount">Paid</th><th class="audit-amount">Share</th><th class="audit-amount">Net</th></tr></thead>
+        <tbody>${tableRows}</tbody>
+      </table>
+    `;
+
+    const settlementsHtml = `
+      <div class="audit-section-title">Who owes what</div>
+      ${settlements.length === 0
+        ? `<div class="audit-summary-line">Everyone's settled up.</div>`
+        : `<ul class="audit-settlements">${settlements.map((s) => {
+            const record = currentPayments.find((p) => p.id === paidPairId(s.from, s.to));
+            const isPaid = !!(record && record.paid);
+            return `<li>${escapeHtml(participantName(s.from))} → ${escapeHtml(participantName(s.to))}: ${formatMoney(s.amount, currentEventCurrency)}${isPaid ? `<span class="audit-paid-tag">PAID</span>` : ""}</li>`;
+          }).join("")}</ul>`}
+    `;
+
+    document.getElementById("audit-content").innerHTML = statusHtml + summaryHtml + tableHtml + settlementsHtml;
+    document.getElementById("audit-overlay").classList.remove("hidden");
+  }
+
+  document.getElementById("settings-menu-audit").addEventListener("click", () => {
+    document.getElementById("settings-menu").classList.add("hidden");
+    renderAuditModal();
+  });
+  document.getElementById("audit-close-btn").addEventListener("click", () => {
+    document.getElementById("audit-overlay").classList.add("hidden");
+  });
+  document.getElementById("audit-overlay").addEventListener("click", (e) => {
+    if (e.target.id === "audit-overlay") e.target.classList.add("hidden");
+  });
 
   function renderSettleUp() {
     const container = document.getElementById("settle-up");

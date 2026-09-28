@@ -1,5 +1,10 @@
 # SplitEase changelog
 
+## 2.13.0
+
+- Added an "Audit report…" item to the ⚙ settings menu, visible only to the event's creator. Runs a quick data-integrity check and shows a summary: total spent, a per-participant breakdown (paid / share / net), and who owes whom (reusing the same settle-up math, with already-paid settlements marked)
+- The audit specifically checks for the kind of debris a failed write can leave behind — an expense paid by or split with someone no longer in the event, a payment record pointing at a removed participant, a foreign-currency expense missing its converted amount, or an expense with an invalid amount or empty split — as well as a global check that total paid matches total owed across the event. Each finding is listed individually; a clean event just shows "No issues found"
+
 ## 2.12.0
 
 - Redesigned the expense list: each expense is now its own card with a header (date and payer, colored to match their status), a body (description and amount), and a footer (who it's split among, shown the same colored-initials-and-name style as "Who's in") — instead of one flat row
