@@ -1,5 +1,9 @@
 # SplitEase changelog
 
+## 2.13.1
+
+- Widened the main content column on larger screens (900px on small laptops, 1100px at 1280px+) instead of staying capped at 760px everywhere. Cards, tables and rows all fill their container's width already, so this gives expenses, settle-up and the rest more breathing room on desktop without changing anything on phone/tablet
+
 ## 2.13.0
 
 - Added an "Audit report…" item to the ⚙ settings menu, visible only to the event's creator. Runs a quick data-integrity check and shows a summary: total spent, a per-participant breakdown (paid / share / net), and who owes whom (reusing the same settle-up math, with already-paid settlements marked)
