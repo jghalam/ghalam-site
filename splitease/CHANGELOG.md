@@ -1,5 +1,14 @@
 # SplitEase changelog
 
+## 2.12.0
+
+- Redesigned the expense list: each expense is now its own card with a header (date and payer, colored to match their status), a body (description and amount), and a footer (who it's split among, shown the same colored-initials-and-name style as "Who's in") — instead of one flat row
+- Redesigned Settle Up entries the same way: names and the paid toggle on their own line, the amount on its own line below, each entry in its own bordered card
+- Fixed: the Expenses section had no card container around it, unlike "Who's in" and "Settle Up" — it was just floating rows with no visible boundary. Now wrapped in a card to match
+- Strengthened the borders around both expense cards and settle-up entries so each one reads clearly as its own group
+- Added failure logging to the Activity feed for delete/add/edit expense, leaving or removing a participant, marking yourself done, and marking a settlement paid — each of these now logs a distinct, visually flagged entry (with the underlying error code) if the action fails server-side, instead of relying on a toast alone
+- Delete-expense specifically now also catches two harder-to-diagnose failure modes that previously looked like the button just doing nothing: the browser blocking the confirm dialog outright (some in-app/PWA contexts do this silently, with no visible dialog and no error), and the delete request hanging indefinitely with no server response (e.g. a bad connection, where the write is queued but never resolves or rejects). Both now show a clear toast and an Activity entry instead of silence
+
 ## 2.11.0
 
 - Added multi-currency support. Each event now has a resolution currency, picked from a dropdown when creating it (defaults to whatever you picked last time). All settle-up math, and the amounts everyone sees when settling up, are always in that currency
