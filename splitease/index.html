@@ -26,7 +26,6 @@
     --surface-rgb: 246, 247, 249;
     --surface-raised: #edeff3;
     --border: #dde1e7;
-    --border-strong: #b9c0cc;
     --text: #14171f;
     --text-dim: #6b7280;
     --blue: #2563eb;
@@ -47,7 +46,6 @@
     --surface-rgb: 30, 36, 50;
     --surface-raised: #272f42;
     --border: #333c52;
-    --border-strong: #4d5a7a;
     --text: #f2f4f8;
     --text-dim: #8b92a5;
     --blue: #3d8bfd;
@@ -183,16 +181,6 @@
     padding: 24px 20px 80px;
     width: 100%;
     flex: 1 0 auto;
-  }
-
-  /* Give real desktop viewports more breathing room — cards, tables and rows
-     inside main are already width:100% of their container, so widening main
-     is all that's needed to make them wider too. Phones/tablets keep 760px. */
-  @media (min-width: 900px) {
-    main { max-width: 900px; }
-  }
-  @media (min-width: 1280px) {
-    main { max-width: 1100px; padding-left: 32px; padding-right: 32px; }
   }
 
   .hidden { display: none !important; }
@@ -365,6 +353,9 @@
     margin-bottom: 20px;
   }
 
+  .lock-icon { margin-left:8px; font-size:14px; vertical-align:middle; }
+  .lock-notice { margin:8px 0 14px; padding:10px 14px; border-radius:10px; font-size:13.5px;
+    background: var(--surface-2, rgba(128,128,128,.12)); border:1px solid var(--border); color: var(--text); }
   .status-banner {
     display: flex;
     align-items: center;
@@ -530,48 +521,17 @@
 
   /* expense log */
   .expense-row {
-    border: 2px solid var(--border-strong);
-    border-radius: 12px;
-    overflow: hidden;
-    margin-bottom: 14px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
     animation: fadein 0.25s ease;
   }
-  .expense-row:last-child { margin-bottom: 0; }
-  .expense-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-    background: var(--band-blue);
-    padding: 10px 14px;
-    border-bottom: 2px solid var(--border-strong);
-  }
-  .expense-body {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 12px;
-    padding: 12px 14px;
-  }
-  .expense-footer {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 6px;
-    background: var(--surface-raised);
-    padding: 10px 14px;
-    border-top: 2px solid var(--border-strong);
-  }
-  .expense-who { font-size: 15px; }
-  .expense-payer { font-weight: 700; font-size: 16.5px; }
+  .expense-row:last-child { border-bottom: none; }
   .expense-desc { font-weight: 500; }
-  .expense-amount { font-size: 16px; font-weight: 600; text-align: right; }
-
-  .expense-row-actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    flex-shrink: 0;
-  }
+  .expense-meta { color: var(--text-dim); font-size: 12.5px; margin-top: 3px; }
+  .expense-amount { font-size: 16px; font-weight: 600; }
 
   @keyframes fadein {
     from { opacity: 0; transform: translateY(-4px); }
@@ -603,23 +563,17 @@
     background-size: 14px 14px;
     background-color: var(--surface);
   }
-  .receipt-inner { padding: 18px 22px; }
+  .receipt-inner { padding: 18px 22px 4px; }
   .receipt-row-wrap {
-    border: 2px solid var(--border-strong);
-    border-radius: 10px;
-    padding: 12px 14px;
-    margin-bottom: 10px;
+    padding: 12px 0;
+    border-bottom: 1px dashed var(--border);
   }
-  .receipt-row-wrap:last-child { margin-bottom: 0; }
+  .receipt-row-wrap:last-child { border-bottom: none; }
   .receipt-row {
     display: flex;
     justify-content: space-between;
     align-items: center;
     font-size: 14.5px;
-  }
-  .receipt-row-amount {
-    justify-content: flex-end;
-    margin-top: 6px;
   }
   .receipt-arrow { color: var(--text-dim); margin: 0 8px; }
   .receipt-amount { color: var(--gold); font-weight: 600; }
@@ -782,48 +736,6 @@
   }
   .modal-close-row { text-align: right; margin-top: 20px; }
 
-  /* audit report */
-  .audit-status {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 14px;
-    border-radius: 10px;
-    font-weight: 600;
-    font-size: 14px;
-    margin-bottom: 16px;
-  }
-  .audit-status-good { background: rgba(5,150,105,0.12); color: var(--green); }
-  .audit-status-bad { background: rgba(220,38,38,0.1); color: var(--coral); }
-  .audit-issues {
-    margin: 0 0 18px;
-    padding-left: 20px;
-    font-size: 13px;
-    color: var(--coral);
-  }
-  .audit-issues li { margin-bottom: 5px; }
-  .audit-section-title {
-    font-weight: 600;
-    font-size: 14px;
-    margin: 18px 0 8px;
-  }
-  .audit-summary-line { font-size: 13.5px; color: var(--text-dim); margin-bottom: 4px; }
-  .audit-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13.5px;
-  }
-  .audit-table th, .audit-table td {
-    text-align: left;
-    padding: 7px 8px;
-    border-bottom: 1px solid var(--border);
-  }
-  .audit-table th { color: var(--text-dim); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.02em; }
-  .audit-table td.audit-amount, .audit-table th.audit-amount { text-align: right; }
-  .audit-settlements { margin: 0; padding-left: 20px; font-size: 13.5px; }
-  .audit-settlements li { margin-bottom: 6px; }
-  .audit-paid-tag { color: var(--green); font-size: 12px; font-weight: 600; margin-left: 6px; }
-
   .theme-option {
     flex: 1;
     display: flex;
@@ -864,6 +776,10 @@
   }
   body.has-custom-bg .expense-row {
     background: rgba(var(--surface-rgb), 0.94);
+    border-radius: 10px;
+    padding-left: 14px;
+    padding-right: 14px;
+    margin-bottom: 2px;
   }
 
   /* activity log */
@@ -888,9 +804,6 @@
   .activity-row .activity-time { flex-shrink: 0; color: var(--text-dim); opacity: 0.7; }
   .activity-row .activity-text { color: var(--text); }
   .activity-row .activity-text b { color: var(--text); font-weight: 600; }
-  .activity-row-error { background: rgba(220,38,38,0.08); }
-  .activity-row-error .activity-text { color: var(--coral); }
-  .activity-row-error .activity-text b { color: var(--coral); }
 
   footer {
     text-align: center;
@@ -995,7 +908,6 @@
 <div class="dropdown-menu hidden" id="settings-menu">
   <button class="dropdown-item" id="settings-menu-profile">Edit profile</button>
   <button class="dropdown-item" id="settings-menu-appearance">Appearance…</button>
-  <button class="dropdown-item hidden" id="settings-menu-audit">Audit report…</button>
 </div>
 
 <div class="modal-overlay hidden" id="new-event-overlay">
@@ -1095,17 +1007,6 @@
   </div>
 </div>
 
-<div class="modal-overlay hidden" id="audit-overlay">
-  <div class="modal-panel" style="max-width:560px;">
-    <h2>Audit report</h2>
-    <p id="audit-meta" style="font-size:13px;color:var(--text-dim);margin:-8px 0 16px;"></p>
-    <div id="audit-content"></div>
-    <div class="modal-close-row" style="display:flex; justify-content:flex-end; gap:10px; margin-top:18px;">
-      <button class="btn-primary" id="audit-close-btn">Close</button>
-    </div>
-  </div>
-</div>
-
 <main>
 
   <div id="loading-state" class="hidden" style="text-align:center;color:var(--text-dim);padding:60px 0;">Loading event…</div>
@@ -1125,6 +1026,7 @@
 
     <div class="dropdown-menu hidden" id="my-event-menu">
       <button class="dropdown-item" id="my-event-menu-share">Share</button>
+      <button class="dropdown-item hidden" id="my-event-menu-lock">Close event</button>
       <button class="dropdown-item" id="my-event-menu-action">Delete</button>
     </div>
 
@@ -1154,6 +1056,7 @@
         <div style="display:flex; align-items:center; gap:10px;">
           <img id="event-logo-img" class="hidden" alt="" style="width:36px;height:36px;border-radius:8px;object-fit:cover;border:1px solid var(--border);flex-shrink:0;">
           <h1 class="event-name" id="event-name-display">—</h1>
+          <span id="event-lock-badge" class="lock-icon" style="font-size:20px;">🔓</span>
         </div>
     </div>
     <div class="event-code">
@@ -1202,6 +1105,7 @@
         <span class="status-dot" id="status-dot"></span>
         <span id="status-banner-text"></span>
       </div>
+      <div class="lock-notice hidden" id="lock-notice">🔒 This event is closed by the owner — expenses can't be added, edited, or deleted until it's reopened.</div>
 
       <div class="done-toggle-row">
         <div>
@@ -1274,9 +1178,7 @@
       </div>
 
       <div class="section-label">Expenses</div>
-      <div class="card" id="expenses-card">
-        <div id="expense-log"><div class="empty-state">No expenses yet — add the first one above.</div></div>
-      </div>
+      <div id="expense-log"><div class="empty-state">No expenses yet — add the first one above.</div></div>
 
       <div class="section-label">Settle up</div>
       <div class="card" id="settle-up-card">
@@ -1323,7 +1225,7 @@
     getAuth, signInAnonymously, onAuthStateChanged
   } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-auth.js";
 
-  const APP_VERSION = "2.13.1";
+  const APP_VERSION = "2.12.0";
   document.getElementById("app-footer").textContent =
     `SplitEase v${APP_VERSION} — Share Together. Settle Smarter.`;
   console.log(`%cSplitEase v${APP_VERSION}`, "color:#3d8bfd;font-weight:bold;");
@@ -1460,50 +1362,6 @@
     } catch (err) {
       console.error("Activity log failed:", err);
     }
-  }
-
-  // Short, human-readable tag for a caught error — surfaced in failure activity
-  // entries so a failure can be diagnosed from the Activity feed alone, without
-  // needing console access on whatever device it happened on.
-  function describeError(err) {
-    if (!err) return "unknown error";
-    if (err.code) return err.code; // Firestore errors: e.g. "permission-denied", "unavailable"
-    if (err.name === "NotAllowedError") return "blocked by browser";
-    if (err.message) return err.message.slice(0, 120);
-    return "unknown error";
-  }
-
-  // Suffixes used on activity `type` values to mark a failure/blocked entry —
-  // renderActivity checks for these to style them distinctly (.activity-row-error).
-  const FAILURE_TYPE_SUFFIX = "_failed";
-  const BLOCKED_TYPE_SUFFIX = "_blocked";
-  const TIMEOUT_TYPE_SUFFIX = "_timeout";
-  const DELETE_TIMEOUT_MS = 10000;
-
-  class TimeoutError extends Error {
-    constructor(message) {
-      super(message);
-      this.name = "TimeoutError";
-      this.code = "client-timeout";
-    }
-  }
-
-  // Races `promise` against a timer so a write that never settles (e.g. the
-  // Firestore SDK silently queuing a call while offline — no error, no resolve,
-  // just permanent silence) still produces visible feedback instead of the UI
-  // looking like the click did nothing. Does NOT cancel the original operation:
-  // it keeps running in the background, and if it does complete later the
-  // realtime listeners will still pick up the change and update the UI as usual.
-  function withTimeout(promise, ms, label) {
-    return new Promise((resolve, reject) => {
-      const timer = setTimeout(() => {
-        reject(new TimeoutError(`${label || "Operation"} timed out after ${ms}ms — no response from the server`));
-      }, ms);
-      promise.then(
-        (v) => { clearTimeout(timer); resolve(v); },
-        (err) => { clearTimeout(timer); reject(err); }
-      );
-    });
   }
 
   document.getElementById("activity-toggle-btn").addEventListener("click", () => {
@@ -1838,12 +1696,12 @@
           <div class="my-event-row" data-event-id="${e.id}">
             <div class="my-event-row-main" data-event-id="${e.id}">
               <div class="my-event-name">
-                <span class="legend-dot" style="background:${dotColor}; margin-right:7px;" title="${dotTitle}"></span>${escapeHtml(e.name)}
+                <span class="legend-dot" style="background:${dotColor}; margin-right:7px;" title="${dotTitle}"></span>${escapeHtml(e.name)}<span class="lock-icon" title="${e.locked ? "Closed — expenses are locked" : "Open — expenses can be changed"}" aria-label="${e.locked ? "Closed" : "Open"}">${e.locked ? "🔒" : "🔓"}</span>
               </div>
               <div class="my-event-meta">Last opened ${timeAgo({ seconds: Math.floor(e.lastVisitedAt / 1000) })}</div>
             </div>
             <button class="btn-ghost my-event-menu-btn" data-event-id="${e.id}" data-event-name="${escapeHtml(e.name)}"
-              data-action="${actionType}" data-action-label="${actionLabel}"
+              data-action="${actionType}" data-action-label="${actionLabel}" data-locked="${e.locked ? "1" : ""}"
               title="More options" aria-label="More options"
               style="padding:6px 10px; font-size:17px; line-height:1; flex-shrink:0;">
               ⋯
@@ -1866,14 +1724,14 @@
         const snap = await getDoc(doc(db, "events", e.id));
         if (!snap.exists()) return null;
         const status = await fetchEventStatus(e.id);
-        return { ...e, status };
+        return { ...e, status, locked: !!snap.data().isLocked };
       } catch {
         return e; // if the check itself fails (e.g. offline), don't lose the entry
       }
     }));
     const valid = checked.filter(Boolean);
     if (valid.length !== all.length) {
-      localStorage.setItem(MY_EVENTS_KEY, JSON.stringify(valid.map(({ status, ...rest }) => rest)));
+      localStorage.setItem(MY_EVENTS_KEY, JSON.stringify(valid.map(({ status, locked, ...rest }) => rest)));
     }
 
     if (valid.length === 0) { card.classList.add("hidden"); return; }
@@ -1914,6 +1772,11 @@
   }
 
   async function deleteEventCompletely(id) {
+    // Expenses can't be deleted while the event is closed, so reopen first (owner only).
+    const evSnap = await getDoc(doc(db, "events", id));
+    if (evSnap.exists() && evSnap.data().isLocked) {
+      await updateDoc(doc(db, "events", id), { isLocked: false });
+    }
     const [participantsSnap, expensesSnap, activitySnap, paymentsSnap] = await Promise.all([
       safeGetDocs(collection(db, "events", id, "participants")),
       safeGetDocs(collection(db, "events", id, "expenses")),
@@ -1935,6 +1798,8 @@
   async function leaveEventById(id) {
     const participantId = localStorage.getItem(`splitease:${id}:participantId`);
     if (participantId) {
+      const evSnap = await getDoc(doc(db, "events", id));
+      if (evSnap.exists() && evSnap.data().isLocked) throw new Error("event-locked");
       const expensesSnap = await getDocs(collection(db, "events", id, "expenses"));
       const expensesList = expensesSnap.docs.map((d) => ({ id: d.id, ...d.data() }));
       await cleanupParticipantExpenses(id, participantId, expensesList);
@@ -1958,7 +1823,7 @@
     eventCreatorUid = "";
     currentEventName = "";
     currentEventCurrency = "USD";
-    document.getElementById("settings-menu-audit").classList.add("hidden");
+    isEventLocked = false;
     applyEventAppearance({});
     window.history.pushState({}, "", window.location.pathname);
     document.getElementById("event-screen").classList.add("hidden");
@@ -2002,6 +1867,10 @@
     menu.dataset.eventId = btn.dataset.eventId;
     menu.dataset.eventName = btn.dataset.eventName;
     menu.dataset.action = btn.dataset.action;
+    menu.dataset.locked = btn.dataset.locked || "";
+    const lockBtn = document.getElementById("my-event-menu-lock");
+    lockBtn.classList.toggle("hidden", btn.dataset.action !== "delete");
+    lockBtn.textContent = btn.dataset.locked ? "🔓 Reopen event" : "🔒 Close event";
     const actionBtn = document.getElementById("my-event-menu-action");
     actionBtn.textContent = btn.dataset.actionLabel;
     actionBtn.style.color = btn.dataset.action === "delete" ? "var(--coral)" : "var(--text)";
@@ -2022,6 +1891,31 @@
     const name = menu.dataset.eventName;
     closeRowMenu();
     shareEventLink(id, name);
+  });
+
+  document.getElementById("my-event-menu-lock").addEventListener("click", async () => {
+    const menu = document.getElementById("my-event-menu");
+    const id = menu.dataset.eventId;
+    const name = menu.dataset.eventName;
+    const lock = !menu.dataset.locked;
+    closeRowMenu();
+    if (lock && !confirm("Close this event? Nobody (including you) will be able to add, edit, or delete expenses until you reopen it.")) return;
+    try {
+      await updateDoc(doc(db, "events", id), { isLocked: lock });
+      const who = localStorage.getItem("splitease:myName") || "The owner";
+      try {
+        await addDoc(collection(db, "events", id, "activity"), {
+          type: lock ? "event_closed" : "event_reopened",
+          text: `<b>${escapeHtml(who)}</b> ${lock ? "closed 🔒 the event — expenses are locked" : "reopened 🔓 the event — expenses can be changed"}`,
+          createdAt: serverTimestamp()
+        });
+      } catch (err) { console.warn("Activity log failed:", err); }
+      showToast(lock ? "Event closed — expenses locked" : "Event reopened");
+      renderMyEvents();
+    } catch (err) {
+      console.error(err);
+      showToast("Couldn't change the event state — only the owner can do that");
+    }
   });
 
   async function performRowAction(id, action) {
@@ -2046,7 +1940,9 @@
         return true;
       } catch (err) {
         console.error(err);
-        showToast("Couldn't leave that event — try again");
+        showToast(err && err.message === "event-locked"
+          ? "This event is closed — ask the owner to reopen it first"
+          : "Couldn't leave that event — try again");
         return false;
       }
     }
@@ -2196,6 +2092,17 @@
   let eventCreatorUid = "";
   let currentEventName = "";
   let currentEventCurrency = "USD";
+  let isEventLocked = false;
+
+  function applyLockState() {
+    document.getElementById("open-add-expense-btn").classList.toggle("hidden", isEventLocked);
+    const badge = document.getElementById("event-lock-badge");
+    badge.textContent = isEventLocked ? "🔒" : "🔓";
+    badge.title = isEventLocked ? "Closed — expenses are locked" : "Open — expenses can be changed";
+    document.getElementById("lock-notice").classList.toggle("hidden", !isEventLocked);
+    if (isEventLocked) { exitEditMode(); closeExpenseModal(); }
+    renderExpenses();
+  }
 
   onAuthStateChanged(auth, async (user) => {
     if (!user) return;
@@ -2319,9 +2226,9 @@
     document.getElementById("event-name-display").textContent = eventSnap.data().name;
     currentEventName = eventSnap.data().name;
     currentEventCurrency = eventSnap.data().currency || "USD";
+    isEventLocked = !!eventSnap.data().isLocked;
     document.getElementById("event-id-display").textContent = `${location.origin}${location.pathname}?event=${id}`;
     document.getElementById("delete-event-btn").classList.toggle("hidden", !isEventCreator);
-    document.getElementById("settings-menu-audit").classList.toggle("hidden", !isEventCreator);
     rememberEvent(id, eventSnap.data().name, isEventCreator);
     applyEventAppearance(eventSnap.data());
 
@@ -2340,7 +2247,14 @@
         return;
       }
       applyEventAppearance(snap.data());
+      const nowLocked = !!snap.data().isLocked;
+      if (nowLocked !== isEventLocked) {
+        isEventLocked = nowLocked;
+        applyLockState();
+        showToast(nowLocked ? "The owner closed this event — expenses are locked" : "The owner reopened this event");
+      }
     }));
+    applyLockState();
 
     unsubscribers.push(onSnapshot(collection(db, "events", id, "participants"), (snap) => {
       const wasKnown = currentParticipantId && currentParticipants.some((p) => p.id === currentParticipantId);
@@ -2359,10 +2273,10 @@
         const creatorParticipant = currentParticipants.find((p) => participantAuthUids(p).includes(eventCreatorUid));
         if (creatorParticipant && participantAuthUids(creatorParticipant).includes(myUid)) {
           isEventCreator = true;
+          rememberEvent(eventId, currentEventName, true);
         }
       }
       document.getElementById("delete-event-btn").classList.toggle("hidden", !isEventCreator);
-      document.getElementById("settings-menu-audit").classList.toggle("hidden", !isEventCreator);
       renderParticipants();
       renderExpenses();
       renderSettleUp();
@@ -2423,8 +2337,6 @@
     } catch (err) {
       console.error(err);
       showToast("Couldn't update that — try again");
-      logActivity(`done_status${FAILURE_TYPE_SUFFIX}`,
-        `<b>${escapeHtml(participantName(currentParticipantId))}</b> couldn't ${isDone ? "mark expenses as done" : "un-mark done"} (${describeError(err)})`);
       e.target.checked = !isDone;
     } finally {
       e.target.disabled = false;
@@ -2660,6 +2572,7 @@
   document.getElementById("participant-list").addEventListener("click", async (e) => {
     const removeBtn = e.target.closest(".chip-remove");
     if (!removeBtn) return;
+    if (isEventLocked) { showToast("This event is closed — ask the owner to reopen it before removing or leaving"); return; }
     const id = removeBtn.dataset.participantId;
     const name = participantName(id);
     const isSelf = id === currentParticipantId;
@@ -2670,19 +2583,7 @@
     const confirmMsg = isSelf
       ? "Leave this event? This deletes expenses you added and removes you from any expenses others logged."
       : `Remove ${name} from this event? This deletes expenses they added and removes them from others' expense splits.`;
-
-    let confirmed;
-    try {
-      confirmed = confirm(confirmMsg);
-    } catch (err) {
-      console.error("Remove/leave confirmation dialog was blocked:", err);
-      logActivity(`participant_removal${BLOCKED_TYPE_SUFFIX}`,
-        `<b>${escapeHtml(participantName(currentParticipantId))}</b>'s browser blocked the confirmation to ${isSelf ? "leave" : `remove ${escapeHtml(name)}`} (${describeError(err)})`);
-      showToast("Couldn't show that confirmation — try again");
-      return;
-    }
-    if (!confirmed) return;
-
+    if (!confirm(confirmMsg)) return;
     try {
       await cleanupParticipantExpenses(eventId, id, currentExpenses);
       await deleteDoc(doc(db, "events", eventId, "participants", id));
@@ -2701,8 +2602,6 @@
     } catch (err) {
       console.error(err);
       showToast("Couldn't complete that — try again");
-      logActivity(`participant_removal${FAILURE_TYPE_SUFFIX}`,
-        `<b>${escapeHtml(name)}</b>'s ${isSelf ? "attempt to leave" : "removal"} failed (${describeError(err)})`);
     }
   });
 
@@ -2780,37 +2679,24 @@
     log.innerHTML = sorted.map((e) => {
       const expCurrency = e.currency || currentEventCurrency;
       const showsConverted = expCurrency !== currentEventCurrency;
-      const involved = e.splitAmong
-        .map((id) => currentParticipants.find((p) => p.id === id))
-        .filter(Boolean);
-      const payer = currentParticipants.find((p) => p.id === e.paidBy);
       return `
       <div class="expense-row">
-        <div class="expense-header">
-          <div class="expense-who">
-            ${e.date ? `${formatDate(e.date)}: ` : ""}<span class="expense-payer" style="${payer ? `color:${statusColorFor(payer)};` : ""}">${escapeHtml(participantName(e.paidBy))}</span>
-          </div>
-          <div class="expense-row-actions">
-            ${e.createdBy === currentParticipantId ? `
-              <button class="icon-btn expense-edit-btn" data-expense-id="${e.id}" title="Edit expense" aria-label="Edit expense">✎</button>
-              <button class="icon-btn expense-delete-btn" data-expense-id="${e.id}" title="Delete expense" aria-label="Delete expense" style="color: var(--coral); border-color: var(--coral);">×</button>
-            ` : ""}
+        <div>
+          <div class="expense-desc">${escapeHtml(e.description)}</div>
+          <div class="expense-meta">
+            ${e.date ? `${formatDate(e.date)} · ` : ""}Paid by ${escapeHtml(participantName(e.paidBy))} · split ${e.splitAmong.length}
+            ${e.splitAmong.length === 1 ? "way" : "ways"} (${e.splitAmong.map((id) => escapeHtml(participantName(id))).join(", ")})
           </div>
         </div>
-        <div class="expense-body">
-          <div class="expense-desc">${escapeHtml(e.description)}</div>
-          <div>
+        <div style="display:flex; align-items:center; gap:12px;">
+          ${e.createdBy === currentParticipantId && !isEventLocked ? `
+            <button class="btn-ghost expense-edit-btn" data-expense-id="${e.id}" style="padding:6px 12px; font-size:12.5px;">Edit</button>
+            <button class="btn-ghost expense-delete-btn" data-expense-id="${e.id}" style="padding:6px 12px; font-size:12.5px; border-color: var(--coral); color: var(--coral);">Delete</button>
+          ` : ""}
+          <div style="text-align:right;">
             <div class="expense-amount amount">${formatMoney(e.amount, expCurrency)}</div>
             ${showsConverted ? `<div style="font-size:11.5px;color:var(--text-dim);">≈ ${formatMoney(e.convertedAmount ?? e.amount, currentEventCurrency)}</div>` : ""}
           </div>
-        </div>
-        <div class="expense-footer">
-          ${involved.map((p) => `
-            <span class="participant-chip">
-              <span class="avatar-dot" style="background:${statusColorFor(p)}" title="${statusLabelFor(p)}">${initials(p.name)}</span>
-              ${escapeHtml(p.name)}
-            </span>
-          `).join("")}
         </div>
       </div>
     `;
@@ -2818,6 +2704,7 @@
   }
 
   document.getElementById("add-expense-btn").addEventListener("click", async () => {
+    if (isEventLocked) { showToast("This event is closed — ask the owner to reopen it"); return; }
     const descInput = document.getElementById("expense-desc");
     const amountInput = document.getElementById("expense-amount");
     const dateInput = document.getElementById("expense-date");
@@ -2875,8 +2762,6 @@
     } catch (err) {
       console.error(err);
       showToast(editingExpenseId ? "Couldn't save changes — try again" : "Couldn't add that expense — try again");
-      logActivity(`expense_save${FAILURE_TYPE_SUFFIX}`,
-        `<b>${escapeHtml(participantName(currentParticipantId))}</b> couldn't ${editingExpenseId ? "save changes to" : "add"} “${escapeHtml(description)}” (${describeError(err)})`);
     } finally {
       btn.disabled = false;
     }
@@ -2933,6 +2818,7 @@
   }
 
   document.getElementById("open-add-expense-btn").addEventListener("click", () => {
+    if (isEventLocked) { showToast("This event is closed — ask the owner to reopen it"); return; }
     exitEditMode();
     openExpenseModal();
   });
@@ -2950,6 +2836,7 @@
   });
 
   document.getElementById("expense-log").addEventListener("click", async (e) => {
+    if (isEventLocked) { showToast("This event is closed — ask the owner to reopen it"); return; }
     const editBtn = e.target.closest(".expense-edit-btn");
     if (editBtn) { startEditExpense(editBtn.dataset.expenseId); return; }
 
@@ -2957,45 +2844,21 @@
     if (deleteBtn) {
       const id = deleteBtn.dataset.expenseId;
       const exp = currentExpenses.find((x) => x.id === id);
-      const label = exp ? exp.description : "this expense";
-
-      let confirmed;
+      if (!confirm(`Delete "${exp ? exp.description : "this expense"}"?`)) return;
       try {
-        confirmed = confirm(`Delete "${label}"?`);
-      } catch (err) {
-        // Some embedded/in-app browsers and standalone-PWA contexts block window.confirm()
-        // outright — with no dialog and no other error, this would otherwise look like the
-        // delete button silently doing nothing. Logging it here makes that case visible.
-        console.error("Delete confirmation dialog was blocked:", err);
-        logActivity(`expense_delete${BLOCKED_TYPE_SUFFIX}`,
-          `<b>${escapeHtml(participantName(currentParticipantId))}</b>'s browser blocked the delete confirmation for “${escapeHtml(label)}” (${describeError(err)})`);
-        showToast("Couldn't show the delete confirmation — try again");
-        return;
-      }
-      if (!confirmed) return;
-
-      try {
-        await withTimeout(
-          deleteDoc(doc(db, "events", eventId, "expenses", id)),
-          DELETE_TIMEOUT_MS,
-          "Delete"
-        );
+        await deleteDoc(doc(db, "events", eventId, "expenses", id));
         if (editingExpenseId === id) { exitEditMode(); closeExpenseModal(); }
         showToast("Expense deleted");
-        logActivity("expense_deleted", `<b>${escapeHtml(participantName(currentParticipantId))}</b> deleted “${escapeHtml(label)}”`);
+        logActivity("expense_deleted", `<b>${escapeHtml(participantName(currentParticipantId))}</b> deleted “${escapeHtml(exp ? exp.description : "an expense")}”`);
       } catch (err) {
         console.error(err);
-        const timedOut = err instanceof TimeoutError;
-        showToast(timedOut
-          ? "Still trying to delete — check your connection. It may finish on its own once you're back online."
-          : "Couldn't delete that expense — try again");
-        logActivity(`expense_delete${timedOut ? TIMEOUT_TYPE_SUFFIX : FAILURE_TYPE_SUFFIX}`,
-          `<b>${escapeHtml(participantName(currentParticipantId))}</b> tried to delete “${escapeHtml(label)}” but it ${timedOut ? "timed out" : "failed"} (${describeError(err)})`);
+        showToast("Couldn't delete that expense — try again");
       }
     }
   });
 
   function startEditExpense(id) {
+    if (isEventLocked) { showToast("This event is closed — ask the owner to reopen it"); return; }
     const exp = currentExpenses.find((e) => e.id === id);
     if (!exp) return;
     editingExpenseId = id;
@@ -3055,16 +2918,12 @@
       list.innerHTML = `<div class="empty-state">Nothing's happened yet.</div>`;
       return;
     }
-    list.innerHTML = items.map((item) => {
-      const isFailure = typeof item.type === "string" &&
-        (item.type.endsWith(FAILURE_TYPE_SUFFIX) || item.type.endsWith(BLOCKED_TYPE_SUFFIX) || item.type.endsWith(TIMEOUT_TYPE_SUFFIX));
-      return `
-      <div class="activity-row${isFailure ? " activity-row-error" : ""}">
+    list.innerHTML = items.map((item) => `
+      <div class="activity-row">
         <span class="activity-time">${timeAgo(item.createdAt)}</span>
-        <span class="activity-text">${isFailure ? "⚠️ " : ""}${item.text}</span>
+        <span class="activity-text">${item.text}</span>
       </div>
-    `;
-    }).join("");
+    `).join("");
   }
 
   // ---------- settle-up ----------
@@ -3109,130 +2968,6 @@
     return `${from}__${to}`;
   }
 
-  // ---------- audit report (event creator only) ----------
-  function runEventAudit() {
-    const issues = [];
-    const participantsById = new Map(currentParticipants.map((p) => [p.id, p]));
-    const paidTotals = {};
-    const owedTotals = {};
-    currentParticipants.forEach((p) => { paidTotals[p.id] = 0; owedTotals[p.id] = 0; });
-
-    let totalSpent = 0;
-
-    currentExpenses.forEach((exp) => {
-      const label = exp.description || "Untitled expense";
-      const amt = exp.convertedAmount ?? exp.amount;
-
-      if (typeof amt !== "number" || !isFinite(amt) || amt <= 0) {
-        issues.push(`“${label}” has an invalid amount and was left out of these totals`);
-        return;
-      }
-      if (!Array.isArray(exp.splitAmong) || exp.splitAmong.length === 0) {
-        issues.push(`“${label}” isn't split among anyone and was left out of these totals`);
-        return;
-      }
-      if (!participantsById.has(exp.paidBy)) {
-        issues.push(`“${label}” was paid by someone no longer in this event`);
-      }
-      const missingSplit = exp.splitAmong.filter((id) => !participantsById.has(id));
-      if (missingSplit.length > 0) {
-        issues.push(`“${label}” is split with ${missingSplit.length} participant${missingSplit.length === 1 ? "" : "s"} no longer in this event`);
-      }
-      const expCurrency = exp.currency || currentEventCurrency;
-      if (expCurrency !== currentEventCurrency && (exp.convertedAmount === undefined || exp.convertedAmount === null)) {
-        issues.push(`“${label}” is in ${expCurrency} but has no converted amount on record`);
-      }
-
-      totalSpent += amt;
-      paidTotals[exp.paidBy] = (paidTotals[exp.paidBy] || 0) + amt;
-      const share = amt / exp.splitAmong.length;
-      exp.splitAmong.forEach((id) => {
-        owedTotals[id] = (owedTotals[id] || 0) + share;
-      });
-    });
-
-    currentPayments.forEach((pmt) => {
-      if (!participantsById.has(pmt.from) || !participantsById.has(pmt.to)) {
-        issues.push("A payment record references someone no longer in this event");
-      }
-    });
-
-    const totalPaid = Object.values(paidTotals).reduce((a, b) => a + b, 0);
-    const totalOwed = Object.values(owedTotals).reduce((a, b) => a + b, 0);
-    const diff = Math.round((totalPaid - totalOwed) * 100) / 100;
-    if (Math.abs(diff) > 0.01) {
-      issues.push(`Total paid (${formatMoney(totalPaid, currentEventCurrency)}) doesn't match total owed (${formatMoney(totalOwed, currentEventCurrency)}) — off by ${formatMoney(Math.abs(diff), currentEventCurrency)}`);
-    }
-
-    const settlements = calculateSettlements(currentParticipants, currentExpenses);
-
-    return { issues, totalSpent, paidTotals, owedTotals, settlements };
-  }
-
-  function renderAuditModal() {
-    const { issues, totalSpent, paidTotals, owedTotals, settlements } = runEventAudit();
-
-    document.getElementById("audit-meta").textContent =
-      `${currentEventName} — run by ${participantName(currentParticipantId)} on ${new Date().toLocaleString()}`;
-
-    const statusHtml = issues.length === 0
-      ? `<div class="audit-status audit-status-good">✓ No issues found — spending and payouts balance</div>`
-      : `<div class="audit-status audit-status-bad">⚠️ ${issues.length} issue${issues.length === 1 ? "" : "s"} found</div>
-         <ul class="audit-issues">${issues.map((i) => `<li>${escapeHtml(i)}</li>`).join("")}</ul>`;
-
-    const summaryHtml = `
-      <div class="audit-summary-line">${currentExpenses.length} expense${currentExpenses.length === 1 ? "" : "s"} totaling ${formatMoney(totalSpent, currentEventCurrency)} across ${currentParticipants.length} participant${currentParticipants.length === 1 ? "" : "s"}</div>
-    `;
-
-    const tableRows = currentParticipants.map((p) => {
-      const paid = paidTotals[p.id] || 0;
-      const owed = owedTotals[p.id] || 0;
-      const net = Math.round((paid - owed) * 100) / 100;
-      const netColor = net > 0.005 ? "var(--green)" : net < -0.005 ? "var(--coral)" : "var(--text-dim)";
-      return `
-        <tr>
-          <td>${escapeHtml(p.name)}</td>
-          <td class="audit-amount">${formatMoney(paid, currentEventCurrency)}</td>
-          <td class="audit-amount">${formatMoney(owed, currentEventCurrency)}</td>
-          <td class="audit-amount" style="color:${netColor}; font-weight:600;">${net > 0 ? "+" : ""}${formatMoney(net, currentEventCurrency)}</td>
-        </tr>
-      `;
-    }).join("");
-
-    const tableHtml = `
-      <div class="audit-section-title">By participant</div>
-      <table class="audit-table">
-        <thead><tr><th>Name</th><th class="audit-amount">Paid</th><th class="audit-amount">Share</th><th class="audit-amount">Net</th></tr></thead>
-        <tbody>${tableRows}</tbody>
-      </table>
-    `;
-
-    const settlementsHtml = `
-      <div class="audit-section-title">Who owes what</div>
-      ${settlements.length === 0
-        ? `<div class="audit-summary-line">Everyone's settled up.</div>`
-        : `<ul class="audit-settlements">${settlements.map((s) => {
-            const record = currentPayments.find((p) => p.id === paidPairId(s.from, s.to));
-            const isPaid = !!(record && record.paid);
-            return `<li>${escapeHtml(participantName(s.from))} → ${escapeHtml(participantName(s.to))}: ${formatMoney(s.amount, currentEventCurrency)}${isPaid ? `<span class="audit-paid-tag">PAID</span>` : ""}</li>`;
-          }).join("")}</ul>`}
-    `;
-
-    document.getElementById("audit-content").innerHTML = statusHtml + summaryHtml + tableHtml + settlementsHtml;
-    document.getElementById("audit-overlay").classList.remove("hidden");
-  }
-
-  document.getElementById("settings-menu-audit").addEventListener("click", () => {
-    document.getElementById("settings-menu").classList.add("hidden");
-    renderAuditModal();
-  });
-  document.getElementById("audit-close-btn").addEventListener("click", () => {
-    document.getElementById("audit-overlay").classList.add("hidden");
-  });
-  document.getElementById("audit-overlay").addEventListener("click", (e) => {
-    if (e.target.id === "audit-overlay") e.target.classList.add("hidden");
-  });
-
   function renderSettleUp() {
     const container = document.getElementById("settle-up");
     if (currentExpenses.length === 0) {
@@ -3272,6 +3007,7 @@
                 <span>${escapeHtml(participantName(s.from))}<span class="receipt-arrow">→</span>${escapeHtml(participantName(s.to))}</span>
                 <span style="display:flex; align-items:center; gap:10px;">
                   ${isPaid ? `<span class="paid-badge">Paid</span>` : ""}
+                  <span class="receipt-amount amount">${formatMoney(s.amount, currentEventCurrency)}</span>
                   ${canToggle ? `
                     <span style="display:flex; align-items:center; gap:6px;">
                       <span style="font-size:11px; color:var(--text-dim);">Paid</span>
@@ -3282,9 +3018,6 @@
                     </span>
                   ` : ""}
                 </span>
-              </div>
-              <div class="receipt-row receipt-row-amount">
-                <span class="receipt-amount amount">${formatMoney(s.amount, currentEventCurrency)}</span>
               </div>
               ${showPayLinks ? `
                 <div class="pay-links-row">
@@ -3329,8 +3062,6 @@
     } catch (err) {
       console.error(err);
       showToast("Couldn't update that — try again");
-      logActivity(`payment_update${FAILURE_TYPE_SUFFIX}`,
-        `Couldn't mark <b>${escapeHtml(participantName(from))}</b>'s payment to <b>${escapeHtml(participantName(to))}</b> as ${paid ? "paid" : "unpaid"} (${describeError(err)})`);
       input.checked = !paid;
     } finally {
       input.disabled = false;
@@ -3383,8 +3114,6 @@
     } catch (err) {
       console.error(err);
       showToast("Couldn't mark that as paid — try again");
-      logActivity(`payment_update${FAILURE_TYPE_SUFFIX}`,
-        `Couldn't mark <b>${escapeHtml(participantName(from))}</b>'s payment to <b>${escapeHtml(participantName(to))}</b> as paid (${describeError(err)})`);
     } finally {
       btn.disabled = false;
       hidePayConfirm();

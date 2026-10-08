@@ -1,22 +1,10 @@
 # SplitEase changelog
 
-## 2.13.1
-
-- Widened the main content column on larger screens (900px on small laptops, 1100px at 1280px+) instead of staying capped at 760px everywhere. Cards, tables and rows all fill their container's width already, so this gives expenses, settle-up and the rest more breathing room on desktop without changing anything on phone/tablet
-
-## 2.13.0
-
-- Added an "Audit report…" item to the ⚙ settings menu, visible only to the event's creator. Runs a quick data-integrity check and shows a summary: total spent, a per-participant breakdown (paid / share / net), and who owes whom (reusing the same settle-up math, with already-paid settlements marked)
-- The audit specifically checks for the kind of debris a failed write can leave behind — an expense paid by or split with someone no longer in the event, a payment record pointing at a removed participant, a foreign-currency expense missing its converted amount, or an expense with an invalid amount or empty split — as well as a global check that total paid matches total owed across the event. Each finding is listed individually; a clean event just shows "No issues found"
-
 ## 2.12.0
-
-- Redesigned the expense list: each expense is now its own card with a header (date and payer, colored to match their status), a body (description and amount), and a footer (who it's split among, shown the same colored-initials-and-name style as "Who's in") — instead of one flat row
-- Redesigned Settle Up entries the same way: names and the paid toggle on their own line, the amount on its own line below, each entry in its own bordered card
-- Fixed: the Expenses section had no card container around it, unlike "Who's in" and "Settle Up" — it was just floating rows with no visible boundary. Now wrapped in a card to match
-- Strengthened the borders around both expense cards and settle-up entries so each one reads clearly as its own group
-- Added failure logging to the Activity feed for delete/add/edit expense, leaving or removing a participant, marking yourself done, and marking a settlement paid — each of these now logs a distinct, visually flagged entry (with the underlying error code) if the action fails server-side, instead of relying on a toast alone
-- Delete-expense specifically now also catches two harder-to-diagnose failure modes that previously looked like the button just doing nothing: the browser blocking the confirm dialog outright (some in-app/PWA contexts do this silently, with no visible dialog and no error), and the delete request hanging indefinitely with no server response (e.g. a bad connection, where the write is queued but never resolves or rejects). Both now show a clear toast and an Activity entry instead of silence
+- **Close / reopen an event.** The owner can choose "Close event" / "Reopen event" from the "…" menu on the home list. While closed, nobody (including the owner) can add, edit, or delete expenses, and participants can't leave or be removed (those actions edit expenses). Marking payments paid and the Done switch still work.
+- 🔒 / 🔓 icons show the state on the home list and next to the event name in the detail view; a notice appears in the detail view while closed. State changes appear in Activity and update live for everyone.
+- Deleting a closed event automatically reopens it first.
+- Requires Firestore rules v13 (enforces the lock on the server).
 
 ## 2.11.0
 
