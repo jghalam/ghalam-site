@@ -1056,7 +1056,7 @@
         <div style="display:flex; align-items:center; gap:10px;">
           <img id="event-logo-img" class="hidden" alt="" style="width:36px;height:36px;border-radius:8px;object-fit:cover;border:1px solid var(--border);flex-shrink:0;">
           <h1 class="event-name" id="event-name-display">—</h1>
-          <span id="event-lock-badge" class="lock-icon" style="font-size:20px;">🔓</span>
+          <span id="event-lock-badge" class="lock-icon hidden" style="font-size:20px;">🔒</span>
         </div>
     </div>
     <div class="event-code">
@@ -1105,7 +1105,7 @@
         <span class="status-dot" id="status-dot"></span>
         <span id="status-banner-text"></span>
       </div>
-      <div class="lock-notice hidden" id="lock-notice">🔒 This event is closed by the owner — expenses can't be added, edited, or deleted until it's reopened.</div>
+      <div class="lock-notice hidden" id="lock-notice">🔒 This event is closed by the owner — expenses and payments can't be changed until it's reopened.</div>
 
       <div class="done-toggle-row">
         <div>
@@ -1696,7 +1696,7 @@
           <div class="my-event-row" data-event-id="${e.id}">
             <div class="my-event-row-main" data-event-id="${e.id}">
               <div class="my-event-name">
-                <span class="legend-dot" style="background:${dotColor}; margin-right:7px;" title="${dotTitle}"></span>${escapeHtml(e.name)}<span class="lock-icon" title="${e.locked ? "Closed — expenses are locked" : "Open — expenses can be changed"}" aria-label="${e.locked ? "Closed" : "Open"}">${e.locked ? "🔒" : "🔓"}</span>
+                <span class="legend-dot" style="background:${dotColor}; margin-right:7px;" title="${dotTitle}"></span>${escapeHtml(e.name)}${e.locked ? `<span class="lock-icon" title="Closed — expenses are locked" aria-label="Closed">🔒</span>` : ""}
               </div>
               <div class="my-event-meta">Last opened ${timeAgo({ seconds: Math.floor(e.lastVisitedAt / 1000) })}</div>
             </div>
@@ -2097,11 +2097,13 @@
   function applyLockState() {
     document.getElementById("open-add-expense-btn").classList.toggle("hidden", isEventLocked);
     const badge = document.getElementById("event-lock-badge");
-    badge.textContent = isEventLocked ? "🔒" : "🔓";
-    badge.title = isEventLocked ? "Closed — expenses are locked" : "Open — expenses can be changed";
+    badge.textContent = "🔒";
+    badge.title = "Closed — expenses are locked";
+    badge.classList.toggle("hidden", !isEventLocked);
     document.getElementById("lock-notice").classList.toggle("hidden", !isEventLocked);
     if (isEventLocked) { exitEditMode(); closeExpenseModal(); }
     renderExpenses();
+    renderSettleUp();
   }
 
   onAuthStateChanged(auth, async (user) => {
@@ -3012,7 +3014,7 @@
                     <span style="display:flex; align-items:center; gap:6px;">
                       <span style="font-size:11px; color:var(--text-dim);">Paid</span>
                       <label class="paid-toggle" title="${isPaid ? "Mark as not paid" : "Mark as paid"}">
-                        <input type="checkbox" class="paid-toggle-input" data-from="${s.from}" data-to="${s.to}" ${isPaid ? "checked" : ""}>
+                        <input type="checkbox" class="paid-toggle-input" data-from="${s.from}" data-to="${s.to}" ${isPaid ? "checked" : ""} ${isEventLocked ? "disabled" : ""}>
                         <span class="paid-toggle-slider"></span>
                       </label>
                     </span>
@@ -3047,6 +3049,11 @@
   document.getElementById("settle-up").addEventListener("change", async (e) => {
     const input = e.target.closest(".paid-toggle-input");
     if (!input) return;
+    if (isEventLocked) {
+      input.checked = !input.checked;
+      showToast("This event is closed — ask the owner to reopen it");
+      return;
+    }
     const from = input.dataset.from;
     const to = input.dataset.to;
     const paid = input.checked;

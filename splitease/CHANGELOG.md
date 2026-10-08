@@ -1,8 +1,8 @@
 # SplitEase changelog
 
 ## 2.12.0
-- **Close / reopen an event.** The owner can choose "Close event" / "Reopen event" from the "…" menu on the home list. While closed, nobody (including the owner) can add, edit, or delete expenses, and participants can't leave or be removed (those actions edit expenses). Marking payments paid and the Done switch still work.
-- 🔒 / 🔓 icons show the state on the home list and next to the event name in the detail view; a notice appears in the detail view while closed. State changes appear in Activity and update live for everyone.
+- **Close / reopen an event.** The owner can choose "Close event" / "Reopen event" from the "…" menu on the home list. While closed, nobody (including the owner) can add, edit, or delete expenses, and participants can't leave or be removed (those actions edit expenses). The settle-up "Paid" switches are also locked; the Done switch still works.
+- A 🔒 icon appears on the home list and next to the event name in the detail view only while the event is closed (nothing is shown when open); a notice appears in the detail view while closed. State changes appear in Activity and update live for everyone.
 - Deleting a closed event automatically reopens it first.
 - Requires Firestore rules v13 (enforces the lock on the server).
 
