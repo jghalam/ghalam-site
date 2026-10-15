@@ -1,8 +1,8 @@
 {
   "id": "cpi_core_yoy",
   "source": "Derived",
-  "updated": "2026-10-14T10:56:05.886855+00:00",
-  "count": 823,
+  "updated": "2026-10-15T10:37:59.490956+00:00",
+  "count": 824,
   "records": [
     {
       "date": "1958-01-01",
@@ -3295,6 +3295,10 @@
     {
       "date": "2026-08-01",
       "value": 2.763
+    },
+    {
+      "date": "2026-09-01",
+      "value": 2.789
     }
   ],
   "label": "Core CPI, year-over-year % change",
