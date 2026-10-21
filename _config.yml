@@ -1,3 +1,11 @@
 # Publish dotfolders that Jekyll excludes by default (needed for Universal Links)
 include:
   - ".well-known"
+
+# Keep build scripts, data tooling and macOS junk out of the published site
+exclude:
+  - "*.py"
+  - __MACOSX
+  - .DS_Store
+  - "**/.DS_Store"
+  - "**/tools"
