@@ -3,348 +3,164 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" type="image/png" href="images/ghalam_icon.png">
-<link rel="apple-touch-icon" href="images/ghalam_icon.png">
-<title>Ghalam.net</title>
+<title>Impasto — Pizza Dough Calculator</title>
+<meta name="description" content="Calculate exact ingredient weights for Neapolitan, New York, Canotto, and Tonda Romana pizza dough.">
+
+<link rel="icon" href="favicon.ico" sizes="any">
+<link rel="icon" type="image/png" sizes="16x16" href="favicon-16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<meta name="theme-color" content="#EDE6D6">
+<meta property="og:title" content="Impasto — Pizza Dough Calculator">
+<meta property="og:description" content="Calculate exact ingredient weights for Neapolitan, New York, Canotto, and Tonda Romana pizza dough.">
+<meta property="og:image" content="icon-512.png">
+
+<!-- APP_VERSION: bump this string (and the two query params below + the footer tag) on every deploy so browsers/CDN fetch fresh CSS/JS instead of a stale cached copy -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
-<style>
-  :root {
-    --bg:        #0d0f14;
-    --surface:   #161820;
-    --border:    #2a2d3a;
-    --text:      #e8eaf0;
-    --muted:     #8b8fa8;
-    --gold:      #c8a96e;
-    --blue:      #7eb8d4;
-    --green:     #7ec4a0;
-    --orange:    #e09452;
-    --radius:    16px;
-  }
-
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-  body {
-    background: var(--bg);
-    color: var(--text);
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 300;
-    line-height: 1.7;
-    min-height: 100vh;
-  }
-
-  /* ── HEADER ── */
-  header {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    padding: 4rem 2rem 3rem;
-    position: relative;
-    overflow: hidden;
-  }
-  header::before {
-    content: '';
-    position: absolute;
-    width: 700px; height: 400px;
-    background: radial-gradient(ellipse, rgba(200,169,110,0.06) 0%, transparent 70%);
-    top: 0; left: 50%; transform: translateX(-50%);
-    pointer-events: none;
-  }
-  header img.site-logo {
-    width: 80px; height: 80px;
-    border-radius: 18px;
-    margin-bottom: 1.5rem;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.4);
-    object-fit: cover;
-  }
-  header h1 {
-    font-family: 'DM Serif Display', serif;
-    font-size: clamp(2rem, 5vw, 3rem);
-    font-weight: 400;
-    color: var(--text);
-    margin-bottom: 0.6rem;
-  }
-  header p.subtitle {
-    font-size: 1rem;
-    color: var(--muted);
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    font-size: 0.82rem;
-  }
-
-  /* ── DIVIDER ── */
-  .divider {
-    max-width: 760px;
-    margin: 0 auto;
-    border: none;
-    border-top: 1px solid var(--border);
-  }
-
-  /* ── APPS GRID ── */
-  .apps {
-    max-width: 820px;
-    margin: 0 auto;
-    padding: 3rem 2rem;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: 1.25rem;
-  }
-
-  .app-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: 1.75rem;
-    text-decoration: none;
-    color: inherit;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-    transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s;
-    position: relative;
-    overflow: hidden;
-  }
-  .app-card::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    opacity: 0;
-    transition: opacity 0.2s;
-  }
-  .app-card:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 12px 40px rgba(0,0,0,0.3);
-  }
-  .app-card.gold  { --card-accent: var(--gold); }
-  .app-card.blue  { --card-accent: var(--blue); }
-  .app-card.green { --card-accent: var(--green); }
-  .app-card.orange { --card-accent: var(--orange); }
-  .app-card:hover { border-color: var(--card-accent); }
-
-  .app-card-top {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-  }
-  .app-card-top img {
-    width: 56px; height: 56px;
-    border-radius: 13px;
-    object-fit: cover;
-    box-shadow: 0 2px 12px rgba(0,0,0,0.3);
-    flex-shrink: 0;
-  }
-  .app-card-top .app-name {
-    font-family: 'DM Serif Display', serif;
-    font-size: 1.25rem;
-    font-weight: 400;
-    color: var(--text);
-    line-height: 1.2;
-  }
-  .app-card-top .app-platform {
-    font-size: 0.75rem;
-    color: var(--card-accent);
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    margin-top: 0.2rem;
-  }
-  .app-card p {
-    font-size: 0.88rem;
-    color: var(--muted);
-    line-height: 1.6;
-    flex: 1;
-  }
-  .app-card .card-footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    font-size: 0.8rem;
-    color: var(--card-accent);
-    font-weight: 500;
-    letter-spacing: 0.03em;
-  }
-  .app-card .card-footer .arrow {
-    transition: transform 0.2s;
-  }
-  .app-card:hover .arrow { transform: translateX(4px); }
-
-  /* ── FOOTER ── */
-  footer {
-    text-align: center;
-    padding: 2rem;
-    border-top: 1px solid var(--border);
-    color: var(--muted);
-    font-size: 0.82rem;
-  }
-
-  @media (max-width: 600px) {
-    header { padding: 3rem 1.25rem 2.5rem; }
-    .apps  { padding: 2rem 1.25rem; grid-template-columns: 1fr; }
-  }
-</style>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500;1,9..144,600&family=Big+Shoulders+Display:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css?v=1.0.0">
 </head>
-<body>
+<body data-style="neapolitan">
 
-<header>
-  <img src="images/ghalam_net.png" alt="Ghalam.net" class="site-logo">
-  <h1>Ghalam.net</h1>
-  <p class="subtitle">iOS Apps by Joe Ghalam</p>
-</header>
+  <div class="stage">
 
-<hr class="divider">
-
-<div class="apps">
-
-  <!-- CrowdNotes -->
-  <a href="crowdnotes/index.html" class="app-card green">
-    <div class="app-card-top">
-      <img src="crowdnotes/appicon.png" alt="CrowdNotes icon">
-      <div>
-        <div class="app-name">CrowdNotes</div>
-        <div class="app-platform">iOS · iCloud</div>
+    <header class="site-head">
+      <p class="eyebrow">NEAPOLITAN &nbsp;/&nbsp; NEW YORK &nbsp;/&nbsp; CANOTTO &nbsp;/&nbsp; TONDA ROMANA</p>
+      <div class="brand">
+        <img class="brand-swatch" src="impasto-swatch.png" alt="Close-up of thick, textured oil paint applied with a palette knife" width="240" height="240">
+        <h1 class="wordmark">Impasto</h1>
       </div>
-    </div>
-    <p>Collaborative event notes and attendee tracking for recruiting and networking events. Real-time shared notes powered by iCloud.</p>
-    <div class="card-footer">
-      <span>View app</span>
-      <span class="arrow">→</span>
-    </div>
-  </a>
+      <p class="tagline">Dial in your dough. Get a printed ticket of exact grams.</p>
+      <p class="tagline-sub">Impasto is also the painting term for paint laid on thick enough to hold the strokes of the knife — much like dough worked by hand.</p>
+    </header>
 
-  <!-- GhalamPhotos -->
-  <a href="ghalamphotos/index.html" class="app-card gold">
-    <div class="app-card-top">
-      <img src="ghalamphotos/images/ghalamphotos.png" alt="GhalamPhotos icon">
-      <div>
-        <div class="app-name">GhalamPhotos</div>
-        <div class="app-platform">iOS · Apple Photos</div>
-      </div>
-    </div>
-    <p>Turn your iPhone or iPad into an elegant digital photo frame. Displays your Apple Photos albums as a beautiful, customizable slideshow.</p>
-    <div class="card-footer">
-      <span>View app</span>
-      <span class="arrow">→</span>
-    </div>
-  </a>
+    <main class="layout">
 
-  <!-- LAX Keeper -->
-  <a href="laxkeeper/index.html" class="app-card green">
-    <div class="app-card-top">
-      <img src="laxkeeper/images/appicon.png" alt="LAX Keeper icon">
-      <div>
-        <div class="app-name">LAX Keeper</div>
-        <div class="app-platform">iOS · Lacrosse</div>
-      </div>
-    </div>
-    <p>All-in-one scorekeeping for lacrosse referees. Manage time, score, and penalties without ever leaving the main screen.</p>
-    <div class="card-footer">
-      <span>View app</span>
-      <span class="arrow">→</span>
-    </div>
-  </a>
+      <!-- CONTROLS -->
+      <section class="controls" aria-label="Dough parameters">
 
-  <!-- Spinning World -->
-  <a href="spinning_world/index.html" class="app-card blue">
-    <div class="app-card-top">
-      <img src="spinning_world/images/appicon.png" alt="Spinning World icon">
-      <div>
-        <div class="app-name">Spinning World</div>
-        <div class="app-platform">iOS · Geography</div>
-      </div>
-    </div>
-    <p>Spin the globe and guess the country! A geography game inspired by the classic spinning globe, powered by Apple Maps.</p>
-    <div class="card-footer">
-      <span>View app</span>
-      <span class="arrow">→</span>
-    </div>
-  </a>
+        <div class="style-toggle" role="tablist" aria-label="Pizza style">
+          <button type="button" class="style-btn is-active" data-style-btn="neapolitan" role="tab" aria-selected="true">
+            <span class="style-btn-label">Neapolitan</span>
+            <span class="style-btn-sub">soft, puffed cornicione</span>
+          </button>
+          <button type="button" class="style-btn" data-style-btn="newyork" role="tab" aria-selected="false">
+            <span class="style-btn-label">New York</span>
+            <span class="style-btn-sub">foldable, by the slice</span>
+          </button>
+          <button type="button" class="style-btn" data-style-btn="canotto" role="tab" aria-selected="false">
+            <span class="style-btn-label">Canotto</span>
+            <span class="style-btn-sub">puffed, airy rim</span>
+          </button>
+          <button type="button" class="style-btn" data-style-btn="tonda" role="tab" aria-selected="false">
+            <span class="style-btn-label">Tonda Romana</span>
+            <span class="style-btn-sub">thin, cracker-crisp</span>
+          </button>
+        </div>
 
-  <!-- GhalamRadio -->
-  <a href="ghalamradio/index.html" class="app-card blue">
-    <div class="app-card-top">
-      <img src="ghalamradio/images/ghalamradio.png" alt="GhalamRadio icon">
-      <div>
-        <div class="app-name">GhalamRadio</div>
-        <div class="app-platform">iOS · Online Radio</div>
-      </div>
-    </div>
-    <p>Search, sample, and save online radio stations from around the world. Find stations by name, call letters, frequency, or proximity.</p>
-    <div class="card-footer">
-      <span>View app</span>
-      <span class="arrow">→</span>
-    </div>
-  </a>
+        <p class="style-blurb" id="styleBlurb" aria-live="polite"></p>
 
-  <!-- InvoiceMoi -->
-  <a href="invoicemoi/index.html" class="app-card blue">
-    <div class="app-card-top">
-      <img src="invoicemoi/web/icon-512.png" alt="InvoiceMoi icon">
-      <div>
-        <div class="app-name">InvoiceMoi</div>
-        <div class="app-platform">Web · iOS · Invoicing</div>
-      </div>
-    </div>
-    <p>Bilingual invoice and estimate builder. Custom sections, line items, and taxes, exported as a branded PDF — free in your browser, with an iCloud-synced iOS app in development.</p>
-    <div class="card-footer">
-      <span>View app</span>
-      <span class="arrow">→</span>
-    </div>
-  </a>
+        <div class="field-group">
+          <div class="field">
+            <div class="field-head">
+              <label for="ballWeight">Dough ball size</label>
+              <output for="ballWeight" id="ballWeightVal">240 g</output>
+            </div>
+            <input type="range" id="ballWeight" min="150" max="500" step="5" value="240">
+          </div>
 
-  <!-- GhalamWeather -->
-  <a href="ghalamweather/index.html" class="app-card orange">
-    <div class="app-card-top">
-      <img src="ghalamweather/images/icon-512.png" alt="GhalamWeather icon">
-      <div>
-        <div class="app-name">GhalamWeather</div>
-        <div class="app-platform">iOS · Weather</div>
-      </div>
-    </div>
-    <p>Dual-unit forecasts, live radar, air quality, moon phase, and a real barometric pressure trend from your device's own sensor — with widgets for Home and Lock Screen.</p>
-    <div class="card-footer">
-      <span>View app</span>
-      <span class="arrow">→</span>
-    </div>
-  </a>
+          <div class="field">
+            <div class="field-head">
+              <label for="ballCount">Number of balls</label>
+              <output for="ballCount" id="ballCountVal">4</output>
+            </div>
+            <div class="stepper">
+              <button type="button" class="step-btn" data-step="-1" aria-label="Decrease number of balls">−</button>
+              <input type="number" id="ballCount" min="1" max="24" step="1" value="4" inputmode="numeric">
+              <button type="button" class="step-btn" data-step="1" aria-label="Increase number of balls">+</button>
+            </div>
+          </div>
 
-  <!-- SplitEase -->
-  <a href="splitease/index.html" class="app-card blue">
-    <div class="app-card-top">
-      <img src="splitease/icons/icon-512.png" alt="SplitEase icon">
-      <div>
-        <div class="app-name">SplitEase</div>
-        <div class="app-platform">Web · Group Expenses</div>
-      </div>
-    </div>
-    <p>Create an event, share the link, and split shared expenses without accounts or spreadsheets. Settle-up amounts update live and are calculated to minimize the number of payments needed.</p>
-    <div class="card-footer">
-      <span>View app</span>
-      <span class="arrow">→</span>
-    </div>
-  </a>
+          <div class="field">
+            <div class="field-head">
+              <label for="hydration">Hydration</label>
+              <output for="hydration" id="hydrationVal">65%</output>
+            </div>
+            <input type="range" id="hydration" min="50" max="90" step="1" value="65">
+          </div>
 
-  <!-- Impasto (Pizza Dough Calculator) -->
-  <a href="pizza-tool/" class="app-card orange">
-    <div class="app-card-top">
-      <img src="pizza-tool/icon-192.png" alt="Impasto icon">
-      <div>
-        <div class="app-name">Impasto</div>
-        <div class="app-platform">Web · Pizza Dough</div>
-      </div>
-    </div>
-    <p>Pizza dough calculator for Neapolitan, New York, Canotto, and Tonda Romana styles. Get exact ingredient weights from your dough ball size and hydration — free in your browser.</p>
-    <div class="card-footer">
-      <span>Open tool</span>
-      <span class="arrow">→</span>
-    </div>
-  </a>
+          <div class="field">
+            <div class="field-head">
+              <label>Yeast</label>
+            </div>
+            <div class="yeast-toggle" role="radiogroup" aria-label="Yeast type">
+              <button type="button" class="yeast-btn is-active" data-yeast="instant" role="radio" aria-checked="true">Instant dry</button>
+              <button type="button" class="yeast-btn" data-yeast="fresh" role="radio" aria-checked="false">Fresh</button>
+            </div>
+          </div>
 
-</div>
+          <div class="field">
+            <div class="field-head">
+              <label for="restHours">Resting time</label>
+              <output for="restHours" id="restHoursVal">24h+</output>
+            </div>
+            <input type="range" id="restHours" min="3" max="24" step="1" value="24">
+            <p class="field-hint" id="restHoursHint">0.06% yeast</p>
+          </div>
+        </div>
 
-<footer>
-  <p>© 2026 Ghalam.net</p>
-</footer>
+        <button type="button" class="reset-btn" id="resetBtn">Reset to <span id="resetStyleName">Neapolitan</span> defaults</button>
 
+      </section>
+
+      <!-- TICKET -->
+      <section class="ticket-wrap" aria-label="Calculated dough recipe">
+        <div class="ticket" id="ticket">
+
+          <div class="ticket-edge ticket-edge--top" id="edgeTop" aria-hidden="true"></div>
+
+          <div class="ticket-body">
+            <p class="ticket-shop">IMPASTO DOUGH CO.</p>
+            <p class="ticket-order" id="ticketStyleName">Neapolitan Dough</p>
+
+            <div class="ticket-rule"></div>
+
+            <div class="ticket-line ticket-line--summary">
+              <span id="ticketBallSummary">4 balls × 240 g</span>
+              <span id="ticketTotal">960 g</span>
+            </div>
+
+            <div class="ticket-rule ticket-rule--dashed"></div>
+
+            <ul class="ticket-items" id="ticketItems">
+              <!-- populated by JS -->
+            </ul>
+
+            <div class="ticket-rule ticket-rule--dashed"></div>
+
+            <div class="ticket-line ticket-line--total">
+              <span>TOTAL</span>
+              <span id="ticketGrandTotal">960 g</span>
+            </div>
+
+            <p class="ticket-foot" id="ticketFoot">baked fresh — order #001</p>
+          </div>
+
+          <div class="ticket-edge ticket-edge--bottom" id="edgeBottom" aria-hidden="true"></div>
+        </div>
+      </section>
+
+    </main>
+
+    <footer class="site-foot">
+      <p>Baker's-percentage math: every ingredient is a share of the flour weight, scaled to hit your total dough weight exactly.</p>
+      <p class="version-tag">v1.0.0</p>
+    </footer>
+
+  </div>
+
+<script src="script.js?v=1.0.0"></script>
 </body>
 </html>
