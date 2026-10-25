@@ -1,8 +1,8 @@
 {
   "id": "debt_to_penny",
   "source": "Treasury Fiscal Data",
-  "updated": "2026-10-23T10:47:04.107674+00:00",
-  "count": 8418,
+  "updated": "2026-10-25T10:28:15.829421+00:00",
+  "count": 8419,
   "records": [
     {
       "date": "1993-04-01",
@@ -50511,6 +50511,12 @@
       "total_debt": 40413639012305.97,
       "debt_held_by_public": 32566346587338.02,
       "intragovernmental_holdings": 7847292424967.95
+    },
+    {
+      "date": "2026-10-22",
+      "total_debt": 40444342709389.15,
+      "debt_held_by_public": 32597664070880.23,
+      "intragovernmental_holdings": 7846678638508.92
     }
   ]
 }
