@@ -1,8 +1,8 @@
 {
   "id": "debt_to_gdp",
   "source": "Derived",
-  "updated": "2026-10-29T12:02:21.496895+00:00",
-  "count": 133,
+  "updated": "2026-10-30T11:55:42.232431+00:00",
+  "count": 134,
   "records": [
     {
       "date": "1993-04-01",
@@ -535,6 +535,10 @@
     {
       "date": "2026-04-01",
       "value": 119.82
+    },
+    {
+      "date": "2026-07-01",
+      "value": 119.33
     }
   ],
   "label": "Total public debt as % of nominal GDP",

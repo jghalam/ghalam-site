@@ -1,7 +1,7 @@
 {
   "id": "legacy_futures_only_gold",
   "source": "CFTC",
-  "updated": "2026-10-29T12:02:20.331242+00:00",
+  "updated": "2026-10-30T11:55:41.006795+00:00",
   "count": 2233,
   "records": [
     {
@@ -286,19 +286,19 @@
     },
     {
       "date": "1987-06-30T00:00:00.000",
-      "open_interest": 5100.0,
-      "noncommercial_long": 0.0,
-      "noncommercial_short": 19.0,
-      "commercial_long": 3912.0,
-      "commercial_short": 3598.0
-    },
-    {
-      "date": "1987-06-30T00:00:00.000",
       "open_interest": 146960.0,
       "noncommercial_long": 15476.0,
       "noncommercial_short": 11621.0,
       "commercial_long": 63817.0,
       "commercial_short": 78120.0
+    },
+    {
+      "date": "1987-06-30T00:00:00.000",
+      "open_interest": 5100.0,
+      "noncommercial_long": 0.0,
+      "noncommercial_short": 19.0,
+      "commercial_long": 3912.0,
+      "commercial_short": 3598.0
     },
     {
       "date": "1987-07-15T00:00:00.000",
@@ -678,14 +678,6 @@
     },
     {
       "date": "1989-01-31T00:00:00.000",
-      "open_interest": 170221.0,
-      "noncommercial_long": 5009.0,
-      "noncommercial_short": 37911.0,
-      "commercial_long": 125090.0,
-      "commercial_short": 67239.0
-    },
-    {
-      "date": "1989-01-31T00:00:00.000",
       "open_interest": 2999.0,
       "noncommercial_long": 1054.0,
       "noncommercial_short": 2000.0,
@@ -693,12 +685,12 @@
       "commercial_short": 551.0
     },
     {
-      "date": "1989-02-15T00:00:00.000",
-      "open_interest": 1869.0,
-      "noncommercial_long": 1057.0,
-      "noncommercial_short": 0.0,
-      "commercial_long": 620.0,
-      "commercial_short": 1625.0
+      "date": "1989-01-31T00:00:00.000",
+      "open_interest": 170221.0,
+      "noncommercial_long": 5009.0,
+      "noncommercial_short": 37911.0,
+      "commercial_long": 125090.0,
+      "commercial_short": 67239.0
     },
     {
       "date": "1989-02-15T00:00:00.000",
@@ -709,12 +701,12 @@
       "commercial_short": 75634.0
     },
     {
-      "date": "1989-02-28T00:00:00.000",
-      "open_interest": 165774.0,
-      "noncommercial_long": 4394.0,
-      "noncommercial_short": 32432.0,
-      "commercial_long": 116638.0,
-      "commercial_short": 72416.0
+      "date": "1989-02-15T00:00:00.000",
+      "open_interest": 1869.0,
+      "noncommercial_long": 1057.0,
+      "noncommercial_short": 0.0,
+      "commercial_long": 620.0,
+      "commercial_short": 1625.0
     },
     {
       "date": "1989-02-28T00:00:00.000",
@@ -723,6 +715,14 @@
       "noncommercial_short": 0.0,
       "commercial_long": 620.0,
       "commercial_short": 1654.0
+    },
+    {
+      "date": "1989-02-28T00:00:00.000",
+      "open_interest": 165774.0,
+      "noncommercial_long": 4394.0,
+      "noncommercial_short": 32432.0,
+      "commercial_long": 116638.0,
+      "commercial_short": 72416.0
     },
     {
       "date": "1989-03-15T00:00:00.000",
@@ -7166,19 +7166,19 @@
     },
     {
       "date": "2006-05-30T00:00:00.000",
-      "open_interest": 314494.0,
-      "noncommercial_long": 133475.0,
-      "noncommercial_short": 31988.0,
-      "commercial_long": 78942.0,
-      "commercial_short": 218251.0
-    },
-    {
-      "date": "2006-05-30T00:00:00.000",
       "open_interest": 19677.0,
       "noncommercial_long": 4865.0,
       "noncommercial_short": 490.0,
       "commercial_long": 3392.0,
       "commercial_short": 13255.0
+    },
+    {
+      "date": "2006-05-30T00:00:00.000",
+      "open_interest": 314494.0,
+      "noncommercial_long": 133475.0,
+      "noncommercial_short": 31988.0,
+      "commercial_long": 78942.0,
+      "commercial_short": 218251.0
     },
     {
       "date": "2006-06-06T00:00:00.000",
@@ -7198,14 +7198,6 @@
     },
     {
       "date": "2006-06-13T00:00:00.000",
-      "open_interest": 288981.0,
-      "noncommercial_long": 138766.0,
-      "noncommercial_short": 39479.0,
-      "commercial_long": 51699.0,
-      "commercial_short": 186100.0
-    },
-    {
-      "date": "2006-06-13T00:00:00.000",
       "open_interest": 25882.0,
       "noncommercial_long": 8270.0,
       "noncommercial_short": 4673.0,
@@ -7213,12 +7205,12 @@
       "commercial_short": 13332.0
     },
     {
-      "date": "2006-06-20T00:00:00.000",
-      "open_interest": 22685.0,
-      "noncommercial_long": 6742.0,
-      "noncommercial_short": 2233.0,
-      "commercial_long": 3183.0,
-      "commercial_short": 13811.0
+      "date": "2006-06-13T00:00:00.000",
+      "open_interest": 288981.0,
+      "noncommercial_long": 138766.0,
+      "noncommercial_short": 39479.0,
+      "commercial_long": 51699.0,
+      "commercial_short": 186100.0
     },
     {
       "date": "2006-06-20T00:00:00.000",
@@ -7227,6 +7219,14 @@
       "noncommercial_short": 41643.0,
       "commercial_long": 58813.0,
       "commercial_short": 181084.0
+    },
+    {
+      "date": "2006-06-20T00:00:00.000",
+      "open_interest": 22685.0,
+      "noncommercial_long": 6742.0,
+      "noncommercial_short": 2233.0,
+      "commercial_long": 3183.0,
+      "commercial_short": 13811.0
     },
     {
       "date": "2006-06-27T00:00:00.000",
@@ -7246,19 +7246,19 @@
     },
     {
       "date": "2006-07-03T00:00:00.000",
-      "open_interest": 23014.0,
-      "noncommercial_long": 8184.0,
-      "noncommercial_short": 2555.0,
-      "commercial_long": 3378.0,
-      "commercial_short": 12810.0
-    },
-    {
-      "date": "2006-07-03T00:00:00.000",
       "open_interest": 292500.0,
       "noncommercial_long": 131186.0,
       "noncommercial_short": 39266.0,
       "commercial_long": 60102.0,
       "commercial_short": 182269.0
+    },
+    {
+      "date": "2006-07-03T00:00:00.000",
+      "open_interest": 23014.0,
+      "noncommercial_long": 8184.0,
+      "noncommercial_short": 2555.0,
+      "commercial_long": 3378.0,
+      "commercial_short": 12810.0
     },
     {
       "date": "2006-07-11T00:00:00.000",
@@ -7294,19 +7294,19 @@
     },
     {
       "date": "2006-07-25T00:00:00.000",
-      "open_interest": 315635.0,
-      "noncommercial_long": 132268.0,
-      "noncommercial_short": 30713.0,
-      "commercial_long": 65461.0,
-      "commercial_short": 204950.0
-    },
-    {
-      "date": "2006-07-25T00:00:00.000",
       "open_interest": 26254.0,
       "noncommercial_long": 4635.0,
       "noncommercial_short": 2304.0,
       "commercial_long": 6660.0,
       "commercial_short": 15158.0
+    },
+    {
+      "date": "2006-07-25T00:00:00.000",
+      "open_interest": 315635.0,
+      "noncommercial_long": 132268.0,
+      "noncommercial_short": 30713.0,
+      "commercial_long": 65461.0,
+      "commercial_short": 204950.0
     },
     {
       "date": "2006-08-01T00:00:00.000",
@@ -7534,19 +7534,19 @@
     },
     {
       "date": "2006-11-07T00:00:00.000",
-      "open_interest": 335036.0,
-      "noncommercial_long": 121406.0,
-      "noncommercial_short": 40240.0,
-      "commercial_long": 78904.0,
-      "commercial_short": 193360.0
-    },
-    {
-      "date": "2006-11-07T00:00:00.000",
       "open_interest": 52364.0,
       "noncommercial_long": 18033.0,
       "noncommercial_short": 4370.0,
       "commercial_long": 6141.0,
       "commercial_short": 32447.0
+    },
+    {
+      "date": "2006-11-07T00:00:00.000",
+      "open_interest": 335036.0,
+      "noncommercial_long": 121406.0,
+      "noncommercial_short": 40240.0,
+      "commercial_long": 78904.0,
+      "commercial_short": 193360.0
     },
     {
       "date": "2006-11-14T00:00:00.000",
@@ -7582,14 +7582,6 @@
     },
     {
       "date": "2006-11-28T00:00:00.000",
-      "open_interest": 349517.0,
-      "noncommercial_long": 120078.0,
-      "noncommercial_short": 40212.0,
-      "commercial_long": 79380.0,
-      "commercial_short": 197104.0
-    },
-    {
-      "date": "2006-11-28T00:00:00.000",
       "open_interest": 50655.0,
       "noncommercial_long": 14419.0,
       "noncommercial_short": 5774.0,
@@ -7597,12 +7589,12 @@
       "commercial_short": 32147.0
     },
     {
-      "date": "2006-12-05T00:00:00.000",
-      "open_interest": 330530.0,
-      "noncommercial_long": 122145.0,
-      "noncommercial_short": 38506.0,
-      "commercial_long": 70965.0,
-      "commercial_short": 191133.0
+      "date": "2006-11-28T00:00:00.000",
+      "open_interest": 349517.0,
+      "noncommercial_long": 120078.0,
+      "noncommercial_short": 40212.0,
+      "commercial_long": 79380.0,
+      "commercial_short": 197104.0
     },
     {
       "date": "2006-12-05T00:00:00.000",
@@ -7611,6 +7603,14 @@
       "noncommercial_short": 6720.0,
       "commercial_long": 3594.0,
       "commercial_short": 29848.0
+    },
+    {
+      "date": "2006-12-05T00:00:00.000",
+      "open_interest": 330530.0,
+      "noncommercial_long": 122145.0,
+      "noncommercial_short": 38506.0,
+      "commercial_long": 70965.0,
+      "commercial_short": 191133.0
     },
     {
       "date": "2006-12-12T00:00:00.000",
@@ -7838,14 +7838,6 @@
     },
     {
       "date": "2007-03-20T00:00:00.000",
-      "open_interest": 39649.0,
-      "noncommercial_long": 11430.0,
-      "noncommercial_short": 6432.0,
-      "commercial_long": 8512.0,
-      "commercial_short": 24606.0
-    },
-    {
-      "date": "2007-03-20T00:00:00.000",
       "open_interest": 359726.0,
       "noncommercial_long": 125201.0,
       "noncommercial_short": 31777.0,
@@ -7853,12 +7845,12 @@
       "commercial_short": 226379.0
     },
     {
-      "date": "2007-03-27T00:00:00.000",
-      "open_interest": 35262.0,
-      "noncommercial_long": 11789.0,
-      "noncommercial_short": 4355.0,
-      "commercial_long": 5338.0,
-      "commercial_short": 23652.0
+      "date": "2007-03-20T00:00:00.000",
+      "open_interest": 39649.0,
+      "noncommercial_long": 11430.0,
+      "noncommercial_short": 6432.0,
+      "commercial_long": 8512.0,
+      "commercial_short": 24606.0
     },
     {
       "date": "2007-03-27T00:00:00.000",
@@ -7867,6 +7859,14 @@
       "noncommercial_short": 31290.0,
       "commercial_long": 91430.0,
       "commercial_short": 229954.0
+    },
+    {
+      "date": "2007-03-27T00:00:00.000",
+      "open_interest": 35262.0,
+      "noncommercial_long": 11789.0,
+      "noncommercial_short": 4355.0,
+      "commercial_long": 5338.0,
+      "commercial_short": 23652.0
     },
     {
       "date": "2007-04-03T00:00:00.000",
@@ -8014,14 +8014,6 @@
     },
     {
       "date": "2007-06-05T00:00:00.000",
-      "open_interest": 23828.0,
-      "noncommercial_long": 6331.0,
-      "noncommercial_short": 6184.0,
-      "commercial_long": 3620.0,
-      "commercial_short": 12582.0
-    },
-    {
-      "date": "2007-06-05T00:00:00.000",
       "open_interest": 385046.0,
       "noncommercial_long": 143052.0,
       "noncommercial_short": 35435.0,
@@ -8029,12 +8021,12 @@
       "commercial_short": 242464.0
     },
     {
-      "date": "2007-06-12T00:00:00.000",
-      "open_interest": 412150.0,
-      "noncommercial_long": 125076.0,
-      "noncommercial_short": 49180.0,
-      "commercial_long": 133800.0,
-      "commercial_short": 231805.0
+      "date": "2007-06-05T00:00:00.000",
+      "open_interest": 23828.0,
+      "noncommercial_long": 6331.0,
+      "noncommercial_short": 6184.0,
+      "commercial_long": 3620.0,
+      "commercial_short": 12582.0
     },
     {
       "date": "2007-06-12T00:00:00.000",
@@ -8043,6 +8035,14 @@
       "noncommercial_short": 4602.0,
       "commercial_long": 3078.0,
       "commercial_short": 10931.0
+    },
+    {
+      "date": "2007-06-12T00:00:00.000",
+      "open_interest": 412150.0,
+      "noncommercial_long": 125076.0,
+      "noncommercial_short": 49180.0,
+      "commercial_long": 133800.0,
+      "commercial_short": 231805.0
     },
     {
       "date": "2007-06-19T00:00:00.000",
@@ -8158,19 +8158,19 @@
     },
     {
       "date": "2007-08-07T00:00:00.000",
-      "open_interest": 352908.0,
-      "noncommercial_long": 123391.0,
-      "noncommercial_short": 34020.0,
-      "commercial_long": 90267.0,
-      "commercial_short": 211513.0
-    },
-    {
-      "date": "2007-08-07T00:00:00.000",
       "open_interest": 17817.0,
       "noncommercial_long": 4032.0,
       "noncommercial_short": 2463.0,
       "commercial_long": 1578.0,
       "commercial_short": 8210.0
+    },
+    {
+      "date": "2007-08-07T00:00:00.000",
+      "open_interest": 352908.0,
+      "noncommercial_long": 123391.0,
+      "noncommercial_short": 34020.0,
+      "commercial_long": 90267.0,
+      "commercial_short": 211513.0
     },
     {
       "date": "2007-08-14T00:00:00.000",
@@ -14454,19 +14454,19 @@
     },
     {
       "date": "2021-11-16T00:00:00.000",
-      "open_interest": 27699.0,
-      "noncommercial_long": 7826.0,
-      "noncommercial_short": 12734.0,
-      "commercial_long": 0.0,
-      "commercial_short": 0.0
-    },
-    {
-      "date": "2021-11-16T00:00:00.000",
       "open_interest": 612612.0,
       "noncommercial_long": 360529.0,
       "noncommercial_short": 100749.0,
       "commercial_long": 125758.0,
       "commercial_short": 413297.0
+    },
+    {
+      "date": "2021-11-16T00:00:00.000",
+      "open_interest": 27699.0,
+      "noncommercial_long": 7826.0,
+      "noncommercial_short": 12734.0,
+      "commercial_long": 0.0,
+      "commercial_short": 0.0
     },
     {
       "date": "2021-11-23T00:00:00.000",
@@ -14622,19 +14622,19 @@
     },
     {
       "date": "2022-03-22T00:00:00.000",
-      "open_interest": 605191.0,
-      "noncommercial_long": 328660.0,
-      "noncommercial_short": 80628.0,
-      "commercial_long": 155039.0,
-      "commercial_short": 436634.0
-    },
-    {
-      "date": "2022-03-22T00:00:00.000",
       "open_interest": 35952.0,
       "noncommercial_long": 10034.0,
       "noncommercial_short": 15826.0,
       "commercial_long": 0.0,
       "commercial_short": 0.0
+    },
+    {
+      "date": "2022-03-22T00:00:00.000",
+      "open_interest": 605191.0,
+      "noncommercial_long": 328660.0,
+      "noncommercial_short": 80628.0,
+      "commercial_long": 155039.0,
+      "commercial_short": 436634.0
     },
     {
       "date": "2022-03-29T00:00:00.000",
@@ -15110,19 +15110,19 @@
     },
     {
       "date": "2023-03-21T00:00:00.000",
-      "open_interest": 469874.0,
-      "noncommercial_long": 237891.0,
-      "noncommercial_short": 79286.0,
-      "commercial_long": 121678.0,
-      "commercial_short": 305246.0
-    },
-    {
-      "date": "2023-03-21T00:00:00.000",
       "open_interest": 25449.0,
       "noncommercial_long": 7787.0,
       "noncommercial_short": 7991.0,
       "commercial_long": 0.0,
       "commercial_short": 285.0
+    },
+    {
+      "date": "2023-03-21T00:00:00.000",
+      "open_interest": 469874.0,
+      "noncommercial_long": 237891.0,
+      "noncommercial_short": 79286.0,
+      "commercial_long": 121678.0,
+      "commercial_short": 305246.0
     },
     {
       "date": "2023-03-28T00:00:00.000",
@@ -15174,19 +15174,19 @@
     },
     {
       "date": "2023-05-02T00:00:00.000",
-      "open_interest": 493804.0,
-      "noncommercial_long": 262413.0,
-      "noncommercial_short": 66846.0,
-      "commercial_long": 127451.0,
-      "commercial_short": 345035.0
-    },
-    {
-      "date": "2023-05-02T00:00:00.000",
       "open_interest": 24422.0,
       "noncommercial_long": 6916.0,
       "noncommercial_short": 4336.0,
       "commercial_long": 0.0,
       "commercial_short": 398.0
+    },
+    {
+      "date": "2023-05-02T00:00:00.000",
+      "open_interest": 493804.0,
+      "noncommercial_long": 262413.0,
+      "noncommercial_short": 66846.0,
+      "commercial_long": 127451.0,
+      "commercial_short": 345035.0
     },
     {
       "date": "2023-05-09T00:00:00.000",
@@ -15318,19 +15318,19 @@
     },
     {
       "date": "2023-08-29T00:00:00.000",
-      "open_interest": 442806.0,
-      "noncommercial_long": 236054.0,
-      "noncommercial_short": 112782.0,
-      "commercial_long": 118132.0,
-      "commercial_short": 258726.0
-    },
-    {
-      "date": "2023-08-29T00:00:00.000",
       "open_interest": 30968.0,
       "noncommercial_long": 12366.0,
       "noncommercial_short": 14722.0,
       "commercial_long": 0.0,
       "commercial_short": 0.0
+    },
+    {
+      "date": "2023-08-29T00:00:00.000",
+      "open_interest": 442806.0,
+      "noncommercial_long": 236054.0,
+      "noncommercial_short": 112782.0,
+      "commercial_long": 118132.0,
+      "commercial_short": 258726.0
     },
     {
       "date": "2023-09-05T00:00:00.000",
@@ -15342,14 +15342,6 @@
     },
     {
       "date": "2023-09-12T00:00:00.000",
-      "open_interest": 31729.0,
-      "noncommercial_long": 12205.0,
-      "noncommercial_short": 15872.0,
-      "commercial_long": 0.0,
-      "commercial_short": 0.0
-    },
-    {
-      "date": "2023-09-12T00:00:00.000",
       "open_interest": 441221.0,
       "noncommercial_long": 235704.0,
       "noncommercial_short": 111840.0,
@@ -15357,10 +15349,10 @@
       "commercial_short": 257872.0
     },
     {
-      "date": "2023-09-19T00:00:00.000",
-      "open_interest": 28783.0,
-      "noncommercial_long": 9576.0,
-      "noncommercial_short": 11304.0,
+      "date": "2023-09-12T00:00:00.000",
+      "open_interest": 31729.0,
+      "noncommercial_long": 12205.0,
+      "noncommercial_short": 15872.0,
       "commercial_long": 0.0,
       "commercial_short": 0.0
     },
@@ -15373,6 +15365,14 @@
       "commercial_short": 262946.0
     },
     {
+      "date": "2023-09-19T00:00:00.000",
+      "open_interest": 28783.0,
+      "noncommercial_long": 9576.0,
+      "noncommercial_short": 11304.0,
+      "commercial_long": 0.0,
+      "commercial_short": 0.0
+    },
+    {
       "date": "2023-09-26T00:00:00.000",
       "open_interest": 435620.0,
       "noncommercial_long": 235560.0,
@@ -15382,19 +15382,19 @@
     },
     {
       "date": "2023-10-03T00:00:00.000",
-      "open_interest": 431226.0,
-      "noncommercial_long": 228406.0,
-      "noncommercial_short": 137180.0,
-      "commercial_long": 110666.0,
-      "commercial_short": 222648.0
-    },
-    {
-      "date": "2023-10-03T00:00:00.000",
       "open_interest": 31905.0,
       "noncommercial_long": 7763.0,
       "noncommercial_short": 17533.0,
       "commercial_long": 0.0,
       "commercial_short": 0.0
+    },
+    {
+      "date": "2023-10-03T00:00:00.000",
+      "open_interest": 431226.0,
+      "noncommercial_long": 228406.0,
+      "noncommercial_short": 137180.0,
+      "commercial_long": 110666.0,
+      "commercial_short": 222648.0
     },
     {
       "date": "2023-10-10T00:00:00.000",
@@ -15446,6 +15446,14 @@
     },
     {
       "date": "2023-10-31T00:00:00.000",
+      "open_interest": 31025.0,
+      "noncommercial_long": 10367.0,
+      "noncommercial_short": 10003.0,
+      "commercial_long": 0.0,
+      "commercial_short": 0.0
+    },
+    {
+      "date": "2023-10-31T00:00:00.000",
       "open_interest": 475808.0,
       "noncommercial_long": 261053.0,
       "noncommercial_short": 97628.0,
@@ -15453,10 +15461,10 @@
       "commercial_short": 288678.0
     },
     {
-      "date": "2023-10-31T00:00:00.000",
-      "open_interest": 31025.0,
-      "noncommercial_long": 10367.0,
-      "noncommercial_short": 10003.0,
+      "date": "2023-11-07T00:00:00.000",
+      "open_interest": 31707.0,
+      "noncommercial_long": 10784.0,
+      "noncommercial_short": 10405.0,
       "commercial_long": 0.0,
       "commercial_short": 0.0
     },
@@ -15469,12 +15477,12 @@
       "commercial_short": 296742.0
     },
     {
-      "date": "2023-11-07T00:00:00.000",
-      "open_interest": 31707.0,
-      "noncommercial_long": 10784.0,
-      "noncommercial_short": 10405.0,
-      "commercial_long": 0.0,
-      "commercial_short": 0.0
+      "date": "2023-11-14T00:00:00.000",
+      "open_interest": 486634.0,
+      "noncommercial_long": 254352.0,
+      "noncommercial_short": 98976.0,
+      "commercial_long": 110728.0,
+      "commercial_short": 287747.0
     },
     {
       "date": "2023-11-14T00:00:00.000",
@@ -15485,12 +15493,12 @@
       "commercial_short": 0.0
     },
     {
-      "date": "2023-11-14T00:00:00.000",
-      "open_interest": 486634.0,
-      "noncommercial_long": 254352.0,
-      "noncommercial_short": 98976.0,
-      "commercial_long": 110728.0,
-      "commercial_short": 287747.0
+      "date": "2023-11-21T00:00:00.000",
+      "open_interest": 508429.0,
+      "noncommercial_long": 269701.0,
+      "noncommercial_short": 97996.0,
+      "commercial_long": 115937.0,
+      "commercial_short": 306172.0
     },
     {
       "date": "2023-11-21T00:00:00.000",
@@ -15499,14 +15507,6 @@
       "noncommercial_short": 11192.0,
       "commercial_long": 0.0,
       "commercial_short": 0.0
-    },
-    {
-      "date": "2023-11-21T00:00:00.000",
-      "open_interest": 508429.0,
-      "noncommercial_long": 269701.0,
-      "noncommercial_short": 97996.0,
-      "commercial_long": 115937.0,
-      "commercial_short": 306172.0
     },
     {
       "date": "2023-11-28T00:00:00.000",
@@ -15694,14 +15694,6 @@
     },
     {
       "date": "2024-03-12T00:00:00.000",
-      "open_interest": 37886.0,
-      "noncommercial_long": 12077.0,
-      "noncommercial_short": 7465.0,
-      "commercial_long": 0.0,
-      "commercial_short": 0.0
-    },
-    {
-      "date": "2024-03-12T00:00:00.000",
       "open_interest": 516057.0,
       "noncommercial_long": 283062.0,
       "noncommercial_short": 81460.0,
@@ -15709,10 +15701,10 @@
       "commercial_short": 347705.0
     },
     {
-      "date": "2024-03-19T00:00:00.000",
-      "open_interest": 39169.0,
-      "noncommercial_long": 13100.0,
-      "noncommercial_short": 8647.0,
+      "date": "2024-03-12T00:00:00.000",
+      "open_interest": 37886.0,
+      "noncommercial_long": 12077.0,
+      "noncommercial_short": 7465.0,
       "commercial_long": 0.0,
       "commercial_short": 0.0
     },
@@ -15723,6 +15715,14 @@
       "noncommercial_short": 77130.0,
       "commercial_long": 138102.0,
       "commercial_short": 355632.0
+    },
+    {
+      "date": "2024-03-19T00:00:00.000",
+      "open_interest": 39169.0,
+      "noncommercial_long": 13100.0,
+      "noncommercial_short": 8647.0,
+      "commercial_long": 0.0,
+      "commercial_short": 0.0
     },
     {
       "date": "2024-03-26T00:00:00.000",
@@ -15830,19 +15830,19 @@
     },
     {
       "date": "2024-05-21T00:00:00.000",
-      "open_interest": 530591.0,
-      "noncommercial_long": 300729.0,
-      "noncommercial_short": 70923.0,
-      "commercial_long": 118514.0,
-      "commercial_short": 377177.0
-    },
-    {
-      "date": "2024-05-21T00:00:00.000",
       "open_interest": 41406.0,
       "noncommercial_long": 17237.0,
       "noncommercial_short": 12953.0,
       "commercial_long": 0.0,
       "commercial_short": 0.0
+    },
+    {
+      "date": "2024-05-21T00:00:00.000",
+      "open_interest": 530591.0,
+      "noncommercial_long": 300729.0,
+      "noncommercial_short": 70923.0,
+      "commercial_long": 118514.0,
+      "commercial_short": 377177.0
     },
     {
       "date": "2024-05-28T00:00:00.000",
@@ -15902,6 +15902,14 @@
     },
     {
       "date": "2024-06-25T00:00:00.000",
+      "open_interest": 30360.0,
+      "noncommercial_long": 9714.0,
+      "noncommercial_short": 9850.0,
+      "commercial_long": 0.0,
+      "commercial_short": 0.0
+    },
+    {
+      "date": "2024-06-25T00:00:00.000",
       "open_interest": 452190.0,
       "noncommercial_long": 284885.0,
       "noncommercial_short": 38656.0,
@@ -15909,10 +15917,10 @@
       "commercial_short": 358039.0
     },
     {
-      "date": "2024-06-25T00:00:00.000",
-      "open_interest": 30360.0,
-      "noncommercial_long": 9714.0,
-      "noncommercial_short": 9850.0,
+      "date": "2024-07-02T00:00:00.000",
+      "open_interest": 30961.0,
+      "noncommercial_long": 10071.0,
+      "noncommercial_short": 10489.0,
       "commercial_long": 0.0,
       "commercial_short": 0.0
     },
@@ -15925,12 +15933,12 @@
       "commercial_short": 351704.0
     },
     {
-      "date": "2024-07-02T00:00:00.000",
-      "open_interest": 30961.0,
-      "noncommercial_long": 10071.0,
-      "noncommercial_short": 10489.0,
-      "commercial_long": 0.0,
-      "commercial_short": 0.0
+      "date": "2024-07-09T00:00:00.000",
+      "open_interest": 516324.0,
+      "noncommercial_long": 303043.0,
+      "noncommercial_short": 48268.0,
+      "commercial_long": 92907.0,
+      "commercial_short": 373536.0
     },
     {
       "date": "2024-07-09T00:00:00.000",
@@ -15941,12 +15949,12 @@
       "commercial_short": 0.0
     },
     {
-      "date": "2024-07-09T00:00:00.000",
-      "open_interest": 516324.0,
-      "noncommercial_long": 303043.0,
-      "noncommercial_short": 48268.0,
-      "commercial_long": 92907.0,
-      "commercial_short": 373536.0
+      "date": "2024-07-16T00:00:00.000",
+      "open_interest": 43755.0,
+      "noncommercial_long": 15422.0,
+      "noncommercial_short": 8582.0,
+      "commercial_long": 0.0,
+      "commercial_short": 0.0
     },
     {
       "date": "2024-07-16T00:00:00.000",
@@ -15957,10 +15965,10 @@
       "commercial_short": 419345.0
     },
     {
-      "date": "2024-07-16T00:00:00.000",
-      "open_interest": 43755.0,
-      "noncommercial_long": 15422.0,
-      "noncommercial_short": 8582.0,
+      "date": "2024-07-23T00:00:00.000",
+      "open_interest": 43847.0,
+      "noncommercial_long": 14419.0,
+      "noncommercial_short": 10267.0,
       "commercial_long": 0.0,
       "commercial_short": 0.0
     },
@@ -15971,14 +15979,6 @@
       "noncommercial_short": 68526.0,
       "commercial_long": 102237.0,
       "commercial_short": 403162.0
-    },
-    {
-      "date": "2024-07-23T00:00:00.000",
-      "open_interest": 43847.0,
-      "noncommercial_long": 14419.0,
-      "noncommercial_short": 10267.0,
-      "commercial_long": 0.0,
-      "commercial_short": 0.0
     },
     {
       "date": "2024-07-30T00:00:00.000",
@@ -15998,14 +15998,6 @@
     },
     {
       "date": "2024-08-13T00:00:00.000",
-      "open_interest": 38056.0,
-      "noncommercial_long": 15867.0,
-      "noncommercial_short": 6291.0,
-      "commercial_long": 0.0,
-      "commercial_short": 0.0
-    },
-    {
-      "date": "2024-08-13T00:00:00.000",
       "open_interest": 505872.0,
       "noncommercial_long": 328769.0,
       "noncommercial_short": 61505.0,
@@ -16013,12 +16005,12 @@
       "commercial_short": 380815.0
     },
     {
-      "date": "2024-08-20T00:00:00.000",
-      "open_interest": 532867.0,
-      "noncommercial_long": 355551.0,
-      "noncommercial_short": 64298.0,
-      "commercial_long": 86232.0,
-      "commercial_short": 402738.0
+      "date": "2024-08-13T00:00:00.000",
+      "open_interest": 38056.0,
+      "noncommercial_long": 15867.0,
+      "noncommercial_short": 6291.0,
+      "commercial_long": 0.0,
+      "commercial_short": 0.0
     },
     {
       "date": "2024-08-20T00:00:00.000",
@@ -16029,12 +16021,12 @@
       "commercial_short": 0.0
     },
     {
-      "date": "2024-08-27T00:00:00.000",
-      "open_interest": 521759.0,
-      "noncommercial_long": 343330.0,
-      "noncommercial_short": 48885.0,
-      "commercial_long": 85102.0,
-      "commercial_short": 407421.0
+      "date": "2024-08-20T00:00:00.000",
+      "open_interest": 532867.0,
+      "noncommercial_long": 355551.0,
+      "noncommercial_short": 64298.0,
+      "commercial_long": 86232.0,
+      "commercial_short": 402738.0
     },
     {
       "date": "2024-08-27T00:00:00.000",
@@ -16043,6 +16035,14 @@
       "noncommercial_short": 9386.0,
       "commercial_long": 0.0,
       "commercial_short": 0.0
+    },
+    {
+      "date": "2024-08-27T00:00:00.000",
+      "open_interest": 521759.0,
+      "noncommercial_long": 343330.0,
+      "noncommercial_short": 48885.0,
+      "commercial_long": 85102.0,
+      "commercial_short": 407421.0
     },
     {
       "date": "2024-09-03T00:00:00.000",
@@ -16110,14 +16110,6 @@
     },
     {
       "date": "2024-10-01T00:00:00.000",
-      "open_interest": 47225.0,
-      "noncommercial_long": 17097.0,
-      "noncommercial_short": 9569.0,
-      "commercial_long": 0.0,
-      "commercial_short": 0.0
-    },
-    {
-      "date": "2024-10-01T00:00:00.000",
       "open_interest": 533107.0,
       "noncommercial_long": 370051.0,
       "noncommercial_short": 70120.0,
@@ -16125,12 +16117,12 @@
       "commercial_short": 394623.0
     },
     {
-      "date": "2024-10-08T00:00:00.000",
-      "open_interest": 520316.0,
-      "noncommercial_long": 348891.0,
-      "noncommercial_short": 70711.0,
-      "commercial_long": 68957.0,
-      "commercial_short": 372933.0
+      "date": "2024-10-01T00:00:00.000",
+      "open_interest": 47225.0,
+      "noncommercial_long": 17097.0,
+      "noncommercial_short": 9569.0,
+      "commercial_long": 0.0,
+      "commercial_short": 0.0
     },
     {
       "date": "2024-10-08T00:00:00.000",
@@ -16141,12 +16133,12 @@
       "commercial_short": 0.0
     },
     {
-      "date": "2024-10-15T00:00:00.000",
-      "open_interest": 46591.0,
-      "noncommercial_long": 15860.0,
-      "noncommercial_short": 12657.0,
-      "commercial_long": 0.0,
-      "commercial_short": 0.0
+      "date": "2024-10-08T00:00:00.000",
+      "open_interest": 520316.0,
+      "noncommercial_long": 348891.0,
+      "noncommercial_short": 70711.0,
+      "commercial_long": 68957.0,
+      "commercial_short": 372933.0
     },
     {
       "date": "2024-10-15T00:00:00.000",
@@ -16155,6 +16147,14 @@
       "noncommercial_short": 71060.0,
       "commercial_long": 70028.0,
       "commercial_short": 382686.0
+    },
+    {
+      "date": "2024-10-15T00:00:00.000",
+      "open_interest": 46591.0,
+      "noncommercial_long": 15860.0,
+      "noncommercial_short": 12657.0,
+      "commercial_long": 0.0,
+      "commercial_short": 0.0
     },
     {
       "date": "2024-10-22T00:00:00.000",
@@ -16222,19 +16222,19 @@
     },
     {
       "date": "2024-11-19T00:00:00.000",
-      "open_interest": 54084.0,
-      "noncommercial_long": 18002.0,
-      "noncommercial_short": 18217.0,
-      "commercial_long": 0.0,
-      "commercial_short": 0.0
-    },
-    {
-      "date": "2024-11-19T00:00:00.000",
       "open_interest": 502952.0,
       "noncommercial_long": 309354.0,
       "noncommercial_short": 74987.0,
       "commercial_long": 73459.0,
       "commercial_short": 335781.0
+    },
+    {
+      "date": "2024-11-19T00:00:00.000",
+      "open_interest": 54084.0,
+      "noncommercial_long": 18002.0,
+      "noncommercial_short": 18217.0,
+      "commercial_long": 0.0,
+      "commercial_short": 0.0
     },
     {
       "date": "2024-11-26T00:00:00.000",
@@ -16342,19 +16342,19 @@
     },
     {
       "date": "2025-01-14T00:00:00.000",
-      "open_interest": 526467.0,
-      "noncommercial_long": 312568.0,
-      "noncommercial_short": 33205.0,
-      "commercial_long": 92075.0,
-      "commercial_short": 394527.0
-    },
-    {
-      "date": "2025-01-14T00:00:00.000",
       "open_interest": 33485.0,
       "noncommercial_long": 7530.0,
       "noncommercial_short": 11047.0,
       "commercial_long": 0.0,
       "commercial_short": 0.0
+    },
+    {
+      "date": "2025-01-14T00:00:00.000",
+      "open_interest": 526467.0,
+      "noncommercial_long": 312568.0,
+      "noncommercial_short": 33205.0,
+      "commercial_long": 92075.0,
+      "commercial_short": 394527.0
     },
     {
       "date": "2025-01-21T00:00:00.000",
@@ -16398,19 +16398,19 @@
     },
     {
       "date": "2025-02-11T00:00:00.000",
-      "open_interest": 32134.0,
-      "noncommercial_long": 12063.0,
-      "noncommercial_short": 9033.0,
-      "commercial_long": 19.0,
-      "commercial_short": 251.0
-    },
-    {
-      "date": "2025-02-11T00:00:00.000",
       "open_interest": 528719.0,
       "noncommercial_long": 343766.0,
       "noncommercial_short": 59262.0,
       "commercial_long": 72622.0,
       "commercial_short": 382510.0
+    },
+    {
+      "date": "2025-02-11T00:00:00.000",
+      "open_interest": 32134.0,
+      "noncommercial_long": 12063.0,
+      "noncommercial_short": 9033.0,
+      "commercial_long": 19.0,
+      "commercial_short": 251.0
     },
     {
       "date": "2025-02-18T00:00:00.000",
@@ -16526,6 +16526,14 @@
     },
     {
       "date": "2025-04-08T00:00:00.000",
+      "open_interest": 37869.0,
+      "noncommercial_long": 12957.0,
+      "noncommercial_short": 15825.0,
+      "commercial_long": 0.0,
+      "commercial_short": 0.0
+    },
+    {
+      "date": "2025-04-08T00:00:00.000",
       "open_interest": 445468.0,
       "noncommercial_long": 269833.0,
       "noncommercial_short": 69118.0,
@@ -16533,11 +16541,11 @@
       "commercial_short": 301397.0
     },
     {
-      "date": "2025-04-08T00:00:00.000",
-      "open_interest": 37869.0,
-      "noncommercial_long": 12957.0,
-      "noncommercial_short": 15825.0,
-      "commercial_long": 0.0,
+      "date": "2025-04-15T00:00:00.000",
+      "open_interest": 38924.0,
+      "noncommercial_long": 17217.0,
+      "noncommercial_short": 15588.0,
+      "commercial_long": 396.0,
       "commercial_short": 0.0
     },
     {
@@ -16547,14 +16555,6 @@
       "noncommercial_short": 69497.0,
       "commercial_long": 70568.0,
       "commercial_short": 302480.0
-    },
-    {
-      "date": "2025-04-15T00:00:00.000",
-      "open_interest": 38924.0,
-      "noncommercial_long": 17217.0,
-      "noncommercial_short": 15588.0,
-      "commercial_long": 396.0,
-      "commercial_short": 0.0
     },
     {
       "date": "2025-04-22T00:00:00.000",
@@ -16606,19 +16606,19 @@
     },
     {
       "date": "2025-05-13T00:00:00.000",
-      "open_interest": 440842.0,
-      "noncommercial_long": 238191.0,
-      "noncommercial_short": 76982.0,
-      "commercial_long": 88412.0,
-      "commercial_short": 279619.0
-    },
-    {
-      "date": "2025-05-13T00:00:00.000",
       "open_interest": 42731.0,
       "noncommercial_long": 15734.0,
       "noncommercial_short": 21729.0,
       "commercial_long": 0.0,
       "commercial_short": 0.0
+    },
+    {
+      "date": "2025-05-13T00:00:00.000",
+      "open_interest": 440842.0,
+      "noncommercial_long": 238191.0,
+      "noncommercial_short": 76982.0,
+      "commercial_long": 88412.0,
+      "commercial_short": 279619.0
     },
     {
       "date": "2025-05-20T00:00:00.000",
@@ -16638,19 +16638,19 @@
     },
     {
       "date": "2025-05-27T00:00:00.000",
-      "open_interest": 49049.0,
-      "noncommercial_long": 17179.0,
-      "noncommercial_short": 26410.0,
-      "commercial_long": 0.0,
-      "commercial_short": 0.0
-    },
-    {
-      "date": "2025-05-27T00:00:00.000",
       "open_interest": 437538.0,
       "noncommercial_long": 234087.0,
       "noncommercial_short": 59903.0,
       "commercial_long": 87509.0,
       "commercial_short": 295096.0
+    },
+    {
+      "date": "2025-05-27T00:00:00.000",
+      "open_interest": 49049.0,
+      "noncommercial_long": 17179.0,
+      "noncommercial_short": 26410.0,
+      "commercial_long": 0.0,
+      "commercial_short": 0.0
     },
     {
       "date": "2025-06-03T00:00:00.000",
@@ -16670,19 +16670,19 @@
     },
     {
       "date": "2025-06-10T00:00:00.000",
-      "open_interest": 43741.0,
-      "noncommercial_long": 13111.0,
-      "noncommercial_short": 21993.0,
-      "commercial_long": 0.0,
-      "commercial_short": 0.0
-    },
-    {
-      "date": "2025-06-10T00:00:00.000",
       "open_interest": 417143.0,
       "noncommercial_long": 245995.0,
       "noncommercial_short": 58514.0,
       "commercial_long": 68432.0,
       "commercial_short": 291150.0
+    },
+    {
+      "date": "2025-06-10T00:00:00.000",
+      "open_interest": 43741.0,
+      "noncommercial_long": 13111.0,
+      "noncommercial_short": 21993.0,
+      "commercial_long": 0.0,
+      "commercial_short": 0.0
     },
     {
       "date": "2025-06-17T00:00:00.000",
@@ -16766,19 +16766,19 @@
     },
     {
       "date": "2025-07-22T00:00:00.000",
-      "open_interest": 52999.0,
-      "noncommercial_long": 20795.0,
-      "noncommercial_short": 18165.0,
-      "commercial_long": 0.0,
-      "commercial_short": 0.0
-    },
-    {
-      "date": "2025-07-22T00:00:00.000",
       "open_interest": 489423.0,
       "noncommercial_long": 311949.0,
       "noncommercial_short": 58911.0,
       "commercial_long": 76726.0,
       "commercial_short": 359063.0
+    },
+    {
+      "date": "2025-07-22T00:00:00.000",
+      "open_interest": 52999.0,
+      "noncommercial_long": 20795.0,
+      "noncommercial_short": 18165.0,
+      "commercial_long": 0.0,
+      "commercial_short": 0.0
     },
     {
       "date": "2025-07-29T00:00:00.000",
@@ -16798,19 +16798,19 @@
     },
     {
       "date": "2025-08-05T00:00:00.000",
-      "open_interest": 45256.0,
-      "noncommercial_long": 12712.0,
-      "noncommercial_short": 14765.0,
-      "commercial_long": 0.0,
-      "commercial_short": 0.0
-    },
-    {
-      "date": "2025-08-05T00:00:00.000",
       "open_interest": 449647.0,
       "noncommercial_long": 292194.0,
       "noncommercial_short": 55144.0,
       "commercial_long": 74075.0,
       "commercial_short": 344221.0
+    },
+    {
+      "date": "2025-08-05T00:00:00.000",
+      "open_interest": 45256.0,
+      "noncommercial_long": 12712.0,
+      "noncommercial_short": 14765.0,
+      "commercial_long": 0.0,
+      "commercial_short": 0.0
     },
     {
       "date": "2025-08-12T00:00:00.000",
@@ -16990,19 +16990,19 @@
     },
     {
       "date": "2025-10-28T00:00:00.000",
-      "open_interest": 457122.0,
-      "noncommercial_long": 266308.0,
-      "noncommercial_short": 61644.0,
-      "commercial_long": 89653.0,
-      "commercial_short": 326680.0
-    },
-    {
-      "date": "2025-10-28T00:00:00.000",
       "open_interest": 74509.0,
       "noncommercial_long": 21626.0,
       "noncommercial_short": 60017.0,
       "commercial_long": 1114.0,
       "commercial_short": 0.0
+    },
+    {
+      "date": "2025-10-28T00:00:00.000",
+      "open_interest": 457122.0,
+      "noncommercial_long": 266308.0,
+      "noncommercial_short": 61644.0,
+      "commercial_long": 89653.0,
+      "commercial_short": 326680.0
     },
     {
       "date": "2025-11-04T00:00:00.000",
@@ -17022,6 +17022,14 @@
     },
     {
       "date": "2025-11-10T00:00:00.000",
+      "open_interest": 80918.0,
+      "noncommercial_long": 25891.0,
+      "noncommercial_short": 62897.0,
+      "commercial_long": 1000.0,
+      "commercial_short": 0.0
+    },
+    {
+      "date": "2025-11-10T00:00:00.000",
       "open_interest": 459997.0,
       "noncommercial_long": 265916.0,
       "noncommercial_short": 58847.0,
@@ -17029,11 +17037,11 @@
       "commercial_short": 331899.0
     },
     {
-      "date": "2025-11-10T00:00:00.000",
-      "open_interest": 80918.0,
-      "noncommercial_long": 25891.0,
-      "noncommercial_short": 62897.0,
-      "commercial_long": 1000.0,
+      "date": "2025-11-18T00:00:00.000",
+      "open_interest": 84281.0,
+      "noncommercial_long": 26576.0,
+      "noncommercial_short": 67241.0,
+      "commercial_long": 2029.0,
       "commercial_short": 0.0
     },
     {
@@ -17043,14 +17051,6 @@
       "noncommercial_short": 59217.0,
       "commercial_long": 97001.0,
       "commercial_short": 342586.0
-    },
-    {
-      "date": "2025-11-18T00:00:00.000",
-      "open_interest": 84281.0,
-      "noncommercial_long": 26576.0,
-      "noncommercial_short": 67241.0,
-      "commercial_long": 2029.0,
-      "commercial_short": 0.0
     },
     {
       "date": "2025-11-25T00:00:00.000",
@@ -17086,19 +17086,19 @@
     },
     {
       "date": "2025-12-09T00:00:00.000",
-      "open_interest": 54042.0,
-      "noncommercial_long": 10719.0,
-      "noncommercial_short": 27112.0,
-      "commercial_long": 2224.0,
-      "commercial_short": 0.0
-    },
-    {
-      "date": "2025-12-09T00:00:00.000",
       "open_interest": 432569.0,
       "noncommercial_long": 268485.0,
       "noncommercial_short": 44599.0,
       "commercial_long": 63707.0,
       "commercial_short": 326286.0
+    },
+    {
+      "date": "2025-12-09T00:00:00.000",
+      "open_interest": 54042.0,
+      "noncommercial_long": 10719.0,
+      "noncommercial_short": 27112.0,
+      "commercial_long": 2224.0,
+      "commercial_short": 0.0
     },
     {
       "date": "2025-12-16T00:00:00.000",
@@ -17134,19 +17134,19 @@
     },
     {
       "date": "2025-12-30T00:00:00.000",
-      "open_interest": 70021.0,
-      "noncommercial_long": 16471.0,
-      "noncommercial_short": 41874.0,
-      "commercial_long": 2870.0,
-      "commercial_short": 0.0
-    },
-    {
-      "date": "2025-12-30T00:00:00.000",
       "open_interest": 481866.0,
       "noncommercial_long": 275592.0,
       "noncommercial_short": 44419.0,
       "commercial_long": 82254.0,
       "commercial_short": 357500.0
+    },
+    {
+      "date": "2025-12-30T00:00:00.000",
+      "open_interest": 70021.0,
+      "noncommercial_long": 16471.0,
+      "noncommercial_short": 41874.0,
+      "commercial_long": 2870.0,
+      "commercial_short": 0.0
     },
     {
       "date": "2025-12-30T00:00:00.000",
@@ -17174,14 +17174,6 @@
     },
     {
       "date": "2026-01-13T00:00:00.000",
-      "open_interest": 72555.0,
-      "noncommercial_long": 26158.0,
-      "noncommercial_short": 40530.0,
-      "commercial_long": 2850.0,
-      "commercial_short": 0.0
-    },
-    {
-      "date": "2026-01-13T00:00:00.000",
       "open_interest": 9393.0,
       "noncommercial_long": 3840.0,
       "noncommercial_short": 8017.0,
@@ -17195,6 +17187,14 @@
       "noncommercial_short": 44945.0,
       "commercial_long": 83382.0,
       "commercial_short": 380488.0
+    },
+    {
+      "date": "2026-01-13T00:00:00.000",
+      "open_interest": 72555.0,
+      "noncommercial_long": 26158.0,
+      "noncommercial_short": 40530.0,
+      "commercial_long": 2850.0,
+      "commercial_short": 0.0
     },
     {
       "date": "2026-01-20T00:00:00.000",
@@ -17278,19 +17278,19 @@
     },
     {
       "date": "2026-02-17T00:00:00.000",
-      "open_interest": 60814.0,
-      "noncommercial_long": 13208.0,
-      "noncommercial_short": 30697.0,
-      "commercial_long": 4953.0,
-      "commercial_short": 0.0
-    },
-    {
-      "date": "2026-02-17T00:00:00.000",
       "open_interest": 407078.0,
       "noncommercial_long": 213432.0,
       "noncommercial_short": 53517.0,
       "commercial_long": 88237.0,
       "commercial_short": 285019.0
+    },
+    {
+      "date": "2026-02-17T00:00:00.000",
+      "open_interest": 60814.0,
+      "noncommercial_long": 13208.0,
+      "noncommercial_short": 30697.0,
+      "commercial_long": 4953.0,
+      "commercial_short": 0.0
     },
     {
       "date": "2026-02-24T00:00:00.000",
@@ -17358,6 +17358,14 @@
     },
     {
       "date": "2026-03-24T00:00:00.000",
+      "open_interest": 71997.0,
+      "noncommercial_long": 20512.0,
+      "noncommercial_short": 37115.0,
+      "commercial_long": 5984.0,
+      "commercial_short": 0.0
+    },
+    {
+      "date": "2026-03-24T00:00:00.000",
       "open_interest": 403925.0,
       "noncommercial_long": 220861.0,
       "noncommercial_short": 52534.0,
@@ -17365,11 +17373,11 @@
       "commercial_short": 280825.0
     },
     {
-      "date": "2026-03-24T00:00:00.000",
-      "open_interest": 71997.0,
-      "noncommercial_long": 20512.0,
-      "noncommercial_short": 37115.0,
-      "commercial_long": 5984.0,
+      "date": "2026-03-31T00:00:00.000",
+      "open_interest": 57288.0,
+      "noncommercial_long": 15492.0,
+      "noncommercial_short": 28583.0,
+      "commercial_long": 6087.0,
       "commercial_short": 0.0
     },
     {
@@ -17379,14 +17387,6 @@
       "noncommercial_short": 44400.0,
       "commercial_long": 58697.0,
       "commercial_short": 260337.0
-    },
-    {
-      "date": "2026-03-31T00:00:00.000",
-      "open_interest": 57288.0,
-      "noncommercial_long": 15492.0,
-      "noncommercial_short": 28583.0,
-      "commercial_long": 6087.0,
-      "commercial_short": 0.0
     },
     {
       "date": "2026-04-07T00:00:00.000",
@@ -17406,19 +17406,19 @@
     },
     {
       "date": "2026-04-14T00:00:00.000",
-      "open_interest": 59913.0,
-      "noncommercial_long": 18459.0,
-      "noncommercial_short": 31898.0,
-      "commercial_long": 6208.0,
-      "commercial_short": 0.0
-    },
-    {
-      "date": "2026-04-14T00:00:00.000",
       "open_interest": 362274.0,
       "noncommercial_long": 210009.0,
       "noncommercial_short": 47483.0,
       "commercial_long": 55757.0,
       "commercial_short": 256839.0
+    },
+    {
+      "date": "2026-04-14T00:00:00.000",
+      "open_interest": 59913.0,
+      "noncommercial_long": 18459.0,
+      "noncommercial_short": 31898.0,
+      "commercial_long": 6208.0,
+      "commercial_short": 0.0
     },
     {
       "date": "2026-04-21T00:00:00.000",
@@ -17454,14 +17454,6 @@
     },
     {
       "date": "2026-05-05T00:00:00.000",
-      "open_interest": 65308.0,
-      "noncommercial_long": 20165.0,
-      "noncommercial_short": 44707.0,
-      "commercial_long": 6018.0,
-      "commercial_short": 0.0
-    },
-    {
-      "date": "2026-05-05T00:00:00.000",
       "open_interest": 367932.0,
       "noncommercial_long": 211814.0,
       "noncommercial_short": 48511.0,
@@ -17469,12 +17461,12 @@
       "commercial_short": 257165.0
     },
     {
-      "date": "2026-05-12T00:00:00.000",
-      "open_interest": 376496.0,
-      "noncommercial_long": 219793.0,
-      "noncommercial_short": 48171.0,
-      "commercial_long": 57725.0,
-      "commercial_short": 267983.0
+      "date": "2026-05-05T00:00:00.000",
+      "open_interest": 65308.0,
+      "noncommercial_long": 20165.0,
+      "noncommercial_short": 44707.0,
+      "commercial_long": 6018.0,
+      "commercial_short": 0.0
     },
     {
       "date": "2026-05-12T00:00:00.000",
@@ -17483,6 +17475,14 @@
       "noncommercial_short": 45520.0,
       "commercial_long": 6097.0,
       "commercial_short": 0.0
+    },
+    {
+      "date": "2026-05-12T00:00:00.000",
+      "open_interest": 376496.0,
+      "noncommercial_long": 219793.0,
+      "noncommercial_short": 48171.0,
+      "commercial_long": 57725.0,
+      "commercial_short": 267983.0
     },
     {
       "date": "2026-05-19T00:00:00.000",
@@ -17566,19 +17566,19 @@
     },
     {
       "date": "2026-06-23T00:00:00.000",
-      "open_interest": 61967.0,
-      "noncommercial_long": 21211.0,
-      "noncommercial_short": 43489.0,
-      "commercial_long": 7392.0,
-      "commercial_short": 0.0
-    },
-    {
-      "date": "2026-06-23T00:00:00.000",
       "open_interest": 352167.0,
       "noncommercial_long": 217028.0,
       "noncommercial_short": 35689.0,
       "commercial_long": 64579.0,
       "commercial_short": 269983.0
+    },
+    {
+      "date": "2026-06-23T00:00:00.000",
+      "open_interest": 61967.0,
+      "noncommercial_long": 21211.0,
+      "noncommercial_short": 43489.0,
+      "commercial_long": 7392.0,
+      "commercial_short": 0.0
     },
     {
       "date": "2026-06-30T00:00:00.000",
@@ -17598,14 +17598,6 @@
     },
     {
       "date": "2026-07-07T00:00:00.000",
-      "open_interest": 70778.0,
-      "noncommercial_long": 27179.0,
-      "noncommercial_short": 42642.0,
-      "commercial_long": 7144.0,
-      "commercial_short": 0.0
-    },
-    {
-      "date": "2026-07-07T00:00:00.000",
       "open_interest": 371776.0,
       "noncommercial_long": 233713.0,
       "noncommercial_short": 39467.0,
@@ -17613,11 +17605,11 @@
       "commercial_short": 281846.0
     },
     {
-      "date": "2026-07-14T00:00:00.000",
-      "open_interest": 74364.0,
-      "noncommercial_long": 29727.0,
-      "noncommercial_short": 45283.0,
-      "commercial_long": 7151.0,
+      "date": "2026-07-07T00:00:00.000",
+      "open_interest": 70778.0,
+      "noncommercial_long": 27179.0,
+      "noncommercial_short": 42642.0,
+      "commercial_long": 7144.0,
       "commercial_short": 0.0
     },
     {
@@ -17627,6 +17619,14 @@
       "noncommercial_short": 40628.0,
       "commercial_long": 79639.0,
       "commercial_short": 294427.0
+    },
+    {
+      "date": "2026-07-14T00:00:00.000",
+      "open_interest": 74364.0,
+      "noncommercial_long": 29727.0,
+      "noncommercial_short": 45283.0,
+      "commercial_long": 7151.0,
+      "commercial_short": 0.0
     },
     {
       "date": "2026-07-21T00:00:00.000",
@@ -17646,19 +17646,19 @@
     },
     {
       "date": "2026-07-28T00:00:00.000",
-      "open_interest": 83553.0,
-      "noncommercial_long": 35779.0,
-      "noncommercial_short": 46335.0,
-      "commercial_long": 7037.0,
-      "commercial_short": 0.0
-    },
-    {
-      "date": "2026-07-28T00:00:00.000",
       "open_interest": 384603.0,
       "noncommercial_long": 219622.0,
       "noncommercial_short": 37552.0,
       "commercial_long": 75460.0,
       "commercial_short": 287769.0
+    },
+    {
+      "date": "2026-07-28T00:00:00.000",
+      "open_interest": 83553.0,
+      "noncommercial_long": 35779.0,
+      "noncommercial_short": 46335.0,
+      "commercial_long": 7037.0,
+      "commercial_short": 0.0
     },
     {
       "date": "2026-08-04T00:00:00.000",
@@ -17678,14 +17678,6 @@
     },
     {
       "date": "2026-08-11T00:00:00.000",
-      "open_interest": 400309.0,
-      "noncommercial_long": 250936.0,
-      "noncommercial_short": 32996.0,
-      "commercial_long": 69385.0,
-      "commercial_short": 322025.0
-    },
-    {
-      "date": "2026-08-11T00:00:00.000",
       "open_interest": 61412.0,
       "noncommercial_long": 14178.0,
       "noncommercial_short": 29115.0,
@@ -17693,12 +17685,20 @@
       "commercial_short": 0.0
     },
     {
+      "date": "2026-08-11T00:00:00.000",
+      "open_interest": 400309.0,
+      "noncommercial_long": 250936.0,
+      "noncommercial_short": 32996.0,
+      "commercial_long": 69385.0,
+      "commercial_short": 322025.0
+    },
+    {
       "date": "2026-08-18T00:00:00.000",
-      "open_interest": 406260.0,
-      "noncommercial_long": 256902.0,
-      "noncommercial_short": 34713.0,
-      "commercial_long": 69050.0,
-      "commercial_short": 327468.0
+      "open_interest": 8468.0,
+      "noncommercial_long": 3488.0,
+      "noncommercial_short": 6346.0,
+      "commercial_long": 0.0,
+      "commercial_short": 0.0
     },
     {
       "date": "2026-08-18T00:00:00.000",
@@ -17710,11 +17710,11 @@
     },
     {
       "date": "2026-08-18T00:00:00.000",
-      "open_interest": 8468.0,
-      "noncommercial_long": 3488.0,
-      "noncommercial_short": 6346.0,
-      "commercial_long": 0.0,
-      "commercial_short": 0.0
+      "open_interest": 406260.0,
+      "noncommercial_long": 256902.0,
+      "noncommercial_short": 34713.0,
+      "commercial_long": 69050.0,
+      "commercial_short": 327468.0
     },
     {
       "date": "2026-08-25T00:00:00.000",
@@ -17838,19 +17838,19 @@
     },
     {
       "date": "2026-10-13T00:00:00.000",
-      "open_interest": 396345.0,
-      "noncommercial_long": 245300.0,
-      "noncommercial_short": 37421.0,
-      "commercial_long": 54419.0,
-      "commercial_short": 296950.0
-    },
-    {
-      "date": "2026-10-13T00:00:00.000",
       "open_interest": 110505.0,
       "noncommercial_long": 52364.0,
       "noncommercial_short": 80422.0,
       "commercial_long": 8027.0,
       "commercial_short": 0.0
+    },
+    {
+      "date": "2026-10-13T00:00:00.000",
+      "open_interest": 396345.0,
+      "noncommercial_long": 245300.0,
+      "noncommercial_short": 37421.0,
+      "commercial_long": 54419.0,
+      "commercial_short": 296950.0
     },
     {
       "date": "2026-10-20T00:00:00.000",

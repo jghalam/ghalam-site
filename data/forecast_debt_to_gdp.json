@@ -1,63 +1,63 @@
 {
   "id": "forecast_debt_to_gdp",
   "source": "Forecast",
-  "updated": "2026-10-29T12:02:21.706291+00:00",
+  "updated": "2026-10-30T11:55:42.584824+00:00",
   "count": 8,
   "records": [
     {
-      "date": "2026-07-01",
-      "value": 120.4008,
-      "lower": 118.0173,
-      "upper": 122.7843
-    },
-    {
       "date": "2026-09-30",
-      "value": 120.7067,
-      "lower": 117.336,
-      "upper": 124.0775
+      "value": 119.5931,
+      "lower": 117.2158,
+      "upper": 121.9704
     },
     {
       "date": "2026-12-30",
-      "value": 121.0127,
-      "lower": 116.8844,
-      "upper": 125.1409
+      "value": 119.642,
+      "lower": 116.28,
+      "upper": 123.004
     },
     {
       "date": "2027-03-31",
-      "value": 121.3186,
-      "lower": 116.5516,
-      "upper": 126.0855
+      "value": 119.6909,
+      "lower": 115.5733,
+      "upper": 123.8085
     },
     {
       "date": "2027-06-30",
-      "value": 121.6245,
-      "lower": 116.2949,
-      "upper": 126.9541
+      "value": 119.7398,
+      "lower": 114.9852,
+      "upper": 124.4945
     },
     {
       "date": "2027-09-29",
-      "value": 121.9304,
-      "lower": 116.0921,
-      "upper": 127.7687
+      "value": 119.7888,
+      "lower": 114.4729,
+      "upper": 125.1046
     },
     {
       "date": "2027-12-29",
-      "value": 122.2363,
-      "lower": 115.9302,
-      "upper": 128.5424
+      "value": 119.8377,
+      "lower": 114.0145,
+      "upper": 125.6609
     },
     {
       "date": "2028-03-29",
-      "value": 122.5422,
-      "lower": 115.8008,
-      "upper": 129.2837
+      "value": 119.8866,
+      "lower": 113.5968,
+      "upper": 126.1764
+    },
+    {
+      "date": "2028-06-28",
+      "value": 119.9355,
+      "lower": 113.2115,
+      "upper": 126.6596
     }
   ],
   "method": "Holt linear trend (double exponential smoothing)",
   "forecast_of": "debt_to_gdp",
   "alpha": 0.8,
   "beta": 0.3,
-  "residual_sigma": 1.8621,
-  "fit_points_used": 133,
+  "residual_sigma": 1.8573,
+  "fit_points_used": 134,
   "confidence_level": "~80%"
 }
