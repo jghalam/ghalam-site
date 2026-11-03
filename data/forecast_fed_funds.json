@@ -1,159 +1,159 @@
 {
   "id": "forecast_fed_funds",
   "source": "Forecast",
-  "updated": "2026-11-02T14:21:32.126353+00:00",
+  "updated": "2026-11-03T13:21:18.410024+00:00",
   "count": 24,
   "records": [
     {
-      "date": "2026-10-01",
-      "value": 3.7117,
-      "lower": 3.0302,
-      "upper": 4.3932
-    },
-    {
       "date": "2026-10-31",
-      "value": 3.7014,
-      "lower": 2.7377,
-      "upper": 4.6651
+      "value": 3.8428,
+      "lower": 3.1617,
+      "upper": 4.5239
     },
     {
       "date": "2026-11-30",
-      "value": 3.6911,
-      "lower": 2.5108,
-      "upper": 4.8715
+      "value": 3.8392,
+      "lower": 2.876,
+      "upper": 4.8025
     },
     {
       "date": "2026-12-30",
-      "value": 3.6809,
-      "lower": 2.318,
-      "upper": 5.0438
+      "value": 3.8357,
+      "lower": 2.656,
+      "upper": 5.0154
     },
     {
       "date": "2027-01-29",
-      "value": 3.6706,
-      "lower": 2.1468,
+      "value": 3.8322,
+      "lower": 2.4699,
       "upper": 5.1944
     },
     {
       "date": "2027-02-28",
-      "value": 3.6603,
-      "lower": 1.9911,
-      "upper": 5.3295
+      "value": 3.8286,
+      "lower": 2.3056,
+      "upper": 5.3516
     },
     {
       "date": "2027-03-30",
-      "value": 3.65,
-      "lower": 1.8471,
-      "upper": 5.453
+      "value": 3.8251,
+      "lower": 2.1567,
+      "upper": 5.4934
     },
     {
       "date": "2027-04-29",
-      "value": 3.6398,
-      "lower": 1.7123,
-      "upper": 5.5672
+      "value": 3.8215,
+      "lower": 2.0195,
+      "upper": 5.6236
     },
     {
       "date": "2027-05-29",
-      "value": 3.6295,
-      "lower": 1.5851,
-      "upper": 5.6738
+      "value": 3.818,
+      "lower": 1.8915,
+      "upper": 5.7444
     },
     {
       "date": "2027-06-28",
-      "value": 3.6192,
-      "lower": 1.4643,
-      "upper": 5.7742
+      "value": 3.8144,
+      "lower": 1.7711,
+      "upper": 5.8578
     },
     {
       "date": "2027-07-28",
-      "value": 3.6089,
-      "lower": 1.3488,
-      "upper": 5.8691
+      "value": 3.8109,
+      "lower": 1.657,
+      "upper": 5.9647
     },
     {
       "date": "2027-08-27",
-      "value": 3.5987,
-      "lower": 1.238,
-      "upper": 5.9593
+      "value": 3.8073,
+      "lower": 1.5484,
+      "upper": 6.0663
     },
     {
       "date": "2027-09-26",
-      "value": 3.5884,
-      "lower": 1.1314,
-      "upper": 6.0454
+      "value": 3.8038,
+      "lower": 1.4444,
+      "upper": 6.1632
     },
     {
       "date": "2027-10-26",
-      "value": 3.5781,
-      "lower": 1.0283,
-      "upper": 6.1279
+      "value": 3.8002,
+      "lower": 1.3445,
+      "upper": 6.256
     },
     {
       "date": "2027-11-25",
-      "value": 3.5678,
-      "lower": 0.9286,
-      "upper": 6.2071
+      "value": 3.7967,
+      "lower": 1.2482,
+      "upper": 6.3452
     },
     {
       "date": "2027-12-25",
-      "value": 3.5575,
-      "lower": 0.8317,
-      "upper": 6.2834
+      "value": 3.7932,
+      "lower": 1.1552,
+      "upper": 6.4311
     },
     {
       "date": "2028-01-24",
-      "value": 3.5473,
-      "lower": 0.7376,
-      "upper": 6.357
+      "value": 3.7896,
+      "lower": 1.0652,
+      "upper": 6.514
     },
     {
       "date": "2028-02-23",
-      "value": 3.537,
-      "lower": 0.6458,
-      "upper": 6.4282
+      "value": 3.7861,
+      "lower": 0.9778,
+      "upper": 6.5943
     },
     {
       "date": "2028-03-24",
-      "value": 3.5267,
-      "lower": 0.5563,
-      "upper": 6.4971
+      "value": 3.7825,
+      "lower": 0.8928,
+      "upper": 6.6722
     },
     {
       "date": "2028-04-23",
-      "value": 3.5164,
-      "lower": 0.4689,
-      "upper": 6.564
+      "value": 3.779,
+      "lower": 0.8101,
+      "upper": 6.7478
     },
     {
       "date": "2028-05-23",
-      "value": 3.5062,
-      "lower": 0.3833,
-      "upper": 6.629
+      "value": 3.7754,
+      "lower": 0.7294,
+      "upper": 6.8214
     },
     {
       "date": "2028-06-22",
-      "value": 3.4959,
-      "lower": 0.2996,
-      "upper": 6.6922
+      "value": 3.7719,
+      "lower": 0.6507,
+      "upper": 6.8931
     },
     {
       "date": "2028-07-22",
-      "value": 3.4856,
-      "lower": 0.2175,
-      "upper": 6.7537
+      "value": 3.7683,
+      "lower": 0.5737,
+      "upper": 6.963
     },
     {
       "date": "2028-08-21",
-      "value": 3.4753,
-      "lower": 0.1369,
-      "upper": 6.8138
+      "value": 3.7648,
+      "lower": 0.4983,
+      "upper": 7.0313
+    },
+    {
+      "date": "2028-09-20",
+      "value": 3.7612,
+      "lower": 0.4245,
+      "upper": 7.098
     }
   ],
   "method": "Holt linear trend (double exponential smoothing)",
   "forecast_of": "fed_funds",
   "alpha": 0.8,
   "beta": 0.05,
-  "residual_sigma": 0.5324,
-  "fit_points_used": 867,
+  "residual_sigma": 0.5321,
+  "fit_points_used": 868,
   "confidence_level": "~80%"
 }
