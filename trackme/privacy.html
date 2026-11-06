@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="images/favicon-32.png">
+<link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+<title>Privacy Policy – TrackMe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#0d0f14; --surface:#161820; --border:#2a2d3a; --text:#e8eaf0; --muted:#8b8fa8; --accent:#3d9bff; --radius:14px; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-weight: 300; line-height: 1.75; min-height: 100vh; }
+  nav { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 2rem; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: rgba(13,15,20,0.92); backdrop-filter: blur(12px); z-index: 100; }
+  nav .brand { font-family: 'DM Serif Display', serif; font-size: 1.2rem; color: var(--accent); text-decoration: none; }
+  nav .nav-links { display: flex; gap: 2rem; list-style: none; }
+  nav .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.9rem; font-weight: 400; letter-spacing: 0.04em; transition: color 0.2s; }
+  nav .nav-links a:hover { color: var(--text); }
+  nav .nav-links a.active { color: var(--accent); }
+  .page-header { max-width: 760px; margin: 0 auto; padding: 3.5rem 2rem 2rem; border-bottom: 1px solid var(--border); }
+  .page-header .label { font-size: 0.78rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.6rem; }
+  .page-header h1 { font-family: 'DM Serif Display', serif; font-size: 2.4rem; font-weight: 400; color: var(--text); line-height: 1.15; }
+  .page-header .updated { margin-top: 0.75rem; font-size: 0.85rem; color: var(--muted); }
+  article { max-width: 760px; margin: 0 auto; padding: 2.5rem 2rem 4rem; }
+  article h2 { font-family: 'DM Serif Display', serif; font-size: 1.3rem; font-weight: 400; color: var(--text); margin: 2.5rem 0 0.75rem; padding-top: 2rem; border-top: 1px solid var(--border); }
+  article h2:first-child { border-top: none; padding-top: 0; margin-top: 0; }
+  article p { color: var(--muted); margin-bottom: 1rem; }
+  article ul { color: var(--muted); padding-left: 1.5rem; margin-bottom: 1rem; }
+  article ul li { margin-bottom: 0.4rem; }
+  article strong { color: var(--text); font-weight: 500; }
+  article a { color: var(--accent); text-decoration: none; }
+  article a:hover { text-decoration: underline; }
+  .note { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: var(--radius); padding: 1rem 1.25rem; margin: 1.25rem 0; }
+  .note p { margin-bottom: 0; }
+  .contact-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 2rem; text-align: center; margin-top: 1.5rem; }
+  .contact-card p { margin-bottom: 1rem; }
+  .contact-card a.btn { display: inline-block; background: var(--accent); color: #0d0f14; font-weight: 500; font-size: 0.9rem; padding: 0.6rem 1.6rem; border-radius: 100px; text-decoration: none; letter-spacing: 0.03em; transition: opacity 0.2s; }
+  .contact-card a.btn:hover { opacity: 0.85; text-decoration: none; }
+  footer { text-align: center; padding: 2rem; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.82rem; }
+  footer a { color: var(--muted); text-decoration: none; }
+  footer a:hover { color: var(--accent); }
+  @media (max-width: 600px) { nav { padding: 1rem; } nav .nav-links { gap: 1.25rem; } .page-header, article { padding-left: 1.25rem; padding-right: 1.25rem; } }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="brand">TrackMe</a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="privacy.html" class="active">Privacy</a></li>
+    <li><a href="support.html">Support</a></li>
+    <li><a href="https://ghalam.net/" target="_blank">Ghalam.net</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <p class="label">Legal</p>
+  <h1>Privacy Policy</h1>
+  <p class="updated">Last updated: November 2026</p>
+</div>
+
+<article>
+
+  <p>TrackMe ("the App") is a GPS tracking app for iOS that records your routes, speed and places you mark. This Privacy Policy explains what information the App accesses and how it is used. Joe Ghalam built TrackMe, and this service is provided by Joe Ghalam as-is.</p>
+
+  <div class="note">
+    <p><strong>In short:</strong> your tracks, notes and photos stay on your device. TrackMe has no account, no analytics, no advertising, and does not upload your data to any server of its own.</p>
+  </div>
+
+  <h2>Location</h2>
+  <p>TrackMe uses your location to record your route, show your position on the map, and display your speed, distance and altitude. The first time you use these features, iOS asks for "While Using the App" access, which is all the App needs.</p>
+  <p>When you start a recording, TrackMe can keep recording in the background with the screen off or while you use other apps. While it does, iOS shows a blue location indicator. Stopping the recording stops location use. Outside of a recording, location is used only while the Record or Dashboard screens are showing.</p>
+  <p>Your location is never sent to the developer or to any analytics or advertising service. The recorded points are stored on your device, and the only outside services involved are the Apple services described below.</p>
+
+  <h2>Tracks, Waypoints, Notes and Photos</h2>
+  <p>Everything you record or write &mdash; track points, speeds, altitudes, waypoints, notes, the names of people you were with, and photos &mdash; is stored in the App's private storage on your device. It is not synced to any server operated by TrackMe, and TrackMe does not use iCloud.</p>
+  <p>Photos you attach to a waypoint are chosen with the iOS photo picker, which gives the App access only to the pictures you select, or taken with the camera if you allow camera access. The App stores its own copy, including any cropping or markings you add. The App does not read the rest of your photo library.</p>
+
+  <h2>Apple Maps and Place Names</h2>
+  <p>Maps in TrackMe are provided by Apple Maps (MapKit). Showing a map sends the area being viewed from your device to Apple to load map tiles, the same as in other apps that use Apple Maps.</p>
+  <p>When a track is saved, the App can look up the name of the nearby place (for example, "Walk in Brooklyn") using Apple's geocoding service. The coordinates sent for this lookup go from your device to Apple. TrackMe does not see or log these requests beyond using the returned place name. Apple's handling of this data is described in <a href="https://www.apple.com/legal/privacy/" target="_blank" rel="noopener">Apple's Privacy Policy</a>.</p>
+
+  <h2>Device Sensors</h2>
+  <p>The G-Force screen reads your device's motion sensors, and the Dashboard can use the compass for your heading. These readings are used live on your screen and are not recorded, saved or transmitted.</p>
+
+  <h2>Voice Announcements</h2>
+  <p>When you tap a data box to hear it, the App speaks the value using the speech voices built into iOS. This happens on your device.</p>
+
+  <h2>Live Activities</h2>
+  <p>While a recording is running, TrackMe can show your time, distance and speed on the Lock Screen and in the Dynamic Island. This information is updated by the App on your device and is not sent to any server.</p>
+
+  <h2>Exporting, Sharing and Backups</h2>
+  <p>You decide when a track leaves the App. Exporting a track as a GPX file or creating a TrackMe backup file opens the standard iOS share sheet, where you choose where it goes (Files, Mail, AirDrop, another app and so on). TrackMe does not upload files for you. Once you send a file to another app or person, it is governed by that app's or person's practices.</p>
+  <p>TrackMe does not back up your data on its own. Like other apps, its data may be included in a full-device backup that you have turned on in iOS, such as an iCloud or computer backup. That backup is controlled by you and Apple, not by TrackMe.</p>
+
+  <h2>Information We Don't Collect</h2>
+  <ul>
+    <li>No account creation or sign-in of any kind</li>
+    <li>No analytics, crash reporting, or usage tracking</li>
+    <li>No advertising identifiers or third-party advertising SDKs</li>
+    <li>No access to your contacts, your full photo library, or other apps' data</li>
+  </ul>
+
+  <h2>Data Sharing</h2>
+  <p>TrackMe does not sell, rent, or share your data with third parties. The only data that leaves your device without an action from you is what is sent to Apple's map and place-name services, as described above.</p>
+
+  <h2>Deleting Your Data</h2>
+  <p>You can delete any track, waypoint or photo from within the App at any time. Deleting the App removes all of its data from your device, including saved tracks and settings. Files you have exported or backed up elsewhere are not removed, since they are outside the App.</p>
+
+  <h2>Children's Privacy</h2>
+  <p>TrackMe is intended for general audiences and is not directed at children under the age of 13. The App does not knowingly collect information from children.</p>
+
+  <h2>Changes to This Policy</h2>
+  <p>This Privacy Policy may be updated from time to time. Updates will be posted on this page with a revised date. Continued use of the App after changes are posted constitutes your acceptance of the revised policy.</p>
+
+  <h2>Contact</h2>
+  <p>If you have questions or concerns about this Privacy Policy, please contact:</p>
+  <p><a href="mailto:jghalam@yahoo.com">jghalam@yahoo.com</a></p>
+
+</article>
+
+<footer>
+  <p>© 2026 TrackMe &nbsp;·&nbsp; <a href="index.html">Home</a> &nbsp;·&nbsp; <a href="support.html">Support</a> &nbsp;·&nbsp; <a href="https://ghalam.net/">Ghalam.net</a></p>
+</footer>
+
+</body>
+</html>

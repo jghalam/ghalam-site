@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="images/favicon-32.png">
+<link rel="apple-touch-icon" href="images/apple-touch-icon.png">
+<title>Support – TrackMe</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root { --bg:#0d0f14; --surface:#161820; --border:#2a2d3a; --text:#e8eaf0; --muted:#8b8fa8; --accent:#3d9bff; --radius:14px; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-weight: 300; line-height: 1.75; min-height: 100vh; }
+  nav { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 2rem; border-bottom: 1px solid var(--border); position: sticky; top: 0; background: rgba(13,15,20,0.92); backdrop-filter: blur(12px); z-index: 100; }
+  nav .brand { font-family: 'DM Serif Display', serif; font-size: 1.2rem; color: var(--accent); text-decoration: none; }
+  nav .nav-links { display: flex; gap: 2rem; list-style: none; }
+  nav .nav-links a { color: var(--muted); text-decoration: none; font-size: 0.9rem; font-weight: 400; letter-spacing: 0.04em; transition: color 0.2s; }
+  nav .nav-links a:hover { color: var(--text); }
+  nav .nav-links a.active { color: var(--accent); }
+  .page-header { max-width: 760px; margin: 0 auto; padding: 3.5rem 2rem 2rem; border-bottom: 1px solid var(--border); }
+  .page-header .label { font-size: 0.78rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.6rem; }
+  .page-header h1 { font-family: 'DM Serif Display', serif; font-size: 2.4rem; font-weight: 400; color: var(--text); line-height: 1.15; }
+  .page-header .updated { margin-top: 0.75rem; font-size: 0.85rem; color: var(--muted); }
+  article { max-width: 760px; margin: 0 auto; padding: 2.5rem 2rem 4rem; }
+  article h2 { font-family: 'DM Serif Display', serif; font-size: 1.3rem; font-weight: 400; color: var(--text); margin: 2.5rem 0 0.75rem; padding-top: 2rem; border-top: 1px solid var(--border); }
+  article h2:first-child { border-top: none; padding-top: 0; margin-top: 0; }
+  article p { color: var(--muted); margin-bottom: 1rem; }
+  article ul { color: var(--muted); padding-left: 1.5rem; margin-bottom: 1rem; }
+  article ul li { margin-bottom: 0.4rem; }
+  article strong { color: var(--text); font-weight: 500; }
+  article a { color: var(--accent); text-decoration: none; }
+  article a:hover { text-decoration: underline; }
+  .note { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent); border-radius: var(--radius); padding: 1rem 1.25rem; margin: 1.25rem 0; }
+  .note p { margin-bottom: 0; }
+  .contact-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 2rem; text-align: center; margin-top: 1.5rem; }
+  .contact-card p { margin-bottom: 1rem; }
+  .contact-card a.btn { display: inline-block; background: var(--accent); color: #0d0f14; font-weight: 500; font-size: 0.9rem; padding: 0.6rem 1.6rem; border-radius: 100px; text-decoration: none; letter-spacing: 0.03em; transition: opacity 0.2s; }
+  .contact-card a.btn:hover { opacity: 0.85; text-decoration: none; }
+  footer { text-align: center; padding: 2rem; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.82rem; }
+  footer a { color: var(--muted); text-decoration: none; }
+  footer a:hover { color: var(--accent); }
+  @media (max-width: 600px) { nav { padding: 1rem; } nav .nav-links { gap: 1.25rem; } .page-header, article { padding-left: 1.25rem; padding-right: 1.25rem; } }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="index.html" class="brand">TrackMe</a>
+  <ul class="nav-links">
+    <li><a href="index.html">Home</a></li>
+    <li><a href="privacy.html">Privacy</a></li>
+    <li><a href="support.html" class="active">Support</a></li>
+    <li><a href="https://ghalam.net/" target="_blank">Ghalam.net</a></li>
+  </ul>
+</nav>
+
+<div class="page-header">
+  <p class="label">Help</p>
+  <h1>Support</h1>
+</div>
+
+<article>
+
+  <p>TrackMe is a GPS tracker for iOS that records bike rides, hikes, walks and trips, lets you save and continue journeys, and adds waypoints with notes and photos. If you're running into problems or have a question, we're happy to help.</p>
+
+  <h2>Getting Help</h2>
+  <p>If you experience issues using TrackMe, have questions about a feature, or want to report a bug or suggest an improvement, please contact the developer directly. A short description of what happened, your iPhone model and your iOS version help a lot.</p>
+
+  <div class="contact-card">
+    <p>Reach out for support, bug reports, or feature requests.</p>
+    <a href="mailto:jghalam@yahoo.com?subject=TrackMe%20Support" class="btn">Email Support</a>
+  </div>
+
+  <h2>Common Questions</h2>
+
+  <p><strong>Will TrackMe keep recording with the screen off or in another app?</strong><br>
+  Yes. Start a recording while TrackMe is open and it keeps recording in the background, with a blue location indicator in the status bar. Allow location access "While Using the App" when iOS asks, and avoid force-quitting TrackMe from the App Switcher during a recording, since that stops it. If TrackMe is ever closed unexpectedly, it offers to resume or finish the unfinished recording the next time you open it, and the points up to that moment are kept.</p>
+
+  <p><strong>My track looks rough or inaccurate. What can I do?</strong><br>
+  In iOS Settings &rarr; Privacy &amp; Security &rarr; Location Services &rarr; TrackMe, make sure Precise Location is on; TrackMe warns you when it is off. In TrackMe's Settings, the Precise GPS profile records the most detail. GPS is weaker in tunnels, dense cities and under heavy tree cover. The map line can be smoothed in Settings; smoothing only changes how the line is drawn, not your recorded distance.</p>
+
+  <p><strong>Why is there a dotted line on my track?</strong><br>
+  A dotted line joins two parts of a journey where nothing was recorded, such as a pause, a lost signal, or when you stopped a recording and later continued it somewhere else. It is only a visual link; the straight-line gap is not counted as distance.</p>
+
+  <p><strong>How do I continue a journey on another day?</strong><br>
+  Open the journey in the Tracks tab and choose Continue this journey. Each session is added to the same journey as its own segment, shown in a different color, and the Record screen shows earlier segments in a different color from the one being recorded.</p>
+
+  <p><strong>How do I mark a place, add notes or photos?</strong><br>
+  While recording, tap Mark to drop a waypoint at your current position, then add a title, notes, who you were with, and photos. You can crop and mark up photos before saving them. On a saved journey, use Add Marker and tap a spot along the path to add a waypoint there afterwards.</p>
+
+  <p><strong>What does auto-pause do?</strong><br>
+  If it is turned on in Settings, recording pauses by itself after about 10 seconds below a speed you set, and resumes when you move faster. The speed can be set separately for each activity, so walking and driving can behave differently. Time and distance stop while it is paused, and a Resume button on the Record screen lets you keep recording anyway.</p>
+
+  <p><strong>How do I export a track or back it up?</strong><br>
+  Open a track and use the Export menu. GPX works with most other mapping and fitness apps. A TrackMe backup file keeps everything, including waypoints and photos, and can be brought back with Import Backup in the Tracks tab. TrackMe does not sync through iCloud, so backups are also the way to move your tracks to a new phone, unless you restore from an iOS device backup.</p>
+
+  <p><strong>Does it work without a signal?</strong><br>
+  Recording uses GPS, not mobile data, so tracks are recorded anywhere you have a clear view of the sky. Map pictures need a connection or previously viewed areas; if the map is blank, your track is still recorded and appears on the map when you are back in coverage.</p>
+
+  <p><strong>How do I use the Dashboard?</strong><br>
+  The Dashboard shows a large live reading of speed, pace, altitude or heading, with smaller boxes below. Tap a box to hear it spoken (this can be turned off in Settings), press and hold a small box to make it the big one, and press and hold the big one to switch it to an analog dial. Trip, Max and Moving values belong to a recording, so they show data only while one is running.</p>
+
+  <p><strong>How does the G-Force screen work?</strong><br>
+  It shows the push you feel as a dot on a target, along with the G level, a + or &minus; for accelerating or braking, left or right, and the highest values reached. Place the phone upright in a mount facing you, or flat with the top edge pointing forward, then tap Zero while stopped and level. Reset clears the peak values. The range switch changes how far out the target goes.</p>
+
+  <p><strong>Does the speed match my car's speedometer?</strong><br>
+  Almost. TrackMe shows your true speed from GPS. Many car speedometers read a few percent higher than true speed by design, so a small steady difference is normal. A weak GPS signal can also make the reading less reliable for a moment.</p>
+
+  <p><strong>What is Auto Night mode?</strong><br>
+  When it is turned on in Settings, TrackMe switches to a dark, dimmed look with a red accent on the Record, Dashboard and G-Force screens when it is dark, and on any screen while you are recording. iOS does not let apps read the light sensor, so TrackMe goes by either your screen brightness (with Auto-Brightness on) or the time of sunset and sunrise at your location. The sunset option starts 20 minutes before it gets dark.</p>
+
+  <p><strong>Can I switch between miles and kilometers?</strong><br>
+  Yes. Choose Metric or Imperial at the top of the Display tab in Settings. Your recorded data is always stored in metric internally, so you can change units at any time without losing accuracy.</p>
+
+  <p><strong>Why is the screen staying on?</strong><br>
+  Settings has a "Keep screen on while recording" option, which also keeps the screen awake on the Dashboard and G-Force screens. Turn it off to let iOS lock the screen as usual; recording continues either way.</p>
+
+  <p><strong>Will recording drain my battery?</strong><br>
+  GPS is one of the more power-hungry features of a phone. To make a recording last longer, choose the Balanced or Battery Saver GPS profile in Settings, turn off keeping the screen on, and lower the screen brightness.</p>
+
+  <h2>Safety</h2>
+  <p>GPS readings can be wrong or unavailable, and TrackMe is not a navigation or emergency device. Do not rely on it as your only way to find your way or to call for help, particularly in remote areas. Please do not operate the app while driving, riding or doing anything else that needs your full attention.</p>
+
+  <h2>Privacy</h2>
+  <p>For information about how TrackMe accesses and uses data, please review our <a href="privacy.html">Privacy Policy</a>.</p>
+
+</article>
+
+<footer>
+  <p>© 2026 TrackMe &nbsp;·&nbsp; <a href="index.html">Home</a> &nbsp;·&nbsp; <a href="privacy.html">Privacy</a> &nbsp;·&nbsp; <a href="https://ghalam.net/">Ghalam.net</a></p>
+</footer>
+
+</body>
+</html>
