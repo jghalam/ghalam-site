@@ -1,159 +1,159 @@
 {
   "id": "forecast_unemployment",
   "source": "Forecast",
-  "updated": "2026-11-06T13:31:15.540757+00:00",
+  "updated": "2026-11-07T12:11:28.480785+00:00",
   "count": 24,
   "records": [
     {
-      "date": "2026-10-01",
-      "value": 4.1779,
-      "lower": 3.6254,
-      "upper": 4.7305
-    },
-    {
       "date": "2026-10-31",
-      "value": 4.1762,
-      "lower": 3.3948,
-      "upper": 4.9577
+      "value": 4.1108,
+      "lower": 3.5585,
+      "upper": 4.6631
     },
     {
       "date": "2026-11-30",
-      "value": 4.1746,
-      "lower": 3.2175,
-      "upper": 5.1316
+      "value": 4.106,
+      "lower": 3.3249,
+      "upper": 4.887
     },
     {
       "date": "2026-12-30",
-      "value": 4.1729,
-      "lower": 3.0677,
-      "upper": 5.278
+      "value": 4.1012,
+      "lower": 3.1446,
+      "upper": 5.0577
     },
     {
       "date": "2027-01-29",
-      "value": 4.1712,
-      "lower": 2.9356,
-      "upper": 5.4067
+      "value": 4.0964,
+      "lower": 2.9918,
+      "upper": 5.2009
     },
     {
       "date": "2027-02-28",
-      "value": 4.1695,
-      "lower": 2.816,
-      "upper": 5.523
+      "value": 4.0916,
+      "lower": 2.8566,
+      "upper": 5.3265
     },
     {
       "date": "2027-03-30",
-      "value": 4.1678,
-      "lower": 2.7059,
-      "upper": 5.6297
+      "value": 4.0868,
+      "lower": 2.734,
+      "upper": 5.4395
     },
     {
       "date": "2027-04-29",
-      "value": 4.1661,
-      "lower": 2.6032,
-      "upper": 5.729
+      "value": 4.0819,
+      "lower": 2.6208,
+      "upper": 5.5431
     },
     {
       "date": "2027-05-29",
-      "value": 4.1644,
-      "lower": 2.5067,
-      "upper": 5.8221
+      "value": 4.0771,
+      "lower": 2.5151,
+      "upper": 5.6392
     },
     {
       "date": "2027-06-28",
-      "value": 4.1627,
-      "lower": 2.4154,
-      "upper": 5.9101
+      "value": 4.0723,
+      "lower": 2.4155,
+      "upper": 5.7292
     },
     {
       "date": "2027-07-28",
-      "value": 4.161,
-      "lower": 2.3284,
-      "upper": 5.9937
+      "value": 4.0675,
+      "lower": 2.3211,
+      "upper": 5.814
     },
     {
       "date": "2027-08-27",
-      "value": 4.1594,
-      "lower": 2.2452,
-      "upper": 6.0735
+      "value": 4.0627,
+      "lower": 2.231,
+      "upper": 5.8944
     },
     {
       "date": "2027-09-26",
-      "value": 4.1577,
-      "lower": 2.1654,
-      "upper": 6.1499
+      "value": 4.0579,
+      "lower": 2.1448,
+      "upper": 5.9711
     },
     {
       "date": "2027-10-26",
-      "value": 4.156,
-      "lower": 2.0885,
-      "upper": 6.2235
+      "value": 4.0531,
+      "lower": 2.0619,
+      "upper": 6.0444
     },
     {
       "date": "2027-11-25",
-      "value": 4.1543,
-      "lower": 2.0142,
-      "upper": 6.2943
+      "value": 4.0483,
+      "lower": 1.9819,
+      "upper": 6.1147
     },
     {
       "date": "2027-12-25",
-      "value": 4.1526,
-      "lower": 1.9424,
-      "upper": 6.3628
+      "value": 4.0435,
+      "lower": 1.9046,
+      "upper": 6.1825
     },
     {
       "date": "2028-01-24",
-      "value": 4.1509,
-      "lower": 1.8727,
-      "upper": 6.4292
+      "value": 4.0387,
+      "lower": 1.8296,
+      "upper": 6.2478
     },
     {
       "date": "2028-02-23",
-      "value": 4.1492,
-      "lower": 1.8049,
-      "upper": 6.4935
+      "value": 4.0339,
+      "lower": 1.7568,
+      "upper": 6.311
     },
     {
       "date": "2028-03-24",
-      "value": 4.1475,
-      "lower": 1.739,
-      "upper": 6.5561
+      "value": 4.0291,
+      "lower": 1.686,
+      "upper": 6.3722
     },
     {
       "date": "2028-04-23",
-      "value": 4.1459,
-      "lower": 1.6747,
-      "upper": 6.617
+      "value": 4.0243,
+      "lower": 1.617,
+      "upper": 6.4316
     },
     {
       "date": "2028-05-23",
-      "value": 4.1442,
-      "lower": 1.612,
-      "upper": 6.6763
+      "value": 4.0195,
+      "lower": 1.5496,
+      "upper": 6.4893
     },
     {
       "date": "2028-06-22",
-      "value": 4.1425,
-      "lower": 1.5507,
-      "upper": 6.7342
+      "value": 4.0147,
+      "lower": 1.4838,
+      "upper": 6.5455
     },
     {
       "date": "2028-07-22",
-      "value": 4.1408,
-      "lower": 1.4908,
-      "upper": 6.7908
+      "value": 4.0099,
+      "lower": 1.4195,
+      "upper": 6.6003
     },
     {
       "date": "2028-08-21",
-      "value": 4.1391,
-      "lower": 1.4321,
-      "upper": 6.8461
+      "value": 4.0051,
+      "lower": 1.3565,
+      "upper": 6.6537
+    },
+    {
+      "date": "2028-09-20",
+      "value": 4.0003,
+      "lower": 1.2947,
+      "upper": 6.7058
     }
   ],
   "method": "Holt linear trend (double exponential smoothing)",
   "forecast_of": "unemployment",
   "alpha": 0.8,
   "beta": 0.05,
-  "residual_sigma": 0.4317,
-  "fit_points_used": 944,
+  "residual_sigma": 0.4315,
+  "fit_points_used": 945,
   "confidence_level": "~80%"
 }
