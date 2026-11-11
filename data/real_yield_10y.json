@@ -1,8 +1,8 @@
 {
   "id": "real_yield_10y",
   "source": "Derived",
-  "updated": "2026-11-10T14:02:15.253850+00:00",
-  "count": 776,
+  "updated": "2026-11-11T13:19:05.349324+00:00",
+  "count": 777,
   "records": [
     {
       "date": "1962-01-01",
@@ -3107,6 +3107,10 @@
     {
       "date": "2026-09-01",
       "value": 0.767
+    },
+    {
+      "date": "2026-10-01",
+      "value": 1.159
     }
   ],
   "label": "10Y Treasury yield minus headline CPI YoY",
