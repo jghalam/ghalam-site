@@ -9,10 +9,10 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://ghalam.net/ghalamweather/">
 <meta property="og:title" content="GhalamWeather – Weather, Your Way">
-<meta property="og:description" content="Dual-unit forecasts, weather alerts, live radar, air quality, moon phase, and a barometric trend from your device's own sensor — with home and lock screen widgets, in English and French.">
+<meta property="og:description" content="Dual-unit forecasts, weather alerts, live radar, tides, air quality, moon phase, and a barometric trend from your device's own sensor — with home and lock screen widgets, a world clock, and smart notifications, in English and French.">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="GhalamWeather – Weather, Your Way">
-<meta name="twitter:description" content="Dual-unit forecasts, weather alerts, live radar, air quality, moon phase, and a barometric trend from your device's own sensor — with home and lock screen widgets, in English and French.">
+<meta name="twitter:description" content="Dual-unit forecasts, weather alerts, live radar, tides, air quality, moon phase, and a barometric trend from your device's own sensor — with home and lock screen widgets, a world clock, and smart notifications, in English and French.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -231,33 +231,6 @@
     section { padding: 2.5rem 1.25rem; }
   }
 </style>
-<!-- SEO -->
-<meta name="description" content="Dual-unit forecasts, live radar, air quality, moon phase, and a barometric pressure trend from your device&#x27;s own sensor.">
-<link rel="canonical" href="https://ghalam.net/ghalamweather/">
-<meta name="robots" content="index, follow, max-image-preview:large">
-<meta name="apple-itunes-app" content="app-id=6807653184">
-<meta property="og:site_name" content="Ghalam.net">
-<meta property="og:image" content="https://ghalam.net/ghalamweather/images/icon-512.png">
-<meta name="twitter:image" content="https://ghalam.net/ghalamweather/images/icon-512.png">
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "SoftwareApplication",
-  "name": "GhalamWeather",
-  "description": "Dual-unit forecasts, live radar, air quality, moon phase, and a barometric pressure trend from your device's own sensor.",
-  "url": "https://ghalam.net/ghalamweather/",
-  "image": "https://ghalam.net/ghalamweather/images/icon-512.png",
-  "applicationCategory": "WeatherApplication",
-  "author": {
-    "@type": "Person",
-    "name": "Joe Ghalam",
-    "url": "https://ghalam.net/"
-  },
-  "operatingSystem": "iOS",
-  "downloadUrl": "https://apps.apple.com/us/app/id6807653184"
-}
-</script>
-<!-- /SEO -->
 </head>
 <body>
 
@@ -274,7 +247,7 @@
 <div class="hero">
   <img src="images/icon-512.png" alt="GhalamWeather App Icon" class="app-icon">
   <h1>Weather that shows<br><span>both sides of the story</span></h1>
-  <p class="tagline">GhalamWeather shows both temperature units side by side, adds a live radar map, air quality, moon phase, and a barometric pressure trend straight from your device's own sensor — with widgets that keep working on your Home Screen and Lock Screen.</p>
+  <p class="tagline">GhalamWeather shows both temperature units side by side, adds a live radar map, tides, air quality, moon phase, and a barometric pressure trend straight from your device's own sensor — with smart notifications and widgets that keep working on your Home Screen and Lock Screen.</p>
   <a href="https://apps.apple.com/us/app/ghalamweather/id6807653184" class="badge-link" target="_blank">
     <img src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg" alt="Download on the App Store">
   </a>
@@ -287,7 +260,8 @@
 <section id="about">
   <h2>About GhalamWeather<span class="dot">.</span></h2>
   <p>GhalamWeather is built around a simple idea: you shouldn't have to guess or convert between °F and °C. Every temperature in the app — current conditions, hourly, the 10-day forecast — shows both units at once, with whichever one you prefer displayed larger.</p>
-  <p>Beyond the basics, GhalamWeather adds a few things Joe Ghalam wanted from a weather app and couldn't quite find elsewhere: a live precipitation radar, real air quality data, moon phase and illumination, and a genuine barometric pressure trend read directly from your iPhone's own barometer — not just a number, but whether it's actually rising, falling, or holding steady.</p>
+  <p>Beyond the basics, GhalamWeather adds a few things Joe Ghalam wanted from a weather app and couldn't quite find elsewhere: a live precipitation radar, tide predictions for coastal spots, real air quality data, moon phase and illumination, and a genuine barometric pressure trend read directly from your iPhone's own barometer — not just a number, but whether it's actually rising, falling, or holding steady.</p>
+  <p>It also pays attention to the details of daily use: press and hold the hourly forecast for full temperature, rain, and wind breakdowns, jump back to your current location with one tap, and get alert notifications that know when you're driving and stay quiet until you've arrived.</p>
 </section>
 
 <section>
@@ -314,6 +288,11 @@
       <p>Phase, illumination percentage, moonrise and moonset, and a countdown to the next full moon.</p>
     </div>
     <div class="feature-card">
+      <span class="icon">🌊</span>
+      <h3>Tides</h3>
+      <p>The next high and low tide, a 24-hour water-level curve, and a four-day outlook for coastal locations — official NOAA predictions in the US, with worldwide coverage elsewhere. The highest and lowest tides are marked at a glance.</p>
+    </div>
+    <div class="feature-card">
       <span class="icon">📊</span>
       <h3>Real Barometric Trend</h3>
       <p>Reads your iPhone's own barometer over time to show whether pressure is rising, falling, or steady.</p>
@@ -337,6 +316,26 @@
       <span class="icon">📍</span>
       <h3>Compare Locations</h3>
       <p>Long-press current conditions, air quality, or moon data to see it side by side across all your saved locations — tap any one to jump straight to its page.</p>
+    </div>
+    <div class="feature-card">
+      <span class="icon">⏱️</span>
+      <h3>Tap Into the Hour</h3>
+      <p>Press and hold the hourly forecast, or tap Details, for a full breakdown of temperature, chance of rain, or wind — with 24-hour charts, highlights, and the week ahead.</p>
+    </div>
+    <div class="feature-card">
+      <span class="icon">🔔</span>
+      <h3>Smart Notifications</h3>
+      <p>A daily weather summary and new-alert notifications for your current location. Choose which alert levels notify you, and alerts stay quiet while you're driving through changing areas — then catch up once you've stopped.</p>
+    </div>
+    <div class="feature-card">
+      <span class="icon">🕐</span>
+      <h3>World Clock</h3>
+      <p>An optional world clock shows the current date and time at every saved location, with the offset from where you are — tap one to jump to its forecast.</p>
+    </div>
+    <div class="feature-card">
+      <span class="icon">🧭</span>
+      <h3>Home Base</h3>
+      <p>One tap returns you to your current location from any saved page, and a Save button keeps the place you're standing in. Locations are named by neighbourhood, so you see where you really are.</p>
     </div>
     <div class="feature-card">
       <span class="icon">🌐</span>
