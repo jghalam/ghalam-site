@@ -1,63 +1,63 @@
 {
   "id": "forecast_debt_to_gdp",
   "source": "Forecast",
-  "updated": "2026-11-24T16:46:37.148687+00:00",
+  "updated": "2026-11-25T16:34:17.601585+00:00",
   "count": 8,
   "records": [
     {
       "date": "2026-09-30",
-      "value": 119.5931,
-      "lower": 117.2158,
-      "upper": 121.9704
+      "value": 119.4163,
+      "lower": 117.038,
+      "upper": 121.7946
     },
     {
       "date": "2026-12-30",
-      "value": 119.642,
-      "lower": 116.28,
-      "upper": 123.004
+      "value": 119.4244,
+      "lower": 116.061,
+      "upper": 122.7878
     },
     {
       "date": "2027-03-31",
-      "value": 119.6909,
-      "lower": 115.5733,
-      "upper": 123.8085
+      "value": 119.4325,
+      "lower": 115.3132,
+      "upper": 123.5519
     },
     {
       "date": "2027-06-30",
-      "value": 119.7398,
-      "lower": 114.9852,
-      "upper": 124.4945
+      "value": 119.4406,
+      "lower": 114.684,
+      "upper": 124.1972
     },
     {
       "date": "2027-09-29",
-      "value": 119.7888,
-      "lower": 114.4729,
-      "upper": 125.1046
+      "value": 119.4488,
+      "lower": 114.1307,
+      "upper": 124.7668
     },
     {
       "date": "2027-12-29",
-      "value": 119.8377,
-      "lower": 114.0145,
-      "upper": 125.6609
+      "value": 119.4569,
+      "lower": 113.6313,
+      "upper": 125.2825
     },
     {
       "date": "2028-03-29",
-      "value": 119.8866,
-      "lower": 113.5968,
-      "upper": 126.1764
+      "value": 119.465,
+      "lower": 113.1726,
+      "upper": 125.7574
     },
     {
       "date": "2028-06-28",
-      "value": 119.9355,
-      "lower": 113.2115,
-      "upper": 126.6596
+      "value": 119.4731,
+      "lower": 112.7463,
+      "upper": 126.2
     }
   ],
   "method": "Holt linear trend (double exponential smoothing)",
   "forecast_of": "debt_to_gdp",
   "alpha": 0.8,
   "beta": 0.3,
-  "residual_sigma": 1.8573,
+  "residual_sigma": 1.858,
   "fit_points_used": 134,
   "confidence_level": "~80%"
 }
